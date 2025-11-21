@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Somali Truck TMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-navy {
+            background-color: #1e3a8a;
+        }
+
+        .text-navy {
+            color: #1e3a8a;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .metric-card {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid #ffffff;
+        }
+
+        .main-content {
+            margin-left: 250px;
+        }
+
+        .company-logo {
+            width: 60px;
+            height: 60px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar fixed left-0 top-0 h-full text-white z-50">
+        <div class="p-6">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="company-logo" id="companyLogo">ST</div>
+                <div>
+                    <h2 class="text-xl font-bold" id="companyName">Somali Truck</h2>
+                    <p class="text-sm opacity-75">TMS</p>
+                </div>
+            </div>
+
+            <nav class="space-y-2">
+                <a href="index.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-tachometer-alt mr-3 w-5"></i>
+                    Dashboard
+                </a>
+                <a href="loads.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-truck mr-3 w-5"></i>
+                    Loads
+                </a>
+                <a href="drivers.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-users mr-3 w-5"></i>
+                    Drivers
+                </a>
+                <a href="fleet.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-truck-monster mr-3 w-5"></i>
+                    Fleet
+                </a>
+                <a href="customers.html"
+                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-building mr-3 w-5"></i>
+                    Customers
+                </a>
+                <a href="expenses.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-receipt mr-3 w-5"></i>
+                    Expenses
+                </a>
+                <a href="invoices.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-file-invoice mr-3 w-5"></i>
+                    Invoices
+                </a>
+                <a href="settlements.html"
+                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-calculator mr-3 w-5"></i>
+                    Settlements
+                </a>
+                <a href="reports.html"
+                    class="sidebar-item active flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-chart-bar mr-3 w-5"></i>
+                    Reports
+                </a>
+                <a href="import.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-upload mr-3 w-5"></i>
+                    Import
+                </a>
+            </nav>
+        </div>
+
+        <div class="absolute bottom-6 left-6 right-6">
+            <button onclick="CompanySettings.openModal()"
+                class="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium bg-white bg-opacity-10 hover:bg-opacity-20 transition-all">
+                <i class="fas fa-cog mr-3 w-5"></i>
+                Company Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="bg-white shadow-sm border-b">
+            <div class="px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Business Reports</h1>
+                        <p class="text-gray-600">Comprehensive analytics and performance metrics</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <select id="reportPeriod"
+                            class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="week">This Week</option>
+                            <option value="month" selected>This Month</option>
+                            <option value="quarter">This Quarter</option>
+                            <option value="year">This Year</option>
+                        </select>
+                        <button onclick="ReportManager.exportReport()"
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-download mr-2"></i>
+                            Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Tabs -->
+        <div class="bg-white border-b border-gray-200">
+            <div class="px-6">
+                <nav class="flex space-x-8">
+                    <button onclick="ReportManager.switchTab('overview')" id="overviewTab"
+                        class="py-4 px-1 border-b-2 border-blue-600 font-medium text-sm text-blue-600">
+                        Overview
+                    </button>
+                    <button onclick="ReportManager.switchTab('revenue')" id="revenueTab"
+                        class="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
+                        Revenue
+                    </button>
+                    <button onclick="ReportManager.switchTab('expenses')" id="expensesTab"
+                        class="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
+                        Expenses
+                    </button>
+                    <button onclick="ReportManager.switchTab('drivers')" id="driversTab"
+                        class="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
+                        Driver Performance
+                    </button>
+                    <button onclick="ReportManager.switchTab('customers')" id="customersTab"
+                        class="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
+                        Customer Analysis
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Report Content -->
+        <div class="p-6">
+            <!-- Overview Tab -->
+            <div id="overviewContent" class="tab-content">
+                <!-- Key Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Total Revenue</p>
+                                <p class="text-2xl font-bold text-green-600" id="totalRevenue">$0</p>
+                                <p class="text-sm text-gray-500">+12.5% from last month</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Total Miles</p>
+                                <p class="text-2xl font-bold text-blue-600" id="totalMiles">0</p>
+                                <p class="text-sm text-gray-500">+8.3% from last month</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-road text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Loads Completed</p>
+                                <p class="text-2xl font-bold text-purple-600" id="loadsCompleted">0</p>
+                                <p class="text-sm text-gray-500">+15.2% from last month</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-truck text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Profit Margin</p>
+                                <p class="text-2xl font-bold text-orange-600" id="profitMargin">0%</p>
+                                <p class="text-sm text-gray-500">+2.1% from last month</p>
+                            </div>
+                            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-line text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue Trend</h3>
+                        <div id="revenueChart" style="height: 300px;"></div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Load Status Distribution</h3>
+                        <div id="loadStatusChart" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Tab -->
+            <div id="revenueContent" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Monthly Revenue</h3>
+                        <div id="monthlyRevenueChart" style="height: 400px;"></div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue by Customer</h3>
+                        <div id="customerRevenueChart" style="height: 400px;"></div>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-white rounded-lg p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue Details</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Period</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Revenue</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Loads</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Miles</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Avg Rate/Mile</th>
+                                </tr>
+                            </thead>
+                            <tbody id="revenueTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Revenue data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expenses Tab -->
+            <div id="expensesContent" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Expense Breakdown</h3>
+                        <div id="expenseBreakdownChart" style="height: 400px;"></div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Expense Trends</h3>
+                        <div id="expenseTrendChart" style="height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Driver Performance Tab -->
+            <div id="driversContent" class="tab-content hidden">
+                <div class="bg-white rounded-lg p-6 card-shadow mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Driver Performance Metrics</h3>
+                    <div id="driverPerformanceChart" style="height: 400px;"></div>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Driver Rankings</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Driver</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Miles</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Revenue</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Loads</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="driverTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Driver data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Analysis Tab -->
+            <div id="customersContent" class="tab-content hidden">
+                <div class="bg-white rounded-lg p-6 card-shadow mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Customer Revenue Analysis</h3>
+                    <div id="customerAnalysisChart" style="height: 400px;"></div>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Customers</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Customer</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Revenue</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Loads</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Avg Rate</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Payment Terms</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Customer data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script src="main.js"></script>
+    <script>
+        // Report Manager Module
+        const ReportManager = {
+            currentTab: 'overview',
+            data: {},
+
+            // Initialize reports
+            init: () => {
+                ReportManager.calculateRealData();
+                ReportManager.switchTab('overview');
+                ReportManager.setupEventListeners();
+            },
+
+            // Calculate real data from DataManager
+            calculateRealData: () => {
+                const invoices = DataManager.invoices || [];
+                const loads = DataManager.loads || [];
+                const expenses = DataManager.expenses || []; // Assuming expenses are stored here
+                const drivers = DataManager.drivers || [];
+                const customers = DataManager.customers || [];
+                const settlements = DataManager.settlements || [];
+
+                // 1. Revenue (Sum of all invoices)
+                const totalRevenue = invoices.reduce((sum, inv) => sum + (parseFloat(inv.amount) || 0), 0);
+
+                // 2. Miles (Sum of all completed/delivered loads)
+                const completedLoads = loads.filter(l => l.status === 'delivered' || l.status === 'completed');
+                const totalMiles = completedLoads.reduce((sum, l) => sum + (parseFloat(l.miles) || 0), 0);
+
+                // 3. Expenses (Sum of expenses + settlement deductions)
+                // Note: We need to fetch expenses from DataManager if available, otherwise use 0
+                // For now, we'll assume DataManager.expenses exists or we'll use a placeholder
+                const trackedExpenses = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+
+                const settlementDeductions = settlements.reduce((sum, st) => sum + (parseFloat(st.totalDeductions) || 0), 0);
+                const totalExpenses = trackedExpenses + settlementDeductions;
+
+                // 4. Profit Margin
+                const profitMargin = totalRevenue > 0 ? ((totalRevenue - totalExpenses) / totalRevenue * 100).toFixed(1) : 0;
+
+                // 5. Monthly Revenue (Group invoices by month)
+                const monthlyRevenue = Array(12).fill(0);
+                const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                invoices.forEach(inv => {
+                    const date = new Date(inv.date);
+                    const month = date.getMonth(); // 0-11
+                    if (!isNaN(month)) {
+                        monthlyRevenue[month] += (parseFloat(inv.amount) || 0);
+                    }
+                });
+
+                // 6. Load Status
+                const statusCounts = {
+                    'delivered': 0,
+                    'in_transit': 0,
+                    'available': 0,
+                    'cancelled': 0
+                };
+                loads.forEach(l => {
+                    const s = l.status.toLowerCase().replace(' ', '_');
+                    if (statusCounts[s] !== undefined) statusCounts[s]++;
+                    else if (s === 'completed') statusCounts['delivered']++;
+                    else if (s === 'pending') statusCounts['available']++;
+                });
+
+                // 7. Driver Performance
+                const driverStats = drivers.map(d => {
+                    const driverLoads = completedLoads.filter(l => l.driverId === d.id);
+                    const miles = driverLoads.reduce((sum, l) => sum + (parseFloat(l.miles) || 0), 0);
+                    const revenue = driverLoads.reduce((sum, l) => sum + (parseFloat(l.rate) || 0), 0);
+                    const loadCount = driverLoads.length;
+                    // Simple performance score logic
+                    const performance = loadCount > 0 ? Math.min(100, 80 + (loadCount * 2)) : 80;
+
+                    return {
+                        name: `${d.firstName} ${d.lastName}`,
+                        miles,
+                        revenue,
+                        loads: loadCount,
+                        performance
+                    };
+                }).sort((a, b) => b.revenue - a.revenue);
+
+                // 8. Customer Analysis
+                const customerStats = customers.map(c => {
+                    const custLoads = completedLoads.filter(l => l.customerId === c.id);
+                    const revenue = custLoads.reduce((sum, l) => sum + (parseFloat(l.rate) || 0), 0);
+                    const loadCount = custLoads.length;
+                    const totalMiles = custLoads.reduce((sum, l) => sum + (parseFloat(l.miles) || 0), 0);
+                    const avgRate = totalMiles > 0 ? (revenue / totalMiles).toFixed(2) : '0.00';
+
+                    return {
+                        name: c.company.name,
+                        revenue,
+                        loads: loadCount,
+                        avgRate,
+                        terms: 'Net 30' // Default
+                    };
+                }).sort((a, b) => b.revenue - a.revenue);
+
+                // 9. Expense Breakdown (Mock categories for now based on total)
+                // In a real app, we'd group expenses by type
+                const expenseBreakdown = {
+                    labels: ['Fuel', 'Driver Pay', 'Insurance', 'Maintenance', 'Other'],
+                    values: [
+                        totalExpenses * 0.4,
+                        totalExpenses * 0.3,
+                        totalExpenses * 0.1,
+                        totalExpenses * 0.1,
+                        totalExpenses * 0.1
+                    ]
+                };
+
+                ReportManager.data = {
+                    revenue: totalRevenue,
+                    miles: totalMiles,
+                    loads: completedLoads.length,
+                    profitMargin,
+                    monthlyRevenue: {
+                        labels: monthLabels,
+                        values: monthlyRevenue
+                    },
+                    loadStatus: {
+                        labels: ['Delivered', 'In Transit', 'Available', 'Cancelled'],
+                        values: [
+                            statusCounts['delivered'],
+                            statusCounts['in_transit'],
+                            statusCounts['available'],
+                            statusCounts['cancelled']
+                        ]
+                    },
+                    expenseBreakdown,
+                    drivers: driverStats,
+                    customers: customerStats
+                };
+            },
+
+            // Switch tabs
+            switchTab: (tabName) => {
+                ReportManager.currentTab = tabName;
+
+                // Update tab styles
+                document.querySelectorAll('[id$="Tab"]').forEach(tab => {
+                    tab.className = 'py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700';
+                });
+                document.getElementById(tabName + 'Tab').className = 'py-4 px-1 border-b-2 border-blue-600 font-medium text-sm text-blue-600';
+
+                // Show/hide content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(tabName + 'Content').classList.remove('hidden');
+
+                // Load tab content
+                ReportManager.loadTabContent(tabName);
+            },
+
+            // Load tab content
+            loadTabContent: (tabName) => {
+                switch (tabName) {
+                    case 'overview':
+                        ReportManager.loadOverview();
+                        break;
+                    case 'revenue':
+                        ReportManager.loadRevenue();
+                        break;
+                    case 'expenses':
+                        ReportManager.loadExpenses();
+                        break;
+                    case 'drivers':
+                        ReportManager.loadDrivers();
+                        break;
+                    case 'customers':
+                        ReportManager.loadCustomers();
+                        break;
+                }
+            },
+
+            // Load overview tab
+            loadOverview: () => {
+                // Update metrics
+                document.getElementById('totalRevenue').textContent = Utils.formatCurrency(ReportManager.data.revenue);
+                document.getElementById('totalMiles').textContent = ReportManager.data.miles.toLocaleString();
+                document.getElementById('loadsCompleted').textContent = ReportManager.data.loads;
+                document.getElementById('profitMargin').textContent = ReportManager.data.profitMargin + '%';
+
+                // Revenue trend chart
+                const revenueTrace = {
+                    x: ReportManager.data.monthlyRevenue.labels,
+                    y: ReportManager.data.monthlyRevenue.values,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: 'Revenue',
+                    line: { color: '#3b82f6', width: 3 },
+                    marker: { size: 8 }
+                };
+
+                Plotly.newPlot('revenueChart', [revenueTrace], {
+                    title: '',
+                    xaxis: { title: 'Month' },
+                    yaxis: { title: 'Revenue ($)' },
+                    margin: { t: 20, r: 20, b: 50, l: 60 }
+                }, { responsive: true });
+
+                // Load status chart
+                const loadStatusTrace = {
+                    labels: ReportManager.data.loadStatus.labels,
+                    values: ReportManager.data.loadStatus.values,
+                    type: 'pie',
+                    marker: {
+                        colors: ['#10b981', '#3b82f6', '#6b7280', '#ef4444']
+                    }
+                };
+
+                Plotly.newPlot('loadStatusChart', [loadStatusTrace], {
+                    title: '',
+                    margin: { t: 20, r: 20, b: 20, l: 20 }
+                }, { responsive: true });
+            },
+
+            // Load revenue tab
+            loadRevenue: () => {
+                // Monthly revenue chart
+                const monthlyTrace = {
+                    x: ReportManager.data.monthlyRevenue.labels,
+                    y: ReportManager.data.monthlyRevenue.values,
+                    type: 'bar',
+                    name: 'Revenue',
+                    marker: { color: '#3b82f6' }
+                };
+
+                Plotly.newPlot('monthlyRevenueChart', [monthlyTrace], {
+                    title: '',
+                    xaxis: { title: 'Month' },
+                    yaxis: { title: 'Revenue ($)' },
+                    margin: { t: 20, r: 20, b: 50, l: 60 }
+                }, { responsive: true });
+
+                // Customer revenue chart
+                const customerTrace = {
+                    x: ReportManager.data.customers.map(c => c.name),
+                    y: ReportManager.data.customers.map(c => c.revenue),
+                    type: 'bar',
+                    name: 'Revenue',
+                    marker: { color: '#10b981' }
+                };
+
+                Plotly.newPlot('customerRevenueChart', [customerTrace], {
+                    title: '',
+                    xaxis: { title: 'Customer' },
+                    yaxis: { title: 'Revenue ($)' },
+                    margin: { t: 20, r: 20, b: 80, l: 60 }
+                }, { responsive: true });
+
+                // Revenue table
+                const tbody = document.getElementById('revenueTableBody');
+                tbody.innerHTML = '';
+
+                ReportManager.data.monthlyRevenue.labels.forEach((month, index) => {
+                    const revenue = ReportManager.data.monthlyRevenue.values[index];
+                    if (revenue > 0) {
+                        const loads = ReportManager.data.loads; // Simplified for monthly
+                        const miles = ReportManager.data.miles; // Simplified
+                        const ratePerMile = miles > 0 ? (revenue / miles).toFixed(2) : '0.00';
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${month} ${new Date().getFullYear()}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Utils.formatCurrency(revenue)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
+                        `;
+                        tbody.appendChild(row);
+                    }
+                });
+            },
+
+            // Load expenses tab
+            loadExpenses: () => {
+                // Expense breakdown chart
+                const expenseTrace = {
+                    labels: ReportManager.data.expenseBreakdown.labels,
+                    values: ReportManager.data.expenseBreakdown.values,
+                    type: 'pie',
+                    marker: {
+                        colors: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6']
+                    }
+                };
+
+                Plotly.newPlot('expenseBreakdownChart', [expenseTrace], {
+                    title: '',
+                    margin: { t: 20, r: 20, b: 20, l: 20 }
+                }, { responsive: true });
+
+                // Expense trend chart (Simplified)
+                const trendTrace = {
+                    x: ReportManager.data.monthlyRevenue.labels,
+                    y: ReportManager.data.monthlyRevenue.values.map(v => v * 0.6), // Mock expense trend as 60% of revenue
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: 'Expenses',
+                    line: { color: '#ef4444', width: 3 },
+                    marker: { size: 8 }
+                };
+
+                Plotly.newPlot('expenseTrendChart', [trendTrace], {
+                    title: '',
+                    xaxis: { title: 'Month' },
+                    yaxis: { title: 'Expenses ($)' },
+                    margin: { t: 20, r: 20, b: 50, l: 60 }
+                }, { responsive: true });
+            },
+
+            // Load drivers tab
+            loadDrivers: () => {
+                // Driver performance chart
+                const performanceTrace = {
+                    x: ReportManager.data.drivers.map(d => d.name),
+                    y: ReportManager.data.drivers.map(d => d.performance),
+                    type: 'bar',
+                    name: 'Performance Score',
+                    marker: { color: '#3b82f6' }
+                };
+
+                Plotly.newPlot('driverPerformanceChart', [performanceTrace], {
+                    title: '',
+                    xaxis: { title: 'Driver' },
+                    yaxis: { title: 'Performance Score' },
+                    margin: { t: 20, r: 20, b: 80, l: 60 }
+                }, { responsive: true });
+
+                // Driver table
+                const tbody = document.getElementById('driverTableBody');
+                tbody.innerHTML = '';
+
+                ReportManager.data.drivers.forEach(driver => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${driver.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${driver.miles.toLocaleString()}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Utils.formatCurrency(driver.revenue)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${driver.loads}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: ${driver.performance}%"></div>
+                                </div>
+                                <span class="text-sm text-gray-900">${driver.performance}%</span>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            },
+
+            // Load customers tab
+            loadCustomers: () => {
+                // Customer analysis chart
+                const analysisTrace = {
+                    x: ReportManager.data.customers.map(c => c.name),
+                    y: ReportManager.data.customers.map(c => c.revenue),
+                    type: 'bar',
+                    name: 'Revenue',
+                    marker: { color: '#10b981' }
+                };
+
+                Plotly.newPlot('customerAnalysisChart', [analysisTrace], {
+                    title: '',
+                    xaxis: { title: 'Customer' },
+                    yaxis: { title: 'Revenue ($)' },
+                    margin: { t: 20, r: 20, b: 80, l: 60 }
+                }, { responsive: true });
+
+                // Customer table
+                const tbody = document.getElementById('customerTableBody');
+                tbody.innerHTML = '';
+
+                ReportManager.data.customers.forEach(customer => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${customer.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Utils.formatCurrency(customer.revenue)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${customer.loads}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${customer.avgRate}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${customer.terms}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            },
+
+            // Export report
+            exportReport: () => {
+                Utils.showNotification('Report export feature coming soon', 'info');
+            },
+
+            // Setup event listeners
+            setupEventListeners: () => {
+                document.getElementById('reportPeriod').addEventListener('change', (e) => {
+                    Utils.showNotification(`Reports updated for ${e.target.value}`, 'info');
+                });
+            }
+        };
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            ReportManager.init();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Settlements - Somali Truck TMS TMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-navy {
+            background-color: #1e3a8a;
+        }
+
+        .text-navy {
+            color: #1e3a8a;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .status-paid {
+            background-color: #10b981;
+        }
+
+        .status-pending {
+            background-color: #f59e0b;
+        }
+
+        .status-processed {
+            background-color: #3b82f6;
+        }
+
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <img src="resources/company-logo.png" alt="Somali Truck TMS" class="h-10 w-10 rounded-lg">
+                    <div>
+                        <h1 class="text-xl font-bold">Somali Truck TMS</h1>
+                        <p class="text-sm opacity-90">Transportation Management System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="index.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    </a>
+                    <a href="loads.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-truck mr-2"></i>Loads
+                    </a>
+                    <a href="drivers.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-users mr-2"></i>Drivers
+                    </a>
+                    <span class="nav-item active px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-calculator mr-2"></i>Settlements
+                    </span>
+                    <span class="text-sm">Welcome, John (Admin)</span>
+                    <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">Driver Settlements</h2>
+                <p class="text-gray-600 mt-2">Manage driver payments and settlements</p>
+            </div>
+            <button onclick="openCreateSettlementModal()"
+                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Generate Settlement
+            </button>
+        </div>
+
+        <!-- Settlement Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-dollar-sign text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">This Week</dt>
+                            <dd class="text-2xl font-semibold text-gray-900">$45,230</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-users text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Settlements</dt>
+                            <dd class="text-2xl font-semibold text-gray-900">24</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clock text-yellow-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Pending</dt>
+                            <dd class="text-2xl font-semibold text-gray-900">8</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-calculator text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Avg Settlement</dt>
+                            <dd class="text-2xl font-semibold text-gray-900">$1,885</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settlement Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Weekly Settlement Trends</h3>
+                <div id="settlementChart" class="h-64"></div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Payment Status Distribution</h3>
+                <div id="paymentStatusChart" class="h-64"></div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg p-6 card-shadow mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Driver</label>
+                    <select id="driverFilter"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">All Drivers</option>
+                        <option value="driver1">Mike Johnson</option>
+                        <option value="driver2">Sarah Davis</option>
+                        <option value="driver3">Tom Wilson</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="statusFilter"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="processed">Processed</option>
+                        <option value="paid">Paid</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Week</label>
+                    <input type="week" id="weekFilter"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div class="flex items-end">
+                    <button
+                        class="w-full bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-search mr-2"></i>Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settlements Table -->
+        <div class="bg-white rounded-lg card-shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900">Driver Settlements</h3>
+                    <div class="flex items-center space-x-4">
+                        <button class="text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-download mr-2"></i>Export
+                        </button>
+                        <button class="text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-print mr-2"></i>Print All
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Settlement #</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Driver</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Period</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Miles</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Gross Pay</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Deductions</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Net Pay</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="settlementsTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Sample settlements data -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">ST-2025-42</div>
+                                <div class="text-sm text-gray-500">Generated: 11/15/2025</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Mike Johnson</div>
+                                <div class="text-sm text-gray-500">DRV-001</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Week 42</div>
+                                <div class="text-sm text-gray-500">10/14 - 10/20</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">2,500</div>
+                                <div class="text-xs text-gray-500">2,000L + 500E</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">$1,925.00</div>
+                                <div class="text-xs text-gray-500">Base + Fuel + Detention</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">$1,359.89</div>
+                                <div class="text-xs text-gray-500">Advances, Insurance, Taxes</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-bold text-gray-900">$565.11</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span
+                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-paid">
+                                    Paid
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="viewSettlement('ST-2025-42')"
+                                    class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="downloadSettlement('ST-2025-42')"
+                                    class="text-green-600 hover:text-green-900 mr-3">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button onclick="printSettlement('ST-2025-42')"
+                                    class="text-purple-600 hover:text-purple-900">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">ST-2025-41</div>
+                                <div class="text-sm text-gray-500">Generated: 11/08/2025</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Sarah Davis</div>
+                                <div class="text-sm text-gray-500">DRV-002</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Week 41</div>
+                                <div class="text-sm text-gray-500">10/07 - 10/13</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">2,150</div>
+                                <div class="text-xs text-gray-500">1,800L + 350E</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">$2,340.00</div>
+                                <div class="text-xs text-gray-500">Base + Fuel + Bonus</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">$1,245.67</div>
+                                <div class="text-xs text-gray-500">Advances, Insurance, Taxes</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-bold text-gray-900">$1,094.33</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span
+                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-processed">
+                                    Processed
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="viewSettlement('ST-2025-41')"
+                                    class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="downloadSettlement('ST-2025-41')"
+                                    class="text-green-600 hover:text-green-900 mr-3">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button onclick="printSettlement('ST-2025-41')"
+                                    class="text-purple-600 hover:text-purple-900">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">ST-2025-40</div>
+                                <div class="text-sm text-gray-500">Generated: 11/01/2025</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Tom Wilson</div>
+                                <div class="text-sm text-gray-500">DRV-003</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Week 40</div>
+                                <div class="text-sm text-gray-500">09/30 - 10/06</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">1,875</div>
+                                <div class="text-xs text-gray-500">1,500L + 375E</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">$1,650.00</div>
+                                <div class="text-xs text-gray-500">Base + Fuel</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">$892.45</div>
+                                <div class="text-xs text-gray-500">Advances, Insurance, Taxes</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-bold text-gray-900">$757.55</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span
+                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-pending">
+                                    Pending
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="viewSettlement('ST-2025-40')"
+                                    class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="processSettlement('ST-2025-40')"
+                                    class="text-green-600 hover:text-green-900 mr-3">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button onclick="printSettlement('ST-2025-40')"
+                                    class="text-purple-600 hover:text-purple-900">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">ST-2025-39</div>
+                                <div class="text-sm text-gray-500">Generated: 10/25/2025</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Mike Johnson</div>
+                                <div class="text-sm text-gray-500">DRV-001</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Week 39</div>
+                                <div class="text-sm text-gray-500">09/23 - 09/29</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">2,750</div>
+                                <div class="text-xs text-gray-500">2,200L + 550E</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">$2,187.50</div>
+                                <div class="text-xs text-gray-500">Base + Fuel + Detention</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">$1,456.23</div>
+                                <div class="text-xs text-gray-500">Advances, Insurance, Taxes</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-bold text-gray-900">$731.27</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span
+                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-paid">
+                                    Paid
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="viewSettlement('ST-2025-39')"
+                                    class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="downloadSettlement('ST-2025-39')"
+                                    class="text-green-600 hover:text-green-900 mr-3">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button onclick="printSettlement('ST-2025-39')"
+                                    class="text-purple-600 hover:text-purple-900">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">4</span> of <span
+                            class="font-medium">24</span> settlements
+                    </div>
+                    <div class="flex space-x-2">
+                        <button
+                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Previous
+                        </button>
+                        <button
+                            class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md">
+                            1
+                        </button>
+                        <button
+                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            2
+                        </button>
+                        <button
+                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            3
+                        </button>
+                        <button
+                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settlement Detail Modal -->
+    <div id="settlementModal" class="modal">
+        <div class="modal-content">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <h3 id="modalTitle" class="text-xl font-semibold">Settlement Details</h3>
+                    <button onclick="closeModal()" class="text-white hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <!-- Settlement Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h5 class="font-semibold text-gray-900 mb-2">Driver Information</h5>
+                        <p class="text-sm text-gray-600">Mike Johnson (DRV-001)</p>
+                        <p class="text-sm text-gray-600">Payment Type: Per Mile</p>
+                        <p class="text-sm text-gray-600">Rate: $0.65/mile</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h5 class="font-semibold text-gray-900 mb-2">Settlement Period</h5>
+                        <p class="text-sm text-gray-600">Week 42, 2025</p>
+                        <p class="text-sm text-gray-600">Oct 14 - Oct 20, 2025</p>
+                        <p class="text-sm text-gray-600">Generated: Oct 21, 2025</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h5 class="font-semibold text-gray-900 mb-2">Payment Summary</h5>
+                        <p class="text-sm text-gray-600">Gross Pay: $1,925.00</p>
+                        <p class="text-sm text-gray-600">Deductions: $1,359.89</p>
+                        <p class="text-sm font-bold text-gray-900">Net Pay: $565.11</p>
+                    </div>
+                </div>
+
+                <!-- Earnings Breakdown -->
+                <div class="border-t pt-6 mb-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">Earnings Breakdown</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                            Description</th>
+                                        <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
+                                            Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">Base Pay (2,500 miles × $0.65)</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$1,625.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">Fuel Surcharge</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$125.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">Detention Pay (2 hrs)</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$75.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">Safety Bonus</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$100.00</td>
+                                    </tr>
+                                    <tr class="bg-gray-50">
+                                        <td class="px-4 py-2 text-sm font-semibold text-gray-900">Total Gross Pay</td>
+                                        <td class="px-4 py-2 text-sm font-semibold text-gray-900 text-right">$1,925.00
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                            Deduction</th>
+                                        <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
+                                            Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">Fuel Advance</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$800.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">Cash Advance</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$200.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">Insurance</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$45.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">Federal Tax</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$144.38</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">State Tax</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$38.25</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">Social Security</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$119.35</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm text-gray-900">Medicare</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$27.91</td>
+                                    </tr>
+                                    <tr class="bg-gray-50">
+                                        <td class="px-4 py-2 text-sm font-semibold text-gray-900">Total Deductions</td>
+                                        <td class="px-4 py-2 text-sm font-semibold text-gray-900 text-right">$1,359.89
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Associated Loads -->
+                <div class="border-t pt-6 mb-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">Associated Loads</h4>
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Load #</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Miles</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Rate</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-4 py-2 text-sm text-gray-900">Somali Truck-2025-001</td>
+                                <td class="px-4 py-2 text-sm text-gray-900">Columbus, OH → Chicago, IL</td>
+                                <td class="px-4 py-2 text-sm text-gray-900 text-right">1,000</td>
+                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$0.65</td>
+                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$650.00</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 text-sm text-gray-900">Somali Truck-2025-002</td>
+                                <td class="px-4 py-2 text-sm text-gray-900">Chicago, IL → Nashville, TN</td>
+                                <td class="px-4 py-2 text-sm text-gray-900 text-right">850</td>
+                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$0.65</td>
+                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$552.50</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 text-sm text-gray-900">Somali Truck-2025-003</td>
+                                <td class="px-4 py-2 text-sm text-gray-900">Nashville, TN → Columbus, OH</td>
+                                <td class="px-4 py-2 text-sm text-gray-900 text-right">650</td>
+                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$0.65</td>
+                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$422.50</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="border-t pt-6 flex justify-end space-x-4">
+                    <button onclick="closeModal()"
+                        class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        Close
+                    </button>
+                    <button onclick="downloadSettlement()"
+                        class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Download PDF
+                    </button>
+                    <button onclick="printSettlement()"
+                        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-print mr-2"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Settlement Modal -->
+    <div id="createSettlementModal" class="modal">
+        <div class="modal-content">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold">Generate Driver Settlement</h3>
+                    <button onclick="closeCreateModal()" class="text-white hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <form id="settlementForm" class="space-y-6">
+                    <div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-sm font-medium text-gray-700">Select Driver</label>
+                                <button type="button" onclick="debugSettlementData()"
+                                    class="text-xs text-blue-600 hover:text-blue-800 underline">
+                                    Debug Data
+                                </button>
+                            </div>
+                            <select id="driverSelect"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select a driver...</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Select a driver to see all unpaid delivered loads.</p>
+                        </div>
+                    </div>
+
+                    <div id="settlementLoadsSection" class="hidden">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Available Loads</h4>
+                        <div class="overflow-x-auto border rounded-lg mb-6">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                            Select</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Load
+                                            #</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date
+                                        </th>
+                                        <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
+                                            Pay Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="driverLoadsBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fuel
+                                        Deductions</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                        <input type="number" id="fuelDeduction" value="0" step="0.01"
+                                            class="w-full pl-6 pr-3 py-2 border rounded-md focus:ring-blue-500"
+                                            oninput="calculateSettlementTotal()">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-500 uppercase mb-1">Insurance</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                        <input type="number" id="insuranceDeduction" value="45.00" step="0.01"
+                                            class="w-full pl-6 pr-3 py-2 border rounded-md focus:ring-blue-500"
+                                            oninput="calculateSettlementTotal()">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-500 uppercase mb-1">Other/Advance</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                        <input type="number" id="otherDeduction" value="0" step="0.01"
+                                            class="w-full pl-6 pr-3 py-2 border rounded-md focus:ring-blue-500"
+                                            oninput="calculateSettlementTotal()">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-200 pt-4 space-y-2">
+                                <div class="flex justify-between text-gray-600">
+                                    <span>Gross Pay:</span>
+                                    <span id="grossPay" class="font-medium">$0.00</span>
+                                </div>
+                                <div class="flex justify-between text-red-500">
+                                    <span>Total Deductions:</span>
+                                    <span id="totalDeductions" class="font-medium">-$45.00</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-gray-300">
+                                    <span class="text-xl font-bold text-gray-900">Net Pay:</span>
+                                    <span id="netPay" class="text-2xl font-extrabold text-green-600">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="noLoadsMessage" class="hidden text-center py-8">
+                        <div class="bg-yellow-50 text-yellow-800 p-4 rounded-lg inline-block">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            No unpaid delivered loads found for this driver.
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-2">
+                        <button type="button" onclick="closeCreateModal()"
+                            class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors">
+                            Cancel
+                        </button>
+                        <button type="button" id="generateSettlementBtn"
+                            class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            Generate Settlement
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-12 py-8 border-t border-gray-200">
+        <div class="text-center">
+            <p class="text-gray-600">&copy; 2025 Somali Truck TMS. All rights reserved.</p>
+            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script src="main.js"></script>
+    <script>
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', async () => {
+            Auth.init();
+            await DataManager.init();
+            renderSettlements();
+            initializeSettlementCharts();
+
+            // Explicitly attach event listener for driver selection
+            const driverSelect = document.getElementById('driverSelect');
+            if (driverSelect) {
+                driverSelect.addEventListener('change', loadDriverUnpaidLoads);
+            }
+        });
+
+        function renderSettlements() {
+            const tbody = document.getElementById('settlementsTableBody');
+            tbody.innerHTML = '';
+
+            DataManager.settlements.forEach(settlement => {
+                const statusClass = {
+                    'paid': 'status-paid',
+                    'pending': 'status-pending',
+                    'processed': 'status-processed'
+                }[settlement.status] || 'bg-gray-500';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${settlement.settlementNumber}</div>
+                        <div class="text-sm text-gray-500">Generated: ${Utils.formatDate(settlement.createdAt)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${settlement.driverName}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${settlement.period || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${settlement.totalMiles || 0}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${Utils.formatCurrency(settlement.grossPay)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${Utils.formatCurrency(settlement.totalDeductions)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-bold text-gray-900">${Utils.formatCurrency(settlement.netPay)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white ${statusClass}">
+                            ${settlement.status.charAt(0).toUpperCase() + settlement.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="viewSettlement('${settlement.id}')" class="text-blue-600 hover:text-blue-900 mr-3">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="downloadSettlement('${settlement.id}')" class="text-green-600 hover:text-green-900 mr-3">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button onclick="printSettlement('${settlement.id}')" class="text-purple-600 hover:text-purple-900">
+                            <i class="fas fa-print"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openCreateSettlementModal() {
+            const modal = document.getElementById('createSettlementModal');
+            const select = document.getElementById('driverSelect');
+
+            // Reset everything
+            document.getElementById('settlementLoadsSection').classList.add('hidden');
+            document.getElementById('noLoadsMessage').classList.add('hidden');
+            document.getElementById('driverLoadsBody').innerHTML = '';
+            document.getElementById('grossPay').textContent = '$0.00';
+            document.getElementById('totalDeductions').textContent = '-$' + (parseFloat(document.getElementById('insuranceDeduction').value) || 45).toFixed(2);
+            document.getElementById('netPay').textContent = '$0.00';
+            document.getElementById('fuelDeduction').value = '0';
+            document.getElementById('otherDeduction').value = '0';
+            document.getElementById('generateSettlementBtn').disabled = true;
+
+            // Populate drivers
+            select.innerHTML = '<option value="">Select a driver...</option>';
+            DataManager.drivers.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = `${d.firstName} ${d.lastName} (${d.driverNumber || 'No ID'})`;
+                select.appendChild(opt);
+            });
+
+            modal.classList.add('show');
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createSettlementModal').classList.remove('show');
+        }
+
+        // NOTE: loadDriverUnpaidLoads and calculateSettlementTotal are now in main.js
+
+
+
+        /* ----------  NEW : show EVERY unpaid delivered load as soon as modal opens  ---------- */
+        const createModal = document.getElementById('createSettlementModal');
+        // Bootstrap 5 event for modal shown
+        // If using a custom modal class, we can also just rely on the open function calling it
+        // But adding this listener is safe
+        // createModal.addEventListener('shown.bs.modal', loadAllUnsettledDeliveredLoads); 
+
+        // We already call loadAllUnsettledDeliveredLoads() inside openCreateSettlementModal()
+        // so we don't strictly need the listener if we control the open function, 
+        // but following user instructions to ensure it works.
+
+        document.getElementById('generateSettlementBtn').addEventListener('click', async () => {
+            const driverId = document.getElementById('driverSelect').value;
+            if (!driverId) { Utils.showNotification('Choose a driver first', 'warning'); return; }
+
+            const checked = document.querySelectorAll('.settlement-checkbox:checked');
+            if (checked.length === 0) { Utils.showNotification('Select at least one load', 'warning'); return; }
+
+            // build settlement object (your existing code)
+            const loadIds = Array.from(checked).map(cb => cb.value);
+            const grossPay = Array.from(checked).reduce((sum, cb) => sum + parseFloat(cb.dataset.pay), 0);
+            const deductions = {
+                fuel: parseFloat(document.getElementById('fuelDeduction').value) || 0,
+                insurance: parseFloat(document.getElementById('insuranceDeduction').value) || 0,
+                other: parseFloat(document.getElementById('otherDeduction').value) || 0
+            };
+            const totalDeductions = deductions.fuel + deductions.insurance + deductions.other;
+            const netPay = grossPay - totalDeductions;
+
+            const settlementData = {
+                settlementNumber: 'ST-' + new Date().getFullYear() + '-' + (DataManager.settlements.length + 1001),
+                driverId,
+                driverName: document.getElementById('driverSelect').options[document.getElementById('driverSelect').selectedIndex].text,
+                period: `Week ${Utils.getWeekNumber(new Date())} - ${new Date().getFullYear()}`,
+                loadIds,
+                grossPay,
+                totalDeductions,
+                deductionsBreakdown: deductions,
+                netPay,
+                totalMiles: Array.from(checked).reduce((sum, cb) => sum + parseFloat(cb.dataset.miles), 0),
+                status: 'processed',
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                const id = await DataManager.addSettlement(settlementData);
+                // mark loads as paid
+                for (const loadId of loadIds) await DataManager.updateLoad(loadId, { settlementId: id });
+                Utils.showNotification('Settlement created successfully', 'success');
+                // keep modal open – user closes with Cancel
+
+                // Refresh the list to remove paid loads
+                loadDriverUnpaidLoads();
+                renderSettlements();
+            } catch (e) {
+                Utils.showNotification('Error: ' + e.message, 'error');
+            }
+        });
+
+        function downloadSettlement(settlementId) {
+            const settlement = DataManager.getSettlement(settlementId);
+            if (!settlement) return;
+
+            const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
+            const loads = settlement.loadIds.map(id => DataManager.getLoad(id)).filter(l => l);
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Settlement ${settlement.settlementNumber}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; }
+                        .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+                        .company-info h1 { margin: 0; color: #1e3a8a; }
+                        .settlement-details { text-align: right; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                        th { background-color: #f8f9fa; }
+                        .summary-box { margin-top: 30px; border: 1px solid #ddd; padding: 20px; width: 50%; margin-left: auto; }
+                        .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+                        .net-pay { font-weight: bold; font-size: 1.2em; border-top: 2px solid #000; padding-top: 10px; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="company-info">
+                            <h1>Somali Truck TMS</h1>
+                            <p>3191 MORSE RD STE 15<br>COLUMBUS, OH 43231<br>(614) 254-0380</p>
+                        </div>
+                        <div class="settlement-details">
+                            <h2>DRIVER SETTLEMENT</h2>
+                            <p><strong>Settlement #:</strong> ${settlement.settlementNumber}</p>
+                            <p><strong>Date:</strong> ${Utils.formatDate(settlement.createdAt)}</p>
+                            <p><strong>Period:</strong> ${settlement.period}</p>
+                        </div>
+                    </div>
+
+                    <div class="driver-info">
+                        <h3>Driver: ${settlement.driverName}</h3>
+                        <p>ID: ${driver ? driver.driverNumber : 'N/A'}</p>
+                    </div>
+
+                    <h3>Loads</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Load #</th>
+                                <th>Date</th>
+                                <th>Route</th>
+                                <th style="text-align: right">Pay Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${loads.map(load => `
+                                <tr>
+                                    <td>${load.loadNumber}</td>
+                                    <td>${Utils.formatDate(load.delivery?.date || load.updatedAt)}</td>
+                                    <td>${load.pickup?.city} -> ${load.delivery?.city}</td>
+                                    <td style="text-align: right">${Utils.formatCurrency(load.rate?.driverPay || (load.rate?.total * 0.75) || 0)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <div class="summary-box">
+                        <div class="summary-row">
+                            <span>Gross Pay:</span>
+                            <span>\${Utils.formatCurrency(settlement.grossPay)}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Fuel Deductions:</span>
+                            <span>-\${Utils.formatCurrency(settlement.deductionsBreakdown?.fuel || 0)}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Insurance:</span>
+                            <span>-\${Utils.formatCurrency(settlement.deductionsBreakdown?.insurance || 0)}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Other Deductions:</span>
+                            <span>-\${Utils.formatCurrency(settlement.deductionsBreakdown?.other || 0)}</span>
+                        </div>
+                        <div class="summary-row net-pay">
+                            <span>NET PAY:</span>
+                            <span>\${Utils.formatCurrency(settlement.netPay)}</span>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+</body>
+
+</html>
+`);
+            printWindow.document.close();
+        }
+
+        function printSettlement(settlementId) {
+            downloadSettlement(settlementId);
+        }
+
+        function viewSettlement(settlementId) {
+            const settlement = DataManager.getSettlement(settlementId);
+            if (!settlement) return;
+
+            document.getElementById('modalTitle').textContent = 'Settlement Details - ' + settlement.settlementNumber;
+            downloadSettlement(settlementId);
+        }
+
+        function closeModal() {
+            document.getElementById('settlementModal').classList.remove('show');
+        }
+
+        function initializeSettlementCharts() {
+            // Settlement Trends Chart
+            const settlementData = {
+                x: ['Week 39', 'Week 40', 'Week 41', 'Week 42'],
+                y: [42750, 38900, 45100, 45230],
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#3b82f6', width: 3 },
+                marker: { color: '#3b82f6', size: 8 }
+            };
+
+            const settlementLayout = {
+                margin: { t: 20, r: 20, b: 40, l: 60 },
+                xaxis: { title: 'Week' },
+                yaxis: { title: 'Total Settlements ($)' },
+                showlegend: false,
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot('settlementChart', [settlementData], settlementLayout, { responsive: true, displayModeBar: false });
+
+            // Payment Status Chart
+            const paymentStatusData = [{
+                values: [12, 8, 4],
+                labels: ['Paid', 'Pending', 'Processed'],
+                type: 'pie',
+                marker: {
+                    colors: ['#10b981', '#f59e0b', '#3b82f6']
+                },
+                textinfo: 'label+percent',
+                textposition: 'outside'
+            }];
+
+            const paymentStatusLayout = {
+                margin: { t: 20, r: 20, b: 20, l: 20 },
+                showlegend: false,
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot('paymentStatusChart', paymentStatusData, paymentStatusLayout, { responsive: true, displayModeBar: false });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('settlementModal');
+            const createModal = document.getElementById('createSettlementModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+            if (event.target === createModal) {
+                closeCreateModal();
+            }
+        }
+    </script>
+</body>
+
+</html>

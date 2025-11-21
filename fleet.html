@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Management - Somali Truck TMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-navy {
+            background-color: #1e3a8a;
+        }
+
+        .text-navy {
+            color: #1e3a8a;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .metric-card {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .status-available {
+            background-color: #10b981;
+        }
+
+        .status-dispatched {
+            background-color: #f59e0b;
+        }
+
+        .status-in-transit {
+            background-color: #3b82f6;
+        }
+
+        .status-delivered {
+            background-color: #6b7280;
+        }
+
+        .status-cancelled {
+            background-color: #ef4444;
+        }
+
+        .status-maintenance {
+            background-color: #dc2626;
+        }
+
+        .status-repair {
+            background-color: #f59e0b;
+        }
+
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid #ffffff;
+        }
+
+        .main-content {
+            margin-left: 250px;
+        }
+
+        .company-logo {
+            width: 60px;
+            height: 60px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar fixed left-0 top-0 h-full text-white z-50">
+        <div class="p-6">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="company-logo" id="companyLogo">ST</div>
+                <div>
+                    <h2 class="text-xl font-bold" id="companyName">Somali Truck</h2>
+                    <p class="text-sm opacity-75">TMS</p>
+                </div>
+            </div>
+
+            <nav class="space-y-2">
+                <a href="index.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-tachometer-alt mr-3 w-5"></i>
+                    Dashboard
+                </a>
+                <a href="loads.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-truck mr-3 w-5"></i>
+                    Loads
+                </a>
+                <a href="drivers.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-users mr-3 w-5"></i>
+                    Drivers
+                </a>
+                <a href="fleet.html"
+                    class="sidebar-item active flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-truck-monster mr-3 w-5"></i>
+                    Fleet
+                </a>
+                <a href="customers.html"
+                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-building mr-3 w-5"></i>
+                    Customers
+                </a>
+                <a href="expenses.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-receipt mr-3 w-5"></i>
+                    Expenses
+                </a>
+                <a href="invoices.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-file-invoice mr-3 w-5"></i>
+                    Invoices
+                </a>
+                <a href="settlements.html"
+                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-calculator mr-3 w-5"></i>
+                    Settlements
+                </a>
+                <a href="reports.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-chart-bar mr-3 w-5"></i>
+                    Reports
+                </a>
+                <a href="import.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-upload mr-3 w-5"></i>
+                    Import
+                </a>
+            </nav>
+        </div>
+
+        <div class="absolute bottom-6 left-6 right-6">
+            <button onclick="CompanySettings.openModal()"
+                class="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium bg-white bg-opacity-10 hover:bg-opacity-20 transition-all">
+                <i class="fas fa-cog mr-3 w-5"></i>
+                Company Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="bg-white shadow-sm border-b">
+            <div class="px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Fleet Management</h1>
+                        <p class="text-gray-600">Manage your trucks and maintenance schedules</p>
+                    </div>
+                    <button onclick="FleetManager.openAddTruckModal()"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>
+                        Add Truck
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fleet Overview Cards -->
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Trucks</p>
+                            <p class="text-2xl font-bold text-gray-900" id="totalTrucks">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-truck text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Available</p>
+                            <p class="text-2xl font-bold text-green-600" id="availableTrucks">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">In Transit</p>
+                            <p class="text-2xl font-bold text-blue-600" id="inTransitTrucks">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-truck text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Maintenance</p>
+                            <p class="text-2xl font-bold text-red-600" id="maintenanceTrucks">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-wrench text-red-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fleet Table -->
+            <div class="bg-white rounded-lg card-shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-semibold text-gray-900">Fleet Inventory</h2>
+                        <div class="flex space-x-3">
+                            <input type="text" id="truckSearch" placeholder="Search trucks..."
+                                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select id="statusFilter"
+                                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Status</option>
+                                <option value="available">Available</option>
+                                <option value="in_transit">In Transit</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="repair">Repair</option>
+                                <option value="out_of_service">Out of Service</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Truck</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Type</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Driver</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Mileage</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Last Service</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fleetTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Fleet data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Truck Modal -->
+    <div id="truckModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold" id="truckModalTitle">Add New Truck</h3>
+                <button onclick="FleetManager.closeTruckModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="truckForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Truck Number</label>
+                        <input type="text" id="truckNumber" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">License Plate</label>
+                        <input type="text" id="licensePlate" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Make</label>
+                        <select id="truckMake" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Make</option>
+                            <option value="Freightliner">Freightliner</option>
+                            <option value="Peterbilt">Peterbilt</option>
+                            <option value="Kenworth">Kenworth</option>
+                            <option value="Volvo">Volvo</option>
+                            <option value="Mack">Mack</option>
+                            <option value="International">International</option>
+                            <option value="Western Star">Western Star</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                        <input type="text" id="truckModel" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                        <input type="number" id="truckYear" min="1990" max="2030" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">VIN</label>
+                        <input type="text" id="truckVin" maxlength="17" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="truckStatus" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="available">Available</option>
+                            <option value="in_transit">In Transit</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="repair">Repair</option>
+                            <option value="out_of_service">Out of Service</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Current Mileage</label>
+                        <input type="number" id="currentMileage" min="0"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Assigned Driver</label>
+                        <select id="assignedDriver"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Unassigned</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Last Service Date</label>
+                        <input type="date" id="lastServiceDate"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea id="truckNotes" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="FleetManager.closeTruckModal()"
+                        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                        Save Truck
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script src="main.js"></script>
+    <script>
+        // Fleet Management Module
+        const FleetManager = {
+            trucks: [],
+
+            // Initialize fleet management
+            init: () => {
+                FleetManager.loadSampleData();
+                FleetManager.renderFleetTable();
+                FleetManager.updateOverviewCards();
+                FleetManager.loadDrivers();
+                FleetManager.setupEventListeners();
+            },
+
+            // Load sample data
+            loadSampleData: () => {
+                FleetManager.trucks = [
+                    {
+                        id: 'T001',
+                        number: '101',
+                        licensePlate: 'ABC123',
+                        make: 'Freightliner',
+                        model: 'Cascadia',
+                        year: 2020,
+                        vin: '1FUJGLDR53LX08123',
+                        status: 'available',
+                        currentMileage: 125000,
+                        lastServiceDate: '2024-10-15',
+                        assignedDriver: 'D001',
+                        notes: 'Well maintained, ready for dispatch'
+                    },
+                    {
+                        id: 'T002',
+                        number: '102',
+                        licensePlate: 'DEF456',
+                        make: 'Peterbilt',
+                        model: '579',
+                        year: 2019,
+                        vin: '1XPWD40X9KD123456',
+                        status: 'in_transit',
+                        currentMileage: 98750,
+                        lastServiceDate: '2024-11-01',
+                        assignedDriver: 'D002',
+                        notes: 'Currently on load to Chicago'
+                    },
+                    {
+                        id: 'T003',
+                        number: '103',
+                        licensePlate: 'GHI789',
+                        make: 'Volvo',
+                        model: 'VNL',
+                        year: 2021,
+                        vin: '4V4NC9EJ8MN123456',
+                        status: 'maintenance',
+                        currentMileage: 45000,
+                        lastServiceDate: '2024-11-10',
+                        assignedDriver: '',
+                        notes: 'Scheduled maintenance - oil change and brake inspection'
+                    }
+                ];
+            },
+
+            // Load drivers for dropdown
+            loadDrivers: () => {
+                const drivers = [
+                    { id: 'D001', name: 'John Smith' },
+                    { id: 'D002', name: 'Mike Johnson' },
+                    { id: 'D003', name: 'Sarah Davis' }
+                ];
+
+                const driverSelect = document.getElementById('assignedDriver');
+                drivers.forEach(driver => {
+                    const option = document.createElement('option');
+                    option.value = driver.id;
+                    option.textContent = driver.name;
+                    driverSelect.appendChild(option);
+                });
+            },
+
+            // Render fleet table
+            renderFleetTable: () => {
+                const tbody = document.getElementById('fleetTableBody');
+                tbody.innerHTML = '';
+
+                FleetManager.trucks.forEach(truck => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${truck.number}</div>
+                            <div class="text-sm text-gray-500">${truck.make} ${truck.model}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-gray-900">${truck.year} ${truck.make} ${truck.model}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${FleetManager.getStatusColor(truck.status)}">
+                                ${truck.status.replace('_', ' ').toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${truck.assignedDriver ? 'John Smith' : 'Unassigned'}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${truck.currentMileage.toLocaleString()} mi
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${new Date(truck.lastServiceDate).toLocaleDateString()}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="FleetManager.editTruck('${truck.id}')" 
+                                    class="text-blue-600 hover:text-blue-900 mr-3">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="FleetManager.scheduleMaintenance('${truck.id}')" 
+                                    class="text-green-600 hover:text-green-900 mr-3">
+                                <i class="fas fa-wrench"></i>
+                            </button>
+                            <button onclick="FleetManager.deleteTruck('${truck.id}')" 
+                                    class="text-red-600 hover:text-red-900">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            },
+
+            // Get status color class
+            getStatusColor: (status) => {
+                const colors = {
+                    'available': 'bg-green-100 text-green-800',
+                    'in_transit': 'bg-blue-100 text-blue-800',
+                    'maintenance': 'bg-red-100 text-red-800',
+                    'repair': 'bg-yellow-100 text-yellow-800',
+                    'out_of_service': 'bg-gray-100 text-gray-800'
+                };
+                return colors[status] || 'bg-gray-100 text-gray-800';
+            },
+
+            // Update overview cards
+            updateOverviewCards: () => {
+                const total = FleetManager.trucks.length;
+                const available = FleetManager.trucks.filter(t => t.status === 'available').length;
+                const inTransit = FleetManager.trucks.filter(t => t.status === 'in_transit').length;
+                const maintenance = FleetManager.trucks.filter(t => t.status === 'maintenance' || t.status === 'repair').length;
+
+                document.getElementById('totalTrucks').textContent = total;
+                document.getElementById('availableTrucks').textContent = available;
+                document.getElementById('inTransitTrucks').textContent = inTransit;
+                document.getElementById('maintenanceTrucks').textContent = maintenance;
+            },
+
+            // Open add truck modal
+            openAddTruckModal: () => {
+                document.getElementById('truckModalTitle').textContent = 'Add New Truck';
+                document.getElementById('truckForm').reset();
+                document.getElementById('truckModal').classList.remove('hidden');
+            },
+
+            // Close truck modal
+            closeTruckModal: () => {
+                document.getElementById('truckModal').classList.add('hidden');
+                document.getElementById('truckForm').reset();
+            },
+
+            // Edit truck
+            editTruck: (truckId) => {
+                const truck = FleetManager.trucks.find(t => t.id === truckId);
+                if (!truck) return;
+
+                document.getElementById('truckModalTitle').textContent = `Edit Truck ${truck.number}`;
+
+                // Populate form
+                document.getElementById('truckNumber').value = truck.number;
+                document.getElementById('licensePlate').value = truck.licensePlate;
+                document.getElementById('truckMake').value = truck.make;
+                document.getElementById('truckModel').value = truck.model;
+                document.getElementById('truckYear').value = truck.year;
+                document.getElementById('truckVin').value = truck.vin;
+                document.getElementById('truckStatus').value = truck.status;
+                document.getElementById('currentMileage').value = truck.currentMileage;
+                document.getElementById('assignedDriver').value = truck.assignedDriver;
+                document.getElementById('lastServiceDate').value = truck.lastServiceDate;
+                document.getElementById('truckNotes').value = truck.notes;
+
+                document.getElementById('truckModal').classList.remove('hidden');
+            },
+
+            // Schedule maintenance
+            scheduleMaintenance: (truckId) => {
+                Utils.showNotification('Maintenance scheduling feature coming soon', 'info');
+            },
+
+            // Delete truck
+            deleteTruck: (truckId) => {
+                if (confirm('Are you sure you want to delete this truck?')) {
+                    FleetManager.trucks = FleetManager.trucks.filter(t => t.id !== truckId);
+                    FleetManager.renderFleetTable();
+                    FleetManager.updateOverviewCards();
+                    Utils.showNotification('Truck deleted successfully', 'success');
+                }
+            },
+
+            // Setup event listeners
+            setupEventListeners: () => {
+                // Search functionality
+                document.getElementById('truckSearch').addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const rows = document.querySelectorAll('#fleetTableBody tr');
+
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        row.style.display = text.includes(searchTerm) ? '' : 'none';
+                    });
+                });
+
+                // Status filter
+                document.getElementById('statusFilter').addEventListener('change', (e) => {
+                    const status = e.target.value;
+                    const rows = document.querySelectorAll('#fleetTableBody tr');
+
+                    rows.forEach(row => {
+                        if (!status) {
+                            row.style.display = '';
+                        } else {
+                            const rowStatus = row.querySelector('span').textContent.toLowerCase().replace(' ', '_');
+                            row.style.display = rowStatus === status ? '' : 'none';
+                        }
+                    });
+                });
+
+                // Form submission
+                document.getElementById('truckForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+
+                    const truckData = {
+                        number: document.getElementById('truckNumber').value,
+                        licensePlate: document.getElementById('licensePlate').value,
+                        make: document.getElementById('truckMake').value,
+                        model: document.getElementById('truckModel').value,
+                        year: parseInt(document.getElementById('truckYear').value),
+                        vin: document.getElementById('truckVin').value,
+                        status: document.getElementById('truckStatus').value,
+                        currentMileage: parseInt(document.getElementById('currentMileage').value) || 0,
+                        assignedDriver: document.getElementById('assignedDriver').value,
+                        lastServiceDate: document.getElementById('lastServiceDate').value,
+                        notes: document.getElementById('truckNotes').value
+                    };
+
+                    if (document.getElementById('truckModalTitle').textContent.includes('Edit')) {
+                        // Update existing truck
+                        const truckId = FleetManager.trucks.find(t => t.number === truckData.number)?.id;
+                        if (truckId) {
+                            const index = FleetManager.trucks.findIndex(t => t.id === truckId);
+                            FleetManager.trucks[index] = { ...FleetManager.trucks[index], ...truckData };
+                        }
+                    } else {
+                        // Add new truck
+                        truckData.id = 'T' + String(FleetManager.trucks.length + 1).padStart(3, '0');
+                        FleetManager.trucks.push(truckData);
+                    }
+
+                    FleetManager.renderFleetTable();
+                    FleetManager.updateOverviewCards();
+                    FleetManager.closeTruckModal();
+                    Utils.showNotification('Truck saved successfully', 'success');
+                });
+            }
+        };
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            FleetManager.init();
+        });
+    </script>
+</body>
+
+</html>

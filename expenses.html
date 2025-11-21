@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracking - Somali Truck TMS TMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-navy {
+            background-color: #1e3a8a;
+        }
+
+        .text-navy {
+            color: #1e3a8a;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .status-approved {
+            background-color: #10b981;
+        }
+
+        .status-pending {
+            background-color: #f59e0b;
+        }
+
+        .status-rejected {
+            background-color: #ef4444;
+        }
+
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <img src="resources/company-logo.png" alt="Somali Truck TMS" class="h-10 w-10 rounded-lg">
+                    <div>
+                        <h1 class="text-xl font-bold">Somali Truck TMS</h1>
+                        <p class="text-sm opacity-90">Transportation Management System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="index.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    </a>
+                    <a href="loads.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-truck mr-2"></i>Loads
+                    </a>
+                    <span class="nav-item active px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-receipt mr-2"></i>Expenses
+                    </span>
+                    <span class="text-sm">Welcome, John (Admin)</span>
+                    <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">Expense Tracking</h2>
+                <p class="text-gray-600 mt-2">Manage operational expenses and receipts</p>
+            </div>
+            <button onclick="openExpenseModal()"
+                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add Expense
+            </button>
+        </div>
+
+        <!-- Expense Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-gas-pump text-red-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Fuel Expenses</dt>
+                            <dd class="text-2xl font-semibold text-gray-900">$45,230</dd>
+                        </dl>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center text-sm text-red-600">
+                        <span>This month</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-tools text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Maintenance</dt>
+                            <dd class="text-2xl font-semibold text-gray-900">$12,450</dd>
+                        </dl>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center text-sm text-blue-600">
+                        <span>This month</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-shield-alt text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Insurance</dt>
+                            <dd class="text-2xl font-semibold text-gray-900">$8,900</dd>
+                        </dl>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center text-sm text-green-600">
+                        <span>This month</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-calculator text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Expenses</dt>
+                            <dd class="text-2xl font-semibold text-gray-900">$78,450</dd>
+                        </dl>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center text-sm text-purple-600">
+                        <span>This month</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expense Categories -->
+        <div class="bg-white rounded-lg p-6 card-shadow mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Expense Categories</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                    <div class="flex items-center">
+                        <i class="fas fa-gas-pump text-red-600 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-gray-900">Fuel</h4>
+                            <p class="text-sm text-gray-600">$45,230 (57.7%)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div class="flex items-center">
+                        <i class="fas fa-tools text-blue-600 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-gray-900">Maintenance</h4>
+                            <p class="text-sm text-gray-600">$12,450 (15.9%)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div class="flex items-center">
+                        <i class="fas fa-shield-alt text-green-600 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-gray-900">Insurance</h4>
+                            <p class="text-sm text-gray-600">$8,900 (11.3%)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div class="flex items-center">
+                        <i class="fas fa-road text-yellow-600 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-gray-900">Tolls</h4>
+                            <p class="text-sm text-gray-600">$3,200 (4.1%)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <div class="flex items-center">
+                        <i class="fas fa-users text-purple-600 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-gray-900">Lumper Fees</h4>
+                            <p class="text-sm text-gray-600">$2,800 (3.6%)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-invoice text-indigo-600 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-gray-900">Permits</h4>
+                            <p class="text-sm text-gray-600">$1,500 (1.9%)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-pink-50 rounded-lg border border-pink-200">
+                    <div class="flex items-center">
+                        <i class="fas fa-hotel text-pink-600 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-gray-900">Lodging</h4>
+                            <p class="text-sm text-gray-600">$2,100 (2.7%)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="flex items-center">
+                        <i class="fas fa-ellipsis-h text-gray-600 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-gray-900">Other</h4>
+                            <p class="text-sm text-gray-600">$2,270 (2.9%)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Table -->
+        <div class="bg-white rounded-lg card-shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900">Recent Expenses</h3>
+                    <div class="flex items-center space-x-4">
+                        <button class="text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-download mr-2"></i>Export
+                        </button>
+                        <button class="text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-filter mr-2"></i>Filter
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Description</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Driver</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Truck</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expensesTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="expenseModal" class="modal">
+        <div class="modal-content">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <h3 id="modalTitle" class="text-xl font-semibold">Add New Expense</h3>
+                    <button onclick="closeModal()" class="text-white hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <form id="expenseForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Expense Type</label>
+                            <select id="expenseType"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select Type</option>
+                                <option value="fuel">Fuel</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="insurance">Insurance</option>
+                                <option value="toll">Tolls</option>
+                                <option value="lumper">Lumper Fees</option>
+                                <option value="permit">Permits</option>
+                                <option value="lodging">Lodging</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                            <input type="number" id="amount" step="0.01"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <input type="text" id="description"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter expense description">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Driver</label>
+                            <select id="driver"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select Driver</option>
+                                <option value="driver1">Mike Johnson</option>
+                                <option value="driver2">Sarah Davis</option>
+                                <option value="driver3">Tom Wilson</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Truck</label>
+                            <select id="truck"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select Truck</option>
+                                <option value="truck1">TRK-001</option>
+                                <option value="truck2">TRK-002</option>
+                                <option value="truck3">TRK-003</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
+                        <input type="text" id="vendor"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Vendor name">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Receipt Upload</label>
+                        <input type="file" id="receipt" accept=".pdf,.jpg,.jpeg,.png"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <p class="text-xs text-gray-500 mt-1">Upload receipt or invoice (PDF, JPG, PNG)</p>
+                    </div>
+
+                    <div class="border-t pt-6 flex justify-end space-x-4">
+                        <button type="button" onclick="closeModal()"
+                            class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            Add Expense
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-12 py-8 border-t border-gray-200">
+        <div class="text-center">
+            <p class="text-gray-600">&copy; 2025 Somali Truck TMS. All rights reserved.</p>
+            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script src="main.js"></script>
+    <script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            DataManager.init().then(() => {
+                renderExpenses();
+                updateStats();
+            });
+        });
+
+        function renderExpenses() {
+            const tbody = document.getElementById('expensesTableBody');
+            tbody.innerHTML = '';
+
+            const sortedExpenses = [...DataManager.expenses].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            sortedExpenses.forEach(expense => {
+                const statusClass = {
+                    'approved': 'status-approved',
+                    'pending': 'status-pending',
+                    'rejected': 'status-rejected'
+                }[expense.status] || 'bg-gray-500';
+
+                const typeIcon = {
+                    'fuel': 'fa-gas-pump text-red-600',
+                    'maintenance': 'fa-tools text-blue-600',
+                    'insurance': 'fa-shield-alt text-green-600',
+                    'toll': 'fa-road text-yellow-600',
+                    'lumper': 'fa-users text-purple-600',
+                    'permit': 'fa-file-invoice text-indigo-600',
+                    'lodging': 'fa-hotel text-pink-600',
+                    'other': 'fa-ellipsis-h text-gray-600'
+                }[expense.type] || 'fa-dollar-sign text-gray-600';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${Utils.formatDate(expense.createdAt)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <i class="fas ${typeIcon} mr-2"></i>
+                            <span class="text-sm text-gray-900 capitalize">${expense.type}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${expense.description}</div>
+                        <div class="text-xs text-gray-500">${expense.vendor}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${expense.driverName || '-'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${expense.truckNumber || '-'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${Utils.formatCurrency(expense.amount)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white ${statusClass}">
+                            ${expense.status.charAt(0).toUpperCase() + expense.status.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="deleteExpense('${expense.id}')" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateStats() {
+            // Simple stats update logic
+            // In a real app, this would be more robust
+        }
+
+        function openExpenseModal() {
+            document.getElementById('modalTitle').textContent = 'Add New Expense';
+            document.getElementById('expenseForm').reset();
+
+            // Populate drivers
+            const driverSelect = document.getElementById('driver');
+            driverSelect.innerHTML = '<option value="">Select Driver</option>';
+            DataManager.drivers.forEach(d => {
+                driverSelect.innerHTML += `<option value="${d.id}">${d.firstName} ${d.lastName}</option>`;
+            });
+
+            // Populate trucks
+            const truckSelect = document.getElementById('truck');
+            truckSelect.innerHTML = '<option value="">Select Truck</option>';
+            DataManager.trucks.forEach(t => {
+                truckSelect.innerHTML += `<option value="${t.id}">${t.truckNumber}</option>`;
+            });
+
+            document.getElementById('expenseModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('expenseModal').classList.remove('show');
+        }
+
+        async function deleteExpense(id) {
+            if (confirm('Are you sure you want to delete this expense?')) {
+                await DataManager.deleteExpense(id);
+                renderExpenses();
+            }
+        }
+
+        // Form submission
+        document.getElementById('expenseForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const driverSelect = document.getElementById('driver');
+            const truckSelect = document.getElementById('truck');
+
+            const expenseData = {
+                type: document.getElementById('expenseType').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                description: document.getElementById('description').value,
+                driverId: driverSelect.value,
+                driverName: driverSelect.options[driverSelect.selectedIndex].text,
+                truckId: truckSelect.value,
+                truckNumber: truckSelect.options[truckSelect.selectedIndex].text,
+                vendor: document.getElementById('vendor').value,
+                status: 'pending' // Default status
+            };
+
+            await DataManager.addExpense(expenseData);
+            closeModal();
+            renderExpenses();
+        });
+    </script>
+</body>
+
+</html>

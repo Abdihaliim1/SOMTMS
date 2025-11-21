@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Import - Somali Truck TMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-navy {
+            background-color: #1e3a8a;
+        }
+
+        .text-navy {
+            color: #1e3a8a;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .metric-card {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid #ffffff;
+        }
+
+        .main-content {
+            margin-left: 250px;
+        }
+
+        .company-logo {
+            width: 60px;
+            height: 60px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar fixed left-0 top-0 h-full text-white z-50">
+        <div class="p-6">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="company-logo" id="companyLogo">ST</div>
+                <div>
+                    <h2 class="text-xl font-bold" id="companyName">Somali Truck</h2>
+                    <p class="text-sm opacity-75">TMS</p>
+                </div>
+            </div>
+
+            <nav class="space-y-2">
+                <a href="index.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-tachometer-alt mr-3 w-5"></i>
+                    Dashboard
+                </a>
+                <a href="loads.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-truck mr-3 w-5"></i>
+                    Loads
+                </a>
+                <a href="drivers.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-users mr-3 w-5"></i>
+                    Drivers
+                </a>
+                <a href="fleet.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-truck-monster mr-3 w-5"></i>
+                    Fleet
+                </a>
+                <a href="customers.html"
+                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-building mr-3 w-5"></i>
+                    Customers
+                </a>
+                <a href="expenses.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-receipt mr-3 w-5"></i>
+                    Expenses
+                </a>
+                <a href="invoices.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-file-invoice mr-3 w-5"></i>
+                    Invoices
+                </a>
+                <a href="settlements.html"
+                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-calculator mr-3 w-5"></i>
+                    Settlements
+                </a>
+                <a href="reports.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-chart-bar mr-3 w-5"></i>
+                    Reports
+                </a>
+                <a href="import.html"
+                    class="sidebar-item active flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-upload mr-3 w-5"></i>
+                    Import
+                </a>
+            </nav>
+        </div>
+
+        <div class="absolute bottom-6 left-6 right-6">
+            <button onclick="CompanySettings.openModal()"
+                class="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium bg-white bg-opacity-10 hover:bg-opacity-20 transition-all">
+                <i class="fas fa-cog mr-3 w-5"></i>
+                Company Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="bg-white shadow-sm border-b">
+            <div class="px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Data Import</h1>
+                        <p class="text-gray-600">Import data from external sources and files</p>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="ImportManager.showImportHistory()"
+                            class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                            <i class="fas fa-history mr-2"></i>
+                            Import History
+                        </button>
+                        <button onclick="ImportManager.downloadTemplate()"
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-download mr-2"></i>
+                            Download Template
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Options -->
+        <div class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- File Import -->
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-file-csv text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">File Import</h3>
+                            <p class="text-sm text-gray-600">Upload CSV, Excel, or JSON files</p>
+                        </div>
+                    </div>
+
+                    <div class="upload-area rounded-lg p-8 text-center cursor-pointer mb-4" id="fileUploadArea">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-lg font-medium text-gray-700 mb-2">Drop files here or click to browse</p>
+                        <p class="text-sm text-gray-500">Supports CSV, Excel (.xlsx, .xls), JSON files up to 50MB</p>
+                        <input type="file" id="fileInput" class="hidden" accept=".csv,.xlsx,.xls,.json" multiple>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Data Type</label>
+                            <select id="dataTypeSelect"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="loads">Loads</option>
+                                <option value="drivers">Drivers</option>
+                                <option value="customers">Customers</option>
+                                <option value="expenses">Expenses</option>
+                                <option value="fleet">Fleet</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center">
+                            <input type="checkbox" id="skipDuplicates" class="mr-2">
+                            <label for="skipDuplicates" class="text-sm text-gray-700">Skip duplicate records</label>
+                        </div>
+
+                        <button onclick="ImportManager.startFileImport()"
+                            class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-upload mr-2"></i>
+                            Start Import
+                        </button>
+                    </div>
+                </div>
+
+                <!-- API Integration -->
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-plug text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">API Integration</h3>
+                            <p class="text-sm text-gray-600">Connect to external systems</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-medium text-gray-900">DAT Load Board</h4>
+                                <span
+                                    class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Connected</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">Import loads from DAT Load Board</p>
+                            <button onclick="ImportManager.syncDAT()"
+                                class="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                                <i class="fas fa-sync mr-1"></i>
+                                Sync Now
+                            </button>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-medium text-gray-900">Truckstop.com</h4>
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Not
+                                    Connected</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">Import loads from Truckstop.com</p>
+                            <button onclick="ImportManager.connectTruckstop()"
+                                class="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                                <i class="fas fa-link mr-1"></i>
+                                Connect
+                            </button>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-medium text-gray-900">QuickBooks</h4>
+                                <span
+                                    class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">Sync invoices and expenses</p>
+                            <button onclick="ImportManager.syncQuickBooks()"
+                                class="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                                <i class="fas fa-sync mr-1"></i>
+                                Sync Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <button onclick="ImportManager.manageConnections()"
+                            class="w-full bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                            <i class="fas fa-cog mr-2"></i>
+                            Manage Connections
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Manual Entry -->
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-keyboard text-purple-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Manual Entry</h3>
+                            <p class="text-sm text-gray-600">Quick data entry forms</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <button onclick="ImportManager.openQuickEntry('load')"
+                            class="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center">
+                                <i class="fas fa-truck text-blue-600 mr-3"></i>
+                                <div>
+                                    <div class="font-medium text-gray-900">Quick Load Entry</div>
+                                    <div class="text-sm text-gray-600">Add a single load</div>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button onclick="ImportManager.openQuickEntry('driver')"
+                            class="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center">
+                                <i class="fas fa-user text-green-600 mr-3"></i>
+                                <div>
+                                    <div class="font-medium text-gray-900">Quick Driver Entry</div>
+                                    <div class="text-sm text-gray-600">Add a single driver</div>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button onclick="ImportManager.openQuickEntry('customer')"
+                            class="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center">
+                                <i class="fas fa-building text-purple-600 mr-3"></i>
+                                <div>
+                                    <div class="font-medium text-gray-900">Quick Customer Entry</div>
+                                    <div class="text-sm text-gray-600">Add a single customer</div>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button onclick="ImportManager.openQuickEntry('expense')"
+                            class="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center">
+                                <i class="fas fa-receipt text-orange-600 mr-3"></i>
+                                <div>
+                                    <div class="font-medium text-gray-900">Quick Expense Entry</div>
+                                    <div class="text-sm text-gray-600">Add a single expense</div>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import Progress -->
+            <div id="importProgress" class="mt-6 bg-white rounded-lg p-6 card-shadow hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Import Progress</h3>
+                    <button onclick="ImportManager.cancelImport()" class="text-red-600 hover:text-red-900">
+                        <i class="fas fa-times mr-1"></i>
+                        Cancel
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span id="importStatus">Processing file...</span>
+                            <span id="importPercentage">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="importProgressBar" class="progress-bar bg-blue-600 h-2 rounded-full"
+                                style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600" id="totalRecords">0</div>
+                            <div class="text-gray-600">Total Records</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600" id="successfulRecords">0</div>
+                            <div class="text-gray-600">Successful</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-yellow-600" id="warningRecords">0</div>
+                            <div class="text-gray-600">Warnings</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-red-600" id="errorRecords">0</div>
+                            <div class="text-gray-600">Errors</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Imports -->
+            <div class="mt-6 bg-white rounded-lg card-shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Recent Imports</h3>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Date/Time</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Data Type</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Source</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Records</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="importHistoryTable" class="bg-white divide-y divide-gray-200">
+                            <!-- Import history will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Entry Modal -->
+    <div id="quickEntryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold" id="quickEntryModalTitle">Quick Entry</h3>
+                <button onclick="ImportManager.closeQuickEntry()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="quickEntryForm" class="space-y-4">
+                <!-- Form fields will be dynamically populated based on data type -->
+                <div id="quickEntryFields">
+                    <!-- Dynamic content -->
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="ImportManager.closeQuickEntry()"
+                        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                        Save Entry
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script src="main.js"></script>
+    <script>
+        // Import Manager Module
+        const ImportManager = {
+            selectedFiles: [],
+            importHistory: [],
+
+            // Initialize import manager
+            init: () => {
+                ImportManager.loadSampleHistory();
+                ImportManager.renderImportHistory();
+                ImportManager.setupEventListeners();
+            },
+
+            // Load sample import history
+            loadSampleHistory: () => {
+                ImportManager.importHistory = [
+                    {
+                        id: 'IMP001',
+                        dateTime: new Date('2024-11-20 14:30:00'),
+                        dataType: 'Loads',
+                        source: 'loads_november.csv',
+                        records: 45,
+                        status: 'completed',
+                        successful: 43,
+                        warnings: 2,
+                        errors: 0
+                    },
+                    {
+                        id: 'IMP002',
+                        dateTime: new Date('2024-11-19 09:15:00'),
+                        dataType: 'Drivers',
+                        source: 'drivers_update.xlsx',
+                        records: 12,
+                        status: 'completed',
+                        successful: 12,
+                        warnings: 0,
+                        errors: 0
+                    },
+                    {
+                        id: 'IMP003',
+                        dateTime: new Date('2024-11-18 16:45:00'),
+                        dataType: 'Customers',
+                        source: 'DAT Load Board API',
+                        records: 28,
+                        status: 'completed',
+                        successful: 25,
+                        warnings: 2,
+                        errors: 1
+                    },
+                    {
+                        id: 'IMP004',
+                        dateTime: new Date('2024-11-17 11:20:00'),
+                        dataType: 'Expenses',
+                        source: 'expenses_week47.csv',
+                        records: 156,
+                        status: 'failed',
+                        successful: 0,
+                        warnings: 0,
+                        errors: 156
+                    }
+                ];
+            },
+
+            // Render import history
+            renderImportHistory: () => {
+                const tbody = document.getElementById('importHistoryTable');
+                tbody.innerHTML = '';
+
+                ImportManager.importHistory.forEach(importItem => {
+                    const row = document.createElement('tr');
+
+                    const statusColor = {
+                        'completed': 'bg-green-100 text-green-800',
+                        'failed': 'bg-red-100 text-red-800',
+                        'processing': 'bg-blue-100 text-blue-800'
+                    };
+
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${importItem.dateTime.toLocaleString()}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${importItem.dataType}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${importItem.source}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${importItem.records}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColor[importItem.status] || 'bg-gray-100 text-gray-800'}">
+                                ${importItem.status.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="ImportManager.viewImportDetails('${importItem.id}')" 
+                                    class="text-blue-600 hover:text-blue-900 mr-3">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="ImportManager.reimport('${importItem.id}')" 
+                                    class="text-green-600 hover:text-green-900 mr-3">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                            <button onclick="ImportManager.deleteImport('${importItem.id}')" 
+                                    class="text-red-600 hover:text-red-900">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            },
+
+            // Setup event listeners
+            setupEventListeners: () => {
+                // File upload area
+                const uploadArea = document.getElementById('fileUploadArea');
+                const fileInput = document.getElementById('fileInput');
+
+                uploadArea.addEventListener('click', () => fileInput.click());
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    ImportManager.handleFileSelect(e.dataTransfer.files);
+                });
+
+                fileInput.addEventListener('change', (e) => {
+                    ImportManager.handleFileSelect(e.target.files);
+                });
+            },
+
+            // Handle file selection
+            handleFileSelect: (files) => {
+                ImportManager.selectedFiles = Array.from(files);
+
+                if (ImportManager.selectedFiles.length > 0) {
+                    const fileNames = ImportManager.selectedFiles.map(f => f.name).join(', ');
+                    Utils.showNotification(`Selected ${ImportManager.selectedFiles.length} file(s): ${fileNames}`, 'info');
+                }
+            },
+
+            // Start file import
+            startFileImport: () => {
+                if (ImportManager.selectedFiles.length === 0) {
+                    Utils.showNotification('Please select files to import', 'error');
+                    return;
+                }
+
+                const dataType = document.getElementById('dataTypeSelect').value;
+                const skipDuplicates = document.getElementById('skipDuplicates').checked;
+
+                // Show progress
+                document.getElementById('importProgress').classList.remove('hidden');
+
+                // Simulate import process
+                ImportManager.simulateImport(dataType, ImportManager.selectedFiles.length);
+            },
+
+            // Simulate import process
+            simulateImport: (dataType, fileCount) => {
+                let progress = 0;
+                const totalRecords = Math.floor(Math.random() * 100) + 50;
+
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15 + 5;
+                    if (progress > 100) progress = 100;
+
+                    // Update progress bar
+                    document.getElementById('importProgressBar').style.width = progress + '%';
+                    document.getElementById('importPercentage').textContent = Math.round(progress) + '%';
+
+                    // Update counters
+                    const processed = Math.floor((progress / 100) * totalRecords);
+                    document.getElementById('totalRecords').textContent = totalRecords;
+                    document.getElementById('successfulRecords').textContent = Math.floor(processed * 0.9);
+                    document.getElementById('warningRecords').textContent = Math.floor(processed * 0.08);
+                    document.getElementById('errorRecords').textContent = Math.floor(processed * 0.02);
+
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        document.getElementById('importStatus').textContent = 'Import completed';
+
+                        // Add to import history
+                        const newImport = {
+                            id: 'IMP' + String(ImportManager.importHistory.length + 1).padStart(3, '0'),
+                            dateTime: new Date(),
+                            dataType: dataType.charAt(0).toUpperCase() + dataType.slice(1),
+                            source: ImportManager.selectedFiles.map(f => f.name).join(', '),
+                            records: totalRecords,
+                            status: 'completed',
+                            successful: Math.floor(totalRecords * 0.9),
+                            warnings: Math.floor(totalRecords * 0.08),
+                            errors: Math.floor(totalRecords * 0.02)
+                        };
+
+                        ImportManager.importHistory.unshift(newImport);
+                        ImportManager.renderImportHistory();
+
+                        Utils.showNotification(`Import completed: ${totalRecords} records processed`, 'success');
+
+                        // Hide progress after 3 seconds
+                        setTimeout(() => {
+                            document.getElementById('importProgress').classList.add('hidden');
+                        }, 3000);
+                    }
+                }, 200);
+            },
+
+            // Cancel import
+            cancelImport: () => {
+                document.getElementById('importProgress').classList.add('hidden');
+                Utils.showNotification('Import cancelled', 'info');
+            },
+
+            // Open quick entry modal
+            openQuickEntry: (type) => {
+                const modal = document.getElementById('quickEntryModal');
+                const title = document.getElementById('quickEntryModalTitle');
+                const fields = document.getElementById('quickEntryFields');
+
+                title.textContent = `Quick ${type.charAt(0).toUpperCase() + type.slice(1)} Entry`;
+
+                // Generate form fields based on type
+                fields.innerHTML = ImportManager.generateQuickEntryForm(type);
+
+                modal.classList.remove('hidden');
+            },
+
+            // Generate quick entry form
+            generateQuickEntryForm: (type) => {
+                let formFields = '';
+
+                switch (type) {
+                    case 'load':
+                        formFields = `
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Load Number</label>
+                                    <input type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Origin</label>
+                                    <input type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+                                    <input type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Rate</label>
+                                    <input type="number" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'driver':
+                        formFields = `
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Driver Name</label>
+                                    <input type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                    <input type="tel" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input type="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Pay Type</label>
+                                    <select required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="per_mile">Per Mile</option>
+                                        <option value="percentage">Percentage</option>
+                                        <option value="flat_rate">Flat Rate</option>
+                                        <option value="salary">Salary</option>
+                                    </select>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'customer':
+                        formFields = `
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                                    <input type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
+                                    <input type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                    <input type="tel" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
+                                    <select required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="net_15">Net 15</option>
+                                        <option value="net_30">Net 30</option>
+                                        <option value="net_45">Net 45</option>
+                                        <option value="net_60">Net 60</option>
+                                    </select>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'expense':
+                        formFields = `
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <input type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                                    <input type="number" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                    <select required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="fuel">Fuel</option>
+                                        <option value="maintenance">Maintenance</option>
+                                        <option value="insurance">Insurance</option>
+                                        <option value="permits">Permits</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                    <input type="date" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        `;
+                        break;
+                }
+
+                return formFields;
+            },
+
+            // Close quick entry modal
+            closeQuickEntry: () => {
+                document.getElementById('quickEntryModal').classList.add('hidden');
+            },
+
+            // Download template
+            downloadTemplate: () => {
+                Utils.showNotification('Template download feature coming soon', 'info');
+            },
+
+            // Show import history
+            showImportHistory: () => {
+                Utils.showNotification('Import history details feature coming soon', 'info');
+            },
+
+            // API Integration methods
+            syncDAT: () => {
+                Utils.showNotification('Syncing with DAT Load Board...', 'info');
+            },
+
+            connectTruckstop: () => {
+                Utils.showNotification('Connecting to Truckstop.com...', 'info');
+            },
+
+            syncQuickBooks: () => {
+                Utils.showNotification('Syncing with QuickBooks...', 'info');
+            },
+
+            manageConnections: () => {
+                Utils.showNotification('Connection management feature coming soon', 'info');
+            },
+
+            // Import history actions
+            viewImportDetails: (importId) => {
+                Utils.showNotification(`Viewing details for import ${importId}`, 'info');
+            },
+
+            reimport: (importId) => {
+                Utils.showNotification(`Re-importing ${importId}`, 'info');
+            },
+
+            deleteImport: (importId) => {
+                if (confirm('Are you sure you want to delete this import record?')) {
+                    ImportManager.importHistory = ImportManager.importHistory.filter(item => item.id !== importId);
+                    ImportManager.renderImportHistory();
+                    Utils.showNotification('Import record deleted', 'success');
+                }
+            }
+        };
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            ImportManager.init();
+
+            // Setup quick entry form submission
+            window.quickEntryForm_handler = (e) => {
+                // e.preventDefault() is handled by main.js universal listener
+                Utils.showNotification('Entry saved successfully', 'success');
+                ImportManager.closeQuickEntry();
+            };
+        });
+    </script>
+</body>
+
+</html>

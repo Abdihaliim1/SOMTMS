@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Somali Truck - Transportation Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-navy {
+            background-color: #1e3a8a;
+        }
+
+        .text-navy {
+            color: #1e3a8a;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .metric-card {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .status-available {
+            background-color: #10b981;
+        }
+
+        .status-dispatched {
+            background-color: #f59e0b;
+        }
+
+        .status-in-transit {
+            background-color: #3b82f6;
+        }
+
+        .status-delivered {
+            background-color: #6b7280;
+        }
+
+        .status-cancelled {
+            background-color: #ef4444;
+        }
+
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid #ffffff;
+        }
+
+        .main-content {
+            margin-left: 250px;
+        }
+
+        .company-logo {
+            width: 60px;
+            height: 60px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar fixed left-0 top-0 h-full text-white z-50">
+        <div class="p-6">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="company-logo" id="companyLogo">ST</div>
+                <div>
+                    <h2 class="text-xl font-bold" id="companyName">Somali Truck</h2>
+                    <p class="text-sm opacity-75">TMS</p>
+                </div>
+            </div>
+
+            <nav class="space-y-2">
+                <a href="index.html"
+                    class="sidebar-item active flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-tachometer-alt mr-3 w-5"></i>
+                    Dashboard
+                </a>
+                <a href="loads.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-truck mr-3 w-5"></i>
+                    Loads
+                </a>
+                <a href="drivers.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-users mr-3 w-5"></i>
+                    Drivers
+                </a>
+                <a href="fleet.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-truck-monster mr-3 w-5"></i>
+                    Fleet
+                </a>
+                <a href="customers.html"
+                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-building mr-3 w-5"></i>
+                    Customers
+                </a>
+                <a href="expenses.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-receipt mr-3 w-5"></i>
+                    Expenses
+                </a>
+                <a href="invoices.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-file-invoice mr-3 w-5"></i>
+                    Invoices
+                </a>
+                <a href="settlements.html"
+                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-calculator mr-3 w-5"></i>
+                    Settlements
+                </a>
+                <a href="reports.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-chart-bar mr-3 w-5"></i>
+                    Reports
+                </a>
+                <a href="import.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-upload mr-3 w-5"></i>
+                    Import
+                </a>
+            </nav>
+        </div>
+
+        <div class="absolute bottom-6 left-6 right-6">
+            <button onclick="CompanySettings.openModal()"
+                class="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium bg-white bg-opacity-10 hover:bg-opacity-20 transition-all">
+                <i class="fas fa-cog mr-3 w-5"></i>
+                Company Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <nav class="gradient-bg text-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-4">
+                        <h1 class="text-xl font-bold">Somali Truck</h1>
+                        <p class="text-sm opacity-90">Transportation Management System</p>
+                    </div>
+                    <div class="flex items-center space-x-6">
+                        <span class="text-sm">Welcome, Admin</span>
+                        <button onclick="logout()" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Dashboard Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Dashboard Header -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Dashboard Overview</h2>
+                <p class="text-gray-600 mt-2">Real-time insights into your trucking operations</p>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="metric-card bg-white rounded-lg p-6 card-shadow">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-truck text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Active Loads</dt>
+                                <dd class="text-2xl font-semibold text-gray-900" id="activeLoadsCount">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-green-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            +12% from last week
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card bg-white rounded-lg p-6 card-shadow">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-dollar-sign text-green-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Weekly Revenue</dt>
+                                <dd class="text-2xl font-semibold text-gray-900" id="weeklyRevenue">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-green-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            +8% from last week
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card bg-white rounded-lg p-6 card-shadow">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-yellow-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Active Drivers</dt>
+                                <dd class="text-2xl font-semibold text-gray-900" id="activeDriversCount">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-minus mr-1"></i>
+                            No change
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card bg-white rounded-lg p-6 card-shadow">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-route text-purple-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Miles This Month</dt>
+                                <dd class="text-2xl font-semibold text-gray-900" id="monthlyMiles">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-blue-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            +15% from last month
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Analytics -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Revenue Chart -->
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue Trends</h3>
+                    <div id="revenueChart" class="h-64"></div>
+                </div>
+
+                <!-- Load Status Chart -->
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Load Status Distribution</h3>
+                    <div id="loadStatusChart" class="h-64"></div>
+                </div>
+            </div>
+
+            <!-- Recent Loads and Quick Actions -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Recent Loads -->
+                <div class="lg:col-span-2 bg-white rounded-lg card-shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-900">Recent Loads</h3>
+                            <button onclick="navigateTo('loads.html')"
+                                class="text-blue-600 hover:text-blue-800 text-sm font-medium">View All</button>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4" id="recentLoadsContainer">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg card-shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-3">
+                            <button onclick="navigateTo('loads.html')"
+                                class="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-plus mr-2"></i>
+                                Create New Load
+                            </button>
+
+                            <button onclick="navigateTo('drivers.html')"
+                                class="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                <i class="fas fa-user-plus mr-2"></i>
+                                Add Driver
+                            </button>
+
+                            <button onclick="navigateTo('customers.html')"
+                                class="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                                <i class="fas fa-building mr-2"></i>
+                                Add Customer
+                            </button>
+
+                            <button onclick="navigateTo('expenses.html')"
+                                class="w-full flex items-center justify-center px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                                <i class="fas fa-receipt mr-2"></i>
+                                Record Expense
+                            </button>
+
+                            <button onclick="navigateTo('settlements.html')"
+                                class="w-full flex items-center justify-center px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Driver Settlement
+                            </button>
+
+                            <button onclick="navigateTo('ifta.html')"
+                                class="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                <i class="fas fa-file-invoice-dollar mr-2"></i>
+                                IFTA Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="mt-12 py-8 border-t border-gray-200">
+                <div class="text-center">
+                    <p class="text-gray-600">&copy; 2025 Somali Truck. All rights reserved.</p>
+                    <p class="text-sm text-gray-500 mt-2">Professional Transportation Management System</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Company Settings Modal -->
+    <div id="companyModal" class="modal"
+        style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content"
+            style="background-color: white; margin: auto; padding: 0; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold">Company Settings</h3>
+                    <button onclick="closeCompanyModal()" class="text-white hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <form id="companyForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                        <input type="text" id="companyNameInput" value="Somali Truck"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                            <input type="tel" id="companyPhone" placeholder="(555) 123-4567"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" id="companyEmail" placeholder="dispatch@company.com"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <textarea id="companyAddress" rows="3" placeholder="123 Main St, City, State 12345"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo Text (2
+                            letters)</label>
+                        <input type="text" id="companyLogoText" value="ST" maxlength="2"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+
+                    <div class="border-t pt-6 flex justify-end space-x-4">
+                        <button type="button" onclick="closeCompanyModal()"
+                            class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="button" onclick="saveCompanySettings()"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script src="main.js"></script>
+    <script>
+        // Initialize dashboard charts
+        document.addEventListener('DOMContentLoaded', function () {
+            DataManager.init().then(() => {
+                updateDashboard();
+            });
+        });
+
+        function updateDashboard() {
+            // 1. Update Metrics
+            const activeLoads = DataManager.loads.filter(l => ['dispatched', 'in_transit', 'picked_up'].includes(l.status));
+            document.getElementById('activeLoadsCount').textContent = activeLoads.length;
+
+            const activeDrivers = DataManager.drivers.filter(d => d.status === 'active');
+            document.getElementById('activeDriversCount').textContent = activeDrivers.length;
+
+            // Calculate weekly revenue (last 7 days)
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const weeklyRevenue = DataManager.invoices
+                .filter(inv => new Date(inv.date) >= oneWeekAgo)
+                .reduce((sum, inv) => sum + (parseFloat(inv.amount) || 0), 0);
+            document.getElementById('weeklyRevenue').textContent = Utils.formatCurrency(weeklyRevenue);
+
+            // Calculate monthly miles
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            const monthlyMiles = DataManager.loads
+                .filter(l => new Date(l.delivery?.date || l.createdAt) >= startOfMonth && (l.status === 'delivered' || l.status === 'completed'))
+                .reduce((sum, l) => sum + (parseFloat(l.miles) || 0), 0);
+            document.getElementById('monthlyMiles').textContent = monthlyMiles.toLocaleString();
+
+            // 2. Update Recent Loads
+            const recentContainer = document.getElementById('recentLoadsContainer');
+            recentContainer.innerHTML = '';
+
+            const sortedLoads = [...DataManager.loads]
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 5);
+
+            sortedLoads.forEach(load => {
+                const statusColors = {
+                    'available': 'bg-gray-400',
+                    'dispatched': 'bg-yellow-500',
+                    'in_transit': 'bg-blue-500',
+                    'delivered': 'bg-green-500',
+                    'cancelled': 'bg-red-500'
+                };
+                const color = statusColors[load.status] || 'bg-gray-400';
+
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg';
+                div.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <div class="w-3 h-3 ${color} rounded-full"></div>
+                        <div>
+                            <p class="font-medium text-gray-900">${load.loadNumber}</p>
+                            <p class="text-sm text-gray-600">${load.pickup.city}, ${load.pickup.state} → ${load.delivery.city}, ${load.delivery.state}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-medium text-gray-900">${Utils.formatCurrency(load.rate.total)}</p>
+                        <p class="text-sm text-gray-600 capitalize">${load.status.replace('_', ' ')}</p>
+                    </div>
+                `;
+                recentContainer.appendChild(div);
+            });
+
+            // 3. Update Charts
+            updateCharts();
+        }
+
+        function updateCharts() {
+            // Revenue Chart Data (Monthly)
+            const monthlyRevenue = Array(6).fill(0);
+            const months = [];
+            const today = new Date();
+
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                months.push(d.toLocaleString('default', { month: 'short' }));
+            }
+
+            DataManager.invoices.forEach(inv => {
+                const d = new Date(inv.date);
+                const monthDiff = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
+                if (monthDiff >= 0 && monthDiff < 6) {
+                    monthlyRevenue[5 - monthDiff] += (parseFloat(inv.amount) || 0);
+                }
+            });
+
+            const revenueData = {
+                x: months,
+                y: monthlyRevenue,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#3b82f6', width: 3 },
+                marker: { color: '#3b82f6', size: 8 }
+            };
+
+            const revenueLayout = {
+                margin: { t: 20, r: 20, b: 40, l: 60 },
+                xaxis: { title: 'Month' },
+                yaxis: { title: 'Revenue ($)' },
+                showlegend: false,
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot('revenueChart', [revenueData], revenueLayout, { responsive: true, displayModeBar: false });
+
+            // Load Status Chart
+            const statusCounts = {
+                'available': 0,
+                'dispatched': 0,
+                'in_transit': 0,
+                'delivered': 0,
+                'cancelled': 0
+            };
+
+            DataManager.loads.forEach(l => {
+                const s = l.status.toLowerCase();
+                if (statusCounts[s] !== undefined) statusCounts[s]++;
+                else if (s === 'completed') statusCounts['delivered']++;
+                else if (s === 'pending') statusCounts['available']++;
+            });
+
+            const loadStatusData = [{
+                values: [
+                    statusCounts['available'],
+                    statusCounts['dispatched'],
+                    statusCounts['in_transit'],
+                    statusCounts['delivered'],
+                    statusCounts['cancelled']
+                ],
+                labels: ['Available', 'Dispatched', 'In Transit', 'Delivered', 'Cancelled'],
+                type: 'pie',
+                marker: {
+                    colors: ['#6b7280', '#f59e0b', '#3b82f6', '#10b981', '#ef4444']
+                },
+                textinfo: 'label+percent',
+                textposition: 'outside'
+            }];
+
+            const loadStatusLayout = {
+                margin: { t: 20, r: 20, b: 20, l: 20 },
+                showlegend: false,
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot('loadStatusChart', loadStatusData, loadStatusLayout, { responsive: true, displayModeBar: false });
+        }
+
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        function openCompanySettings() {
+            document.getElementById('companyModal').style.display = 'flex';
+        }
+
+        function closeCompanyModal() {
+            document.getElementById('companyModal').style.display = 'none';
+        }
+
+        function saveCompanySettings() {
+            const companyName = document.getElementById('companyNameInput').value;
+            const logoText = document.getElementById('companyLogoText').value;
+
+            // Update company name throughout the application
+            document.getElementById('companyName').textContent = companyName;
+            document.querySelector('.main-content .gradient-bg h1').textContent = companyName;
+
+            // Update logo
+            document.getElementById('companyLogo').textContent = logoText.toUpperCase();
+
+            // Save to localStorage for persistence
+            localStorage.setItem('companyName', companyName);
+            localStorage.setItem('companyLogo', logoText.toUpperCase());
+
+            Utils.showNotification('Company settings saved successfully!', 'success');
+            closeCompanyModal();
+        }
+
+        // Load saved company settings
+        window.addEventListener('load', function () {
+            const savedName = localStorage.getItem('companyName');
+            const savedLogo = localStorage.getItem('companyLogo');
+
+            if (savedName) {
+                document.getElementById('companyName').textContent = savedName;
+                document.querySelector('.main-content .gradient-bg h1').textContent = savedName;
+                document.getElementById('companyNameInput').value = savedName;
+            }
+
+            if (savedLogo) {
+                document.getElementById('companyLogo').textContent = savedLogo;
+                document.getElementById('companyLogoText').value = savedLogo;
+            }
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('companyModal');
+            if (event.target === modal) {
+                closeCompanyModal();
+            }
+        }
+    </script>
+</body>
+
+</html>

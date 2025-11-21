@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Management - Somali Truck TMS TMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-navy {
+            background-color: #1e3a8a;
+        }
+
+        .text-navy {
+            color: #1e3a8a;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .status-available {
+            background-color: #6b7280;
+        }
+
+        .status-dispatched {
+            background-color: #f59e0b;
+        }
+
+        .status-in-transit {
+            background-color: #3b82f6;
+        }
+
+        .status-delivered {
+            background-color: #10b981;
+        }
+
+        .status-cancelled {
+            background-color: #ef4444;
+        }
+
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <img src="resources/company-logo.png" alt="Somali Truck TMS" class="h-10 w-10 rounded-lg">
+                    <div>
+                        <h1 class="text-xl font-bold">Somali Truck TMS</h1>
+                        <p class="text-sm opacity-90">Transportation Management System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="index.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    </a>
+                    <span class="nav-item active px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-truck mr-2"></i>Loads
+                    </span>
+                    <a href="drivers.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-users mr-2"></i>Drivers
+                    </a>
+                    <span class="text-sm">Welcome, John (Admin)</span>
+                    <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">Load Management</h2>
+                <p class="text-gray-600 mt-2">Manage all freight loads and shipments</p>
+            </div>
+            <button onclick="openCreateLoadModal()"
+                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Create New Load
+            </button>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="bg-white rounded-lg p-6 card-shadow mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="statusFilter"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">All Statuses</option>
+                        <option value="available">Available</option>
+                        <option value="dispatched">Dispatched</option>
+                        <option value="in_transit">In Transit</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Driver</label>
+                    <select id="driverFilter"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">All Drivers</option>
+                        <option value="driver1">Mike Johnson</option>
+                        <option value="driver2">Sarah Davis</option>
+                        <option value="driver3">Tom Wilson</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
+                    <select id="customerFilter"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">All Customers</option>
+                        <option value="customer1">ABC Manufacturing</option>
+                        <option value="customer2">XYZ Logistics</option>
+                        <option value="customer3">Global Transport</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" id="searchInput" placeholder="Load #, origin, destination..."
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+            </div>
+        </div>
+
+        <!-- Loads Table -->
+        <div class="bg-white rounded-lg card-shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900">All Loads</h3>
+                    <div class="flex items-center space-x-4">
+                        <button class="text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-download mr-2"></i>Export
+                        </button>
+                        <button class="text-gray-600 hover:text-gray-800">
+                            <i class="fas fa-filter mr-2"></i>Filter
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Load #</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Origin → Destination</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Customer</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Driver</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Rate</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loadsTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Sample loads data -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">Somali Truck-2025-001</div>
+                                <div class="text-sm text-gray-500">Created: 11/15/2025</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Columbus, OH</div>
+                                <div class="text-sm text-gray-500">→ Chicago, IL</div>
+                                <div class="text-xs text-gray-400">1,000 miles</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">ABC Manufacturing</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Mike Johnson</div>
+                                <div class="text-xs text-gray-500">TRK-001</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">$2,500</div>
+                                <div class="text-xs text-gray-500">$2.50/mile</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span
+                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-in-transit">
+                                    In Transit
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="editLoad('Somali Truck-2025-001')"
+                                    class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="viewLoad('Somali Truck-2025-001')"
+                                    class="text-green-600 hover:text-green-900 mr-3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="deleteLoad('Somali Truck-2025-001')"
+                                    class="text-red-600 hover:text-red-900">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">Somali Truck-2025-002</div>
+                                <div class="text-sm text-gray-500">Created: 11/14/2025</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Columbus, OH</div>
+                                <div class="text-sm text-gray-500">→ Nashville, TN</div>
+                                <div class="text-xs text-gray-400">850 miles</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">XYZ Logistics</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Sarah Davis</div>
+                                <div class="text-xs text-gray-500">TRK-002</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">$3,200</div>
+                                <div class="text-xs text-gray-500">$3.76/mile</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span
+                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-delivered">
+                                    Delivered
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="editLoad('Somali Truck-2025-002')"
+                                    class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="viewLoad('Somali Truck-2025-002')"
+                                    class="text-green-600 hover:text-green-900 mr-3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="deleteLoad('Somali Truck-2025-002')"
+                                    class="text-red-600 hover:text-red-900">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">Somali Truck-2025-003</div>
+                                <div class="text-sm text-gray-500">Created: 11/13/2025</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Columbus, OH</div>
+                                <div class="text-sm text-gray-500">→ Atlanta, GA</div>
+                                <div class="text-xs text-gray-400">1,200 miles</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Global Transport</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Tom Wilson</div>
+                                <div class="text-xs text-gray-500">TRK-003</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">$2,800</div>
+                                <div class="text-xs text-gray-500">$2.33/mile</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span
+                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-dispatched">
+                                    Dispatched
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="editLoad('Somali Truck-2025-003')"
+                                    class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="viewLoad('Somali Truck-2025-003')"
+                                    class="text-green-600 hover:text-green-900 mr-3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="deleteLoad('Somali Truck-2025-003')"
+                                    class="text-red-600 hover:text-red-900">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">Somali Truck-2025-004</div>
+                                <div class="text-sm text-gray-500">Created: 11/12/2025</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">Columbus, OH</div>
+                                <div class="text-sm text-gray-500">→ Dallas, TX</div>
+                                <div class="text-xs text-gray-400">1,450 miles</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">ABC Manufacturing</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-500">Unassigned</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">$4,100</div>
+                                <div class="text-xs text-gray-500">$2.83/mile</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span
+                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-available">
+                                    Available
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="editLoad('Somali Truck-2025-004')"
+                                    class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="viewLoad('Somali Truck-2025-004')"
+                                    class="text-green-600 hover:text-green-900 mr-3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="deleteLoad('Somali Truck-2025-004')"
+                                    class="text-red-600 hover:text-red-900">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">4</span> of <span
+                            class="font-medium">24</span> loads
+                    </div>
+                    <div class="flex space-x-2">
+                        <button
+                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Previous
+                        </button>
+                        <button
+                            class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md">
+                            1
+                        </button>
+                        <button
+                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            2
+                        </button>
+                        <button
+                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            3
+                        </button>
+                        <button
+                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Load Modal -->
+    <div id="loadModal" class="modal">
+        <div class="modal-content">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <h3 id="modalTitle" class="text-xl font-semibold">Create New Load</h3>
+                    <button onclick="closeModal()" class="text-white hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <form id="loadForm" class="space-y-6">
+                    <!-- Load Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Load Number</label>
+                            <input type="text" id="loadNumber"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Somali Truck-2025-005">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select id="loadStatus"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="available">Available</option>
+                                <option value="dispatched">Dispatched</option>
+                                <option value="in_transit">In Transit</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
+                        <select id="customer"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Select Customer</option>
+                            <option value="customer1">ABC Manufacturing</option>
+                            <option value="customer2">XYZ Logistics</option>
+                            <option value="customer3">Global Transport</option>
+                        </select>
+                    </div>
+
+                    <!-- Pickup Information -->
+                    <div class="border-t pt-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Pickup Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Pickup Address</label>
+                                <input type="text" id="pickupAddress"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="123 Main St">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                                <input type="text" id="pickupCity"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Columbus">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">State</label>
+                                <select id="pickupState"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select State</option>
+                                    <option value="AL">Alabama</option>
+                                    <option value="AK">Alaska</option>
+                                    <option value="AZ">Arizona</option>
+                                    <option value="AR">Arkansas</option>
+                                    <option value="CA">California</option>
+                                    <option value="CO">Colorado</option>
+                                    <option value="CT">Connecticut</option>
+                                    <option value="DE">Delaware</option>
+                                    <option value="FL">Florida</option>
+                                    <option value="GA">Georgia</option>
+                                    <option value="HI">Hawaii</option>
+                                    <option value="ID">Idaho</option>
+                                    <option value="IL">Illinois</option>
+                                    <option value="IN">Indiana</option>
+                                    <option value="IA">Iowa</option>
+                                    <option value="KS">Kansas</option>
+                                    <option value="KY">Kentucky</option>
+                                    <option value="LA">Louisiana</option>
+                                    <option value="ME">Maine</option>
+                                    <option value="MD">Maryland</option>
+                                    <option value="MA">Massachusetts</option>
+                                    <option value="MI">Michigan</option>
+                                    <option value="MN">Minnesota</option>
+                                    <option value="MS">Mississippi</option>
+                                    <option value="MO">Missouri</option>
+                                    <option value="MT">Montana</option>
+                                    <option value="NE">Nebraska</option>
+                                    <option value="NV">Nevada</option>
+                                    <option value="NH">New Hampshire</option>
+                                    <option value="NJ">New Jersey</option>
+                                    <option value="NM">New Mexico</option>
+                                    <option value="NY">New York</option>
+                                    <option value="NC">North Carolina</option>
+                                    <option value="ND">North Dakota</option>
+                                    <option value="OH">Ohio</option>
+                                    <option value="OK">Oklahoma</option>
+                                    <option value="OR">Oregon</option>
+                                    <option value="PA">Pennsylvania</option>
+                                    <option value="RI">Rhode Island</option>
+                                    <option value="SC">South Carolina</option>
+                                    <option value="SD">South Dakota</option>
+                                    <option value="TN">Tennessee</option>
+                                    <option value="TX">Texas</option>
+                                    <option value="UT">Utah</option>
+                                    <option value="VT">Vermont</option>
+                                    <option value="VA">Virginia</option>
+                                    <option value="WA">Washington</option>
+                                    <option value="WV">West Virginia</option>
+                                    <option value="WI">Wisconsin</option>
+                                    <option value="WY">Wyoming</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+                                <input type="text" id="pickupZip"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="43215">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Scheduled Date</label>
+                                <input type="datetime-local" id="pickupDate"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Information -->
+                    <div class="border-t pt-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Delivery Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Address</label>
+                                <input type="text" id="deliveryAddress"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="456 Oak Ave">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                                <input type="text" id="deliveryCity"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Chicago">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">State</label>
+                                <select id="deliveryState"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select State</option>
+                                    <option value="AL">Alabama</option>
+                                    <option value="AK">Alaska</option>
+                                    <option value="AZ">Arizona</option>
+                                    <option value="AR">Arkansas</option>
+                                    <option value="CA">California</option>
+                                    <option value="CO">Colorado</option>
+                                    <option value="CT">Connecticut</option>
+                                    <option value="DE">Delaware</option>
+                                    <option value="FL">Florida</option>
+                                    <option value="GA">Georgia</option>
+                                    <option value="HI">Hawaii</option>
+                                    <option value="ID">Idaho</option>
+                                    <option value="IL">Illinois</option>
+                                    <option value="IN">Indiana</option>
+                                    <option value="IA">Iowa</option>
+                                    <option value="KS">Kansas</option>
+                                    <option value="KY">Kentucky</option>
+                                    <option value="LA">Louisiana</option>
+                                    <option value="ME">Maine</option>
+                                    <option value="MD">Maryland</option>
+                                    <option value="MA">Massachusetts</option>
+                                    <option value="MI">Michigan</option>
+                                    <option value="MN">Minnesota</option>
+                                    <option value="MS">Mississippi</option>
+                                    <option value="MO">Missouri</option>
+                                    <option value="MT">Montana</option>
+                                    <option value="NE">Nebraska</option>
+                                    <option value="NV">Nevada</option>
+                                    <option value="NH">New Hampshire</option>
+                                    <option value="NJ">New Jersey</option>
+                                    <option value="NM">New Mexico</option>
+                                    <option value="NY">New York</option>
+                                    <option value="NC">North Carolina</option>
+                                    <option value="ND">North Dakota</option>
+                                    <option value="OH">Ohio</option>
+                                    <option value="OK">Oklahoma</option>
+                                    <option value="OR">Oregon</option>
+                                    <option value="PA">Pennsylvania</option>
+                                    <option value="RI">Rhode Island</option>
+                                    <option value="SC">South Carolina</option>
+                                    <option value="SD">South Dakota</option>
+                                    <option value="TN">Tennessee</option>
+                                    <option value="TX">Texas</option>
+                                    <option value="UT">Utah</option>
+                                    <option value="VT">Vermont</option>
+                                    <option value="VA">Virginia</option>
+                                    <option value="WA">Washington</option>
+                                    <option value="WV">West Virginia</option>
+                                    <option value="WI">Wisconsin</option>
+                                    <option value="WY">Wyoming</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+                                <input type="text" id="deliveryZip"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="60601">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Scheduled Date</label>
+                                <input type="datetime-local" id="deliveryDate"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Information -->
+                    <div class="border-t pt-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Financial Information</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Total Rate</label>
+                                <input type="number" id="totalRate" step="0.01"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="2500.00">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Rate Per Mile</label>
+                                <input type="number" id="ratePerMile" step="0.01"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="2.50">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Total Miles</label>
+                                <input type="number" id="totalMiles"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="1000">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Advance Amount</label>
+                                <input type="number" id="advanceAmount" step="0.01"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="500.00">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Detention Pay</label>
+                                <input type="number" id="detentionPay" step="0.01"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="50.00">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Lumper Fees</label>
+                                <input type="number" id="lumperFees" step="0.01"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="75.00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Driver Assignment -->
+                    <div class="border-t pt-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Driver Assignment</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Driver</label>
+                                <select id="driver"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select Driver</option>
+                                    <option value="driver1">Mike Johnson</option>
+                                    <option value="driver2">Sarah Davis</option>
+                                    <option value="driver3">Tom Wilson</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Truck</label>
+                                <select id="truck"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select Truck</option>
+                                    <option value="truck1">TRK-001 (Freightliner)</option>
+                                    <option value="truck2">TRK-002 (Peterbilt)</option>
+                                    <option value="truck3">TRK-003 (Kenworth)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Document Upload -->
+                    <div class="border-t pt-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Documents</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Rate Confirmation</label>
+                                <input type="file" id="rateConfirmation" accept=".pdf,.jpg,.jpeg,.png"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Bill of Lading</label>
+                                <input type="file" id="billOfLading" accept=".pdf,.jpg,.jpeg,.png"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="border-t pt-6 flex justify-end space-x-4">
+                        <button type="button" onclick="closeModal()"
+                            class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="button" onclick="calculateMileage()"
+                            class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                            Calculate Mileage
+                        </button>
+                        <button type="submit"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            Save Load
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-12 py-8 border-t border-gray-200">
+        <div class="text-center">
+            <p class="text-gray-600">&copy; 2025 Somali Truck TMS. All rights reserved.</p>
+            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script src="main.js"></script>
+    <script>
+        let currentLoadId = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            Auth.init();
+            await DataManager.init();
+
+            renderLoads();
+            populateSelects();
+
+            // Re-render when drivers/customers change
+            window.renderDrivers = populateSelects;
+            window.renderCustomers = populateSelects;
+        });
+
+        function populateSelects() {
+            const customerSelect = document.getElementById('customer');
+            const customerFilter = document.getElementById('customerFilter');
+            const driverSelect = document.getElementById('driver');
+            const driverFilter = document.getElementById('driverFilter');
+
+            // Customers
+            customerSelect.innerHTML = '<option value="">Select Customer</option>';
+            customerFilter.innerHTML = '<option value="">All Customers</option>';
+            DataManager.customers.forEach(c => {
+                const name = c.company?.name || c.name || 'Unknown';
+                customerSelect.innerHTML += `<option value="${c.id}">${name}</option>`;
+                customerFilter.innerHTML += `<option value="${c.id}">${name}</option>`;
+            });
+
+            // Drivers
+            driverSelect.innerHTML = '<option value="">Unassigned</option>';
+            driverFilter.innerHTML = '<option value="">All Drivers</option>';
+            DataManager.drivers.forEach(d => {
+                const name = `${d.firstName} ${d.lastName}`;
+                driverSelect.innerHTML += `<option value="${d.id}">${name}</option>`;
+                driverFilter.innerHTML += `<option value="${d.id}">${name}</option>`;
+            });
+        }
+
+        function renderLoads() {
+            const tbody = document.getElementById('loadsTableBody');
+            tbody.innerHTML = '';
+
+            const statusFilter = document.getElementById('statusFilter').value;
+            const driverFilter = document.getElementById('driverFilter').value;
+            const customerFilter = document.getElementById('customerFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+
+            const filtered = DataManager.loads.filter(load => {
+                const matchesStatus = !statusFilter || load.status === statusFilter;
+                const matchesDriver = !driverFilter || load.driverId === driverFilter;
+                const matchesCustomer = !customerFilter || load.customerId === customerFilter;
+                const matchesSearch = !search ||
+                    (load.loadNumber?.toLowerCase().includes(search)) ||
+                    (load.pickup?.city?.toLowerCase().includes(search)) ||
+                    (load.delivery?.city?.toLowerCase().includes(search));
+
+                return matchesStatus && matchesDriver && matchesCustomer && matchesSearch;
+            });
+
+            filtered.forEach(load => {
+                const statusClass = {
+                    available: 'status-available',
+                    dispatched: 'status-dispatched',
+                    'in_transit': 'status-in-transit',
+                    delivered: 'status-delivered',
+                    cancelled: 'status-cancelled'
+                }[load.status] || 'bg-gray-500';
+
+                const statusLabel = load.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                const driverName = load.driver || 'Unassigned';
+                const customerName = load.customer || 'Unknown';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">${load.loadNumber}</div>
+                    <div class="text-sm text-gray-500">Created: ${Utils.formatDate(load.createdAt)}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">${load.pickup?.city || ''}, ${load.pickup?.state || ''}</div>
+                    <div class="text-sm text-gray-500">→ ${load.delivery?.city || ''}, ${load.delivery?.state || ''}</div>
+                    <div class="text-xs text-gray-400">${load.mileage?.total || 0} miles</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${customerName}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${driverName}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">${Utils.formatCurrency(load.rate?.total || 0)}</div>
+                    <div class="text-xs text-gray-500">${Utils.formatCurrency(load.rate?.ratePerMile || 0)}/mile</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white ${statusClass}">
+                        ${statusLabel}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button onclick="editLoad('${load.id}')" class="text-blue-600 hover:text-blue-900 mr-3">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="viewLoad('${load.id}')" class="text-green-600 hover:text-green-900 mr-3">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button onclick="deleteLoad('${load.id}')" class="text-red-600 hover:text-red-900">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Modal Functions
+        function openCreateLoadModal() {
+            currentLoadId = null;
+            document.getElementById('modalTitle').textContent = 'Create New Load';
+            document.getElementById('loadForm').reset();
+            document.getElementById('loadNumber').value = `ST-${new Date().getFullYear()}-${String(DataManager.loads.length + 1000).padStart(4, '0')}`;
+            document.getElementById('loadModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('loadModal').classList.remove('show');
+        }
+
+        function editLoad(loadId) {
+            const load = DataManager.getLoad(loadId);
+            if (!load) return;
+
+            currentLoadId = loadId;
+            document.getElementById('modalTitle').textContent = `Edit Load - ${load.loadNumber}`;
+
+            document.getElementById('loadNumber').value = load.loadNumber;
+            document.getElementById('loadStatus').value = load.status || 'available';
+            document.getElementById('customer').value = load.customerId || '';
+            document.getElementById('driver').value = load.driverId || '';
+
+            document.getElementById('pickupAddress').value = load.pickup?.address || '';
+            document.getElementById('pickupCity').value = load.pickup?.city || '';
+            document.getElementById('pickupState').value = load.pickup?.state || '';
+            document.getElementById('pickupZip').value = load.pickup?.zip || '';
+            document.getElementById('pickupDate').value = load.pickup?.date || '';
+
+            document.getElementById('deliveryAddress').value = load.delivery?.address || '';
+            document.getElementById('deliveryCity').value = load.delivery?.city || '';
+            document.getElementById('deliveryState').value = load.delivery?.state || '';
+            document.getElementById('deliveryZip').value = load.delivery?.zip || '';
+            document.getElementById('deliveryDate').value = load.delivery?.date || '';
+
+            document.getElementById('totalRate').value = load.rate?.total || '';
+            document.getElementById('ratePerMile').value = load.rate?.ratePerMile || '';
+            document.getElementById('totalMiles').value = load.mileage?.total || '';
+
+            document.getElementById('advanceAmount').value = load.financials?.advanceAmount || '';
+            document.getElementById('detentionPay').value = load.financials?.detentionPay || '';
+            document.getElementById('lumperFees').value = load.financials?.lumperFees || '';
+
+            document.getElementById('loadModal').classList.add('show');
+        }
+
+        async function deleteLoad(loadId) {
+            if (confirm('Delete this load permanently?')) {
+                await DataManager.deleteLoad(loadId);
+                renderLoads();
+            }
+        }
+
+        function viewLoad(loadId) {
+            const load = DataManager.getLoad(loadId);
+            if (!load) return;
+
+            alert(`
+LOAD #${load.loadNumber}
+Status: ${load.status}
+Customer: ${load.customer || 'N/A'}
+Driver: ${load.driver || 'Unassigned'}
+
+PICKUP: ${load.pickup?.city}, ${load.pickup?.state} @ ${load.pickup?.date || 'N/A'}
+DELIVERY: ${load.delivery?.city}, ${load.delivery?.state} @ ${load.delivery?.date || 'N/A'}
+
+Rate: ${Utils.formatCurrency(load.rate?.total || 0)} (${Utils.formatCurrency(load.rate?.ratePerMile || 0)}/mile)
+Miles: ${load.mileage?.total || 0}
+        `);
+        }
+
+        // Form Submit Handler
+        document.getElementById('loadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.submitter;
+            const original = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            try {
+                const loadData = {
+                    loadNumber: document.getElementById('loadNumber').value,
+                    status: document.getElementById('loadStatus').value,
+                    customerId: document.getElementById('customer').value,
+                    customer: document.getElementById('customer').selectedOptions[0]?.text || '',
+                    driverId: document.getElementById('driver').value || null,
+                    driver: document.getElementById('driver').selectedOptions[0]?.text || 'Unassigned',
+                    pickup: {
+                        address: document.getElementById('pickupAddress').value,
+                        city: document.getElementById('pickupCity').value,
+                        state: document.getElementById('pickupState').value,
+                        zip: document.getElementById('pickupZip').value,
+                        date: document.getElementById('pickupDate').value
+                    },
+                    delivery: {
+                        address: document.getElementById('deliveryAddress').value,
+                        city: document.getElementById('deliveryCity').value,
+                        state: document.getElementById('deliveryState').value,
+                        zip: document.getElementById('deliveryZip').value,
+                        date: document.getElementById('deliveryDate').value
+                    },
+                    rate: {
+                        total: parseFloat(document.getElementById('totalRate').value) || 0,
+                        ratePerMile: parseFloat(document.getElementById('ratePerMile').value) || 0
+                    },
+                    mileage: {
+                        total: parseFloat(document.getElementById('totalMiles').value) || 0
+                    },
+                    financials: {
+                        advanceAmount: parseFloat(document.getElementById('advanceAmount').value) || 0,
+                        detentionPay: parseFloat(document.getElementById('detentionPay').value) || 0,
+                        lumperFees: parseFloat(document.getElementById('lumperFees').value) || 0
+                    }
+                };
+
+                if (currentLoadId) {
+                    await DataManager.updateLoad(currentLoadId, loadData);
+                } else {
+                    await DataManager.addLoad(loadData);
+                }
+
+                closeModal();
+                renderLoads();
+                Utils.showNotification('Load saved successfully!', 'success');
+            } catch (err) {
+                Utils.showNotification('Error saving load', 'error');
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = original;
+            }
+        });
+
+        // Filters
+        ['statusFilter', 'driverFilter', 'customerFilter', 'searchInput'].forEach(id => {
+            document.getElementById(id)?.addEventListener('change input'.split(' ')[id === 'searchInput' ? 1 : 0], renderLoads);
+        });
+
+        // Close modal on background click
+        window.onclick = (e) => {
+            if (e.target.id === 'loadModal') closeModal();
+        };
+    </script>
+</body>
+
+</html>

@@ -28,15 +28,16 @@ const CONFIG = {
 // Initialize Firebase
 firebase.initializeApp(CONFIG.firebase);
 
-// Enable offline persistence for local caching
-firebase.firestore().enablePersistence()
-    .catch((err) => {
-        if (err.code == 'failed-precondition') {
-            console.log('Persistence failed: Multiple tabs open');
-        } else if (err.code == 'unimplemented') {
-            console.log('Persistence not supported by browser');
-        }
-    });
+// Disable offline persistence due to "Multiple tabs" error
+// This forces online-only mode but ensures Firebase works correctly
+// firebase.firestore().enablePersistence()
+//     .catch((err) => {
+//         if (err.code == 'failed-precondition') {
+//             console.warn('Persistence failed: Multiple tabs open');
+//         } else if (err.code == 'unimplemented') {
+//             console.warn('Persistence not available in this browser');
+//         }
+//     });
 
 const db = firebase.firestore();
 const auth = firebase.auth();
@@ -79,15 +80,27 @@ const Utils = {
     // Calculate distance between two points (mock implementation)
     calculateDistance: (origin, destination) => {
         // This would use Google Maps API in production
+        // Keys must match "city, state_city, state" format (lowercase)
         const distances = {
-            'columbus_chicago': 355,
-            'columbus_nashville': 380,
-            'columbus_atlanta': 550,
-            'columbus_dallas': 930
+            'columbus, oh_chicago, il': 355,
+            'columbus, oh_nashville, tn': 380,
+            'columbus, oh_atlanta, ga': 550,
+            'columbus, oh_dallas, tx': 930,
+            'phoenix, az_columbus, oh': 1888,
+            'columbus, oh_phoenix, az': 1888
         };
 
         const key = `${origin.toLowerCase()}_${destination.toLowerCase()}`;
-        return distances[key] || Math.floor(Math.random() * 1000) + 200;
+
+        // Try direct match
+        if (distances[key]) return distances[key];
+
+        // Try reverse match
+        const reverseKey = `${destination.toLowerCase()}_${origin.toLowerCase()}`;
+        if (distances[reverseKey]) return distances[reverseKey];
+
+        // Fallback to random if not found
+        return Math.floor(Math.random() * 1000) + 200;
     },
 
     // Show notification
@@ -135,6 +148,23 @@ const Utils = {
             return `(${cleaned.substr(0, 3)}) ${cleaned.substr(3, 3)}-${cleaned.substr(6, 4)}`;
         }
         return phone;
+    },
+
+    // Get ISO week number
+    getWeekNumber: (d) => {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return weekNo;
+    },
+
+    // Get week start date
+    getWeekStart: (date) => {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(d.setDate(diff));
     }
 };
 
@@ -208,6 +238,11 @@ const DataManager = {
 
     // Initialize: Sets up Firebase listeners that sync Cloud <-> Local Storage
     init: async () => {
+        if (DataManager.initialized) {
+            console.log("DataManager already initialized, skipping.");
+            return;
+        }
+        DataManager.initialized = true;
         console.log("Initializing DataManager with Firebase Persistence...");
 
         try {
@@ -227,6 +262,7 @@ const DataManager = {
                 DataManager.drivers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.drivers.length} drivers from Firebase`);
                 if (window.renderDrivers) window.renderDrivers();
+                if (window.renderFleet) window.renderFleet();
             }, error => {
                 console.error('Error loading drivers:', error);
             });
@@ -244,6 +280,7 @@ const DataManager = {
             db.collection('trucks').onSnapshot(snapshot => {
                 DataManager.trucks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.trucks.length} trucks from Firebase`);
+                if (window.renderFleet) window.renderFleet();
             }, error => {
                 console.error('Error loading trucks:', error);
             });
@@ -269,6 +306,9 @@ const DataManager = {
             db.collection('expenses').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
                 DataManager.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.expenses.length} expenses from Firebase`);
+                // Auto-refresh UI if the functions exist on the current page
+                if (window.renderExpenses) window.renderExpenses();
+                if (window.updateStats) window.updateStats();
             }, error => {
                 console.error('Error loading expenses:', error);
             });
@@ -287,9 +327,13 @@ const DataManager = {
             const payload = JSON.parse(JSON.stringify(loadData));
             payload.createdAt = new Date().toISOString();
             payload.updatedAt = new Date().toISOString();
-            payload.companyId = 'somali_truck'; // Multi-tenant support
+            payload.companyId = 'somali_truck';
 
             const docRef = await db.collection('loads').add(payload);
+
+            // Add to local array immediately - REMOVED to prevent duplicates with onSnapshot
+            // DataManager.loads.unshift({ id: docRef.id, ...payload });
+
             Utils.showNotification('Load created successfully!', 'success');
             return docRef.id;
         } catch (e) {
@@ -304,6 +348,11 @@ const DataManager = {
             const payload = JSON.parse(JSON.stringify(loadData));
             payload.updatedAt = new Date().toISOString();
             await db.collection('loads').doc(loadId).update(payload);
+
+            // UPDATE LOCAL ARRAY
+            const index = DataManager.loads.findIndex(l => l.id === loadId);
+            if (index !== -1) DataManager.loads[index] = { ...DataManager.loads[index], ...payload };
+
             Utils.showNotification('Load updated successfully!', 'success');
         } catch (e) {
             console.error('Error updating load:', e);
@@ -338,6 +387,10 @@ const DataManager = {
             payload.companyId = 'somali_truck';
 
             const docRef = await db.collection('drivers').add(payload);
+
+            // Add to local array immediately - REMOVED to prevent duplicates with onSnapshot
+            // DataManager.drivers.unshift({ id: docRef.id, ...payload });
+
             Utils.showNotification('Driver added successfully!', 'success');
             return docRef.id;
         } catch (e) {
@@ -352,6 +405,10 @@ const DataManager = {
             const payload = JSON.parse(JSON.stringify(driverData));
             payload.updatedAt = new Date().toISOString();
             await db.collection('drivers').doc(driverId).update(payload);
+
+            const index = DataManager.drivers.findIndex(d => d.id === driverId);
+            if (index !== -1) DataManager.drivers[index] = { ...DataManager.drivers[index], ...payload };
+
             Utils.showNotification('Driver updated successfully!', 'success');
         } catch (e) {
             console.error('Error updating driver:', e);
@@ -377,6 +434,54 @@ const DataManager = {
         return DataManager.drivers.find(d => d.id === driverId || d.driverNumber === driverId);
     },
 
+    // --- TRUCKS ---
+    addTruck: async (truckData) => {
+        try {
+            const payload = JSON.parse(JSON.stringify(truckData));
+            payload.createdAt = new Date().toISOString();
+            payload.updatedAt = new Date().toISOString();
+            payload.companyId = 'somali_truck';
+
+            const docRef = await db.collection('trucks').add(payload);
+            Utils.showNotification('Truck added successfully!', 'success');
+            return docRef.id;
+        } catch (e) {
+            console.error('Error adding truck:', e);
+            Utils.showNotification('Error adding truck: ' + e.message, 'error');
+            throw e;
+        }
+    },
+
+    updateTruck: async (truckId, truckData) => {
+        try {
+            const payload = JSON.parse(JSON.stringify(truckData));
+            payload.updatedAt = new Date().toISOString();
+            await db.collection('trucks').doc(truckId).update(payload);
+            Utils.showNotification('Truck updated successfully!', 'success');
+        } catch (e) {
+            console.error('Error updating truck:', e);
+            Utils.showNotification('Error updating truck: ' + e.message, 'error');
+            throw e;
+        }
+    },
+
+    deleteTruck: async (truckId) => {
+        if (confirm('Are you sure you want to delete this truck?')) {
+            try {
+                await db.collection('trucks').doc(truckId).delete();
+                Utils.showNotification('Truck deleted successfully!', 'success');
+            } catch (e) {
+                console.error('Error deleting truck:', e);
+                Utils.showNotification('Error deleting truck: ' + e.message, 'error');
+                throw e;
+            }
+        }
+    },
+
+    getTruck: (truckId) => {
+        return DataManager.trucks.find(t => t.id === truckId || t.number === truckId);
+    },
+
     // --- CUSTOMERS ---
     addCustomer: async (customerData) => {
         try {
@@ -386,6 +491,10 @@ const DataManager = {
             payload.companyId = 'somali_truck';
 
             const docRef = await db.collection('customers').add(payload);
+
+            // Add to local array immediately - REMOVED to prevent duplicates with onSnapshot
+            // DataManager.customers.unshift({ id: docRef.id, ...payload });
+
             Utils.showNotification('Customer added successfully!', 'success');
             return docRef.id;
         } catch (e) {
@@ -400,6 +509,10 @@ const DataManager = {
             const payload = JSON.parse(JSON.stringify(customerData));
             payload.updatedAt = new Date().toISOString();
             await db.collection('customers').doc(customerId).update(payload);
+
+            const index = DataManager.customers.findIndex(c => c.id === customerId);
+            if (index !== -1) DataManager.customers[index] = { ...DataManager.customers[index], ...payload };
+
             Utils.showNotification('Customer updated successfully!', 'success');
         } catch (e) {
             console.error('Error updating customer:', e);
@@ -505,8 +618,22 @@ const DataManager = {
     },
 
     deleteSettlement: async (settlementId) => {
-        if (confirm('Are you sure you want to delete this settlement?')) {
+        if (confirm('Are you sure you want to delete this settlement? This will also unlink all associated loads.')) {
             try {
+                // Unlink loads first
+                const settlement = await db.collection('settlements').doc(settlementId).get();
+                if (settlement.exists) {
+                    const data = settlement.data();
+                    if (data.loadIds && data.loadIds.length > 0) {
+                        const batch = db.batch();
+                        data.loadIds.forEach(loadId => {
+                            const loadRef = db.collection('loads').doc(loadId);
+                            batch.update(loadRef, { settlementId: null });
+                        });
+                        await batch.commit();
+                    }
+                }
+
                 await db.collection('settlements').doc(settlementId).delete();
                 Utils.showNotification('Settlement deleted successfully!', 'success');
             } catch (e) {
@@ -553,15 +680,14 @@ const DataManager = {
     },
 
     deleteExpense: async (expenseId) => {
-        if (confirm('Are you sure you want to delete this expense?')) {
-            try {
-                await db.collection('expenses').doc(expenseId).delete();
-                Utils.showNotification('Expense deleted successfully!', 'success');
-            } catch (e) {
-                console.error('Error deleting expense:', e);
-                Utils.showNotification('Error deleting expense: ' + e.message, 'error');
-                throw e;
-            }
+        try {
+            await db.collection('expenses').doc(expenseId).delete();
+            Utils.showNotification('Expense deleted successfully!', 'success');
+            // Note: confirmation is handled in expenses.html
+        } catch (e) {
+            console.error('Error deleting expense:', e);
+            Utils.showNotification('Error deleting expense: ' + e.message, 'error');
+            throw e;
         }
     },
 
@@ -1057,28 +1183,67 @@ const App = {
 
     // Set up global event listeners
     setupEventListeners: () => {
+        if (App.listenersSetup) {
+            console.warn('Event listeners already set up, skipping.');
+            return;
+        }
+        App.listenersSetup = true;
+
         // Phone number formatting
         document.addEventListener('input', (e) => {
-            if (e.target.type === 'tel') {
-                e.target.value = Utils.formatPhone(e.target.value);
+            try {
+                if (e.target && e.target.type === 'tel') {
+                    e.target.value = Utils.formatPhone(e.target.value);
+                }
+            } catch (err) {
+                console.error('Error in phone formatting listener:', err);
             }
         });
 
-        // Form validation
-        document.addEventListener('submit', (e) => {
-            if (e.target.tagName === 'FORM') {
-                App.validateForm(e.target);
+        // UNIVERSAL FORM HANDLER — THIS IS THE HOLY GRAIL FIX
+        document.addEventListener('submit', async (e) => {
+            try {
+                const form = e.target;
+                if (!(form instanceof HTMLFormElement)) return;
+
+                e.preventDefault(); // Stop page reload
+
+                const isValid = App.validateForm(form);
+                if (!isValid) {
+                    console.log('[Form] Validation failed for', form.id);
+                    return;
+                }
+
+                const handlerName = form.id + '_handler';
+                const handler = window[handlerName];
+
+                console.log(`[Form] Submitting ${form.id} → looking for ${handlerName}`, handler ? 'FOUND' : 'NOT FOUND');
+
+                if (typeof handler === 'function') {
+                    try {
+                        await handler(e);
+                    } catch (err) {
+                        console.error('[Form Handler Error]', err);
+                        Utils.showNotification('Save failed. Check console.', 'error');
+                    }
+                } else {
+                    console.warn(`[Form] No handler found: ${handlerName} — did you forget to define it?`);
+                }
+            } catch (globalErr) {
+                console.error('Critical error in form submit listener:', globalErr);
             }
         });
 
-        // Auto-save functionality
+        // Auto-save (unchanged)
         let saveTimeout;
         document.addEventListener('input', (e) => {
-            if (e.target.hasAttribute('data-autosave')) {
-                clearTimeout(saveTimeout);
-                saveTimeout = setTimeout(() => {
-                    App.autoSave(e.target);
-                }, 2000);
+            try {
+                if (e.target && e.target.hasAttribute('data-autosave')) {
+                    clearTimeout(saveTimeout);
+                    saveTimeout = setTimeout(() => App.autoSave(e.target), 2000);
+                }
+            } catch (err) {
+                console.error('Error in auto-save listener:', err);
             }
         });
     },
@@ -1267,7 +1432,7 @@ function loadDriverUnpaidLoads() {
     const loadsSection = document.getElementById('settlementLoadsSection');
     const noLoadsMsg = document.getElementById('noLoadsMessage');
     const tbody = document.getElementById('driverLoadsBody');
-    const generateBtn = document.getElementById('generateBtn');
+    const generateBtn = document.getElementById('generateSettlementBtn');
 
     // Reset UI
     tbody.innerHTML = '';
@@ -1301,39 +1466,95 @@ function loadDriverUnpaidLoads() {
     if (eligibleLoads.length === 0) {
         loadsSection.classList.add('hidden');
         noLoadsMsg.classList.remove('hidden');
-        generateBtn.disabled = true;
+        if (generateBtn) generateBtn.disabled = true;
     } else {
         noLoadsMsg.classList.add('hidden');
         loadsSection.classList.remove('hidden');
-        document.getElementById('loadCountBadge').textContent = `${eligibleLoads.length} found`;
+
+        // Only update badge if it exists
+        const loadCountBadge = document.getElementById('loadCountBadge');
+        if (loadCountBadge) {
+            loadCountBadge.textContent = `${eligibleLoads.length} found`;
+        }
 
         // 3. Populate Table
-        eligibleLoads.forEach(load => {
+        eligibleLoads.forEach(loadRef => {
+            // Get fresh load data from DataManager to ensure we have all properties
+            const load = DataManager.loads.find(l => l.id === loadRef.id) || loadRef;
+
             // Calculate Driver Pay based on their profile
             const driver = DataManager.drivers.find(d => d.id === driverId);
             let payAmount = 0;
 
+            console.log('=== LOAD CALCULATION DEBUG ===');
+            console.log('Load:', load.loadNumber);
+            console.log('Driver:', driver?.firstName, driver?.lastName);
+            console.log('Payment Type:', driver?.payment?.type);
+
             if (driver?.payment?.type === 'percentage') {
-                payAmount = (load.rate.total * (driver.payment.percentage / 100));
+                // Robust percentage parsing
+                const totalRate = parseFloat(load.rate?.total) || 0;
+                // Check both percentage and rate properties
+                const rawValue = driver.payment.percentage || driver.payment.rate;
+                let percentage = 0;
+
+                console.log('Raw load.rate:', load.rate);
+                console.log('load.rate.total:', load.rate?.total);
+                console.log('Parsed totalRate:', totalRate);
+                console.log('Raw percentage value:', rawValue);
+                console.log('Type of raw percentage:', typeof rawValue);
+
+                if (typeof rawValue === 'string' && rawValue.includes('%')) {
+                    // Handle "40%" format
+                    percentage = parseFloat(rawValue.replace('%', '')) / 100;
+                    console.log('String with % - percentage:', percentage);
+                } else {
+                    // Handle numeric values (40 or 0.40)
+                    const numValue = parseFloat(rawValue);
+                    // If value is > 1, assume it's a percentage (e.g., 40 means 40%)
+                    percentage = numValue > 1 ? numValue / 100 : numValue;
+                    console.log('Numeric value - numValue:', numValue, 'percentage:', percentage);
+                }
+
+                payAmount = totalRate * percentage;
+                console.log(`Final Calculation: $${totalRate} × ${percentage} = $${payAmount}`);
             } else {
                 // Default to Per Mile
                 const miles = parseFloat(load.mileage?.total || load.totalMiles || 0);
                 const rate = parseFloat(driver?.payment?.perMileRate || 0);
                 payAmount = miles * rate;
+                console.log(`Per Mile: ${miles} miles × $${rate} = $${payAmount}`);
             }
+
+            // Add detention pay to gross pay
+            const detentionPay = parseFloat(load.detentionPay || 0);
+            const grossPay = payAmount + detentionPay;
+
+            // Track deductions (these will be subtracted in the modal)
+            const advanceAmount = parseFloat(load.advanceAmount || 0);
+            const lumperFees = parseFloat(load.lumperFees || 0);
+
+            console.log(`Detention Pay: $${detentionPay}`);
+            console.log(`Advance Amount: $${advanceAmount}`);
+            console.log(`Lumper Fees: $${lumperFees}`);
+            console.log(`Gross Pay (Base + Detention): $${grossPay}`);
 
             const tr = document.createElement('tr');
             tr.className = "hover:bg-blue-50 transition-colors";
             tr.innerHTML = `
                 <td class="px-4 py-3"><input type="checkbox" class="settlement-checkbox w-4 h-4 text-blue-600 rounded" 
                     value="${load.id}" 
-                    data-pay="${payAmount.toFixed(2)}" 
+                    data-pay="${grossPay.toFixed(2)}"
+                    data-base-pay="${payAmount.toFixed(2)}"
+                    data-detention="${detentionPay.toFixed(2)}"
+                    data-advance="${advanceAmount.toFixed(2)}"
+                    data-lumper="${lumperFees.toFixed(2)}"
                     data-miles="${load.mileage?.total || load.totalMiles || 0}"
                     onchange="calculateSettlementTotal()"></td>
                 <td class="px-4 py-3 text-sm font-medium text-gray-900">${load.loadNumber}</td>
                 <td class="px-4 py-3 text-sm text-gray-500">${Utils.formatDate(load.delivery?.date || load.updatedAt)}</td>
                 <td class="px-4 py-3 text-sm text-gray-500 truncate max-w-xs">${load.pickup?.city} → ${load.delivery?.city}</td>
-                <td class="px-4 py-3 text-sm font-bold text-gray-900 text-right">${Utils.formatCurrency(payAmount)}</td>
+                <td class="px-4 py-3 text-sm font-bold text-gray-900 text-right">${Utils.formatCurrency(grossPay)}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -1344,19 +1565,42 @@ function loadDriverUnpaidLoads() {
 // 2. Updated Calculation Logic (Updates the totals in real-time)
 function calculateSettlementTotal() {
     const checkboxes = document.querySelectorAll('.settlement-checkbox:checked');
-    const generateBtn = document.getElementById('generateBtn');
+    const generateBtn = document.getElementById('generateSettlementBtn');
 
-    let grossPay = 0;
+    let basePay = 0;
+    let detentionTotal = 0;
+    let advancesTotal = 0;
+    let lumperTotal = 0;
+
     checkboxes.forEach(cb => {
-        grossPay += parseFloat(cb.dataset.pay);
+        basePay += parseFloat(cb.dataset.basePay || 0);
+        detentionTotal += parseFloat(cb.dataset.detention || 0);
+        advancesTotal += parseFloat(cb.dataset.advance || 0);
+        lumperTotal += parseFloat(cb.dataset.lumper || 0);
     });
 
-    const fuel = parseFloat(document.getElementById('fuelDeduction').value) || 0;
-    const insurance = parseFloat(document.getElementById('insuranceDeduction').value) || 0;
-    const other = parseFloat(document.getElementById('otherDeduction').value) || 0;
+    // Gross pay = base + detention
+    const grossPay = basePay + detentionTotal;
 
-    const totalDeductions = fuel + insurance + other;
+    // Manual deductions (fuel, insurance, other)
+    const fuel = parseFloat(document.getElementById('fuelDeduction')?.value) || 0;
+    const insurance = parseFloat(document.getElementById('insuranceDeduction')?.value) || 0;
+    const other = parseFloat(document.getElementById('otherDeduction')?.value) || 0;
+
+    // Total deductions = load deductions + manual deductions
+    const totalDeductions = advancesTotal + lumperTotal + fuel + insurance + other;
     const netPay = grossPay - totalDeductions;
+
+    // Update breakdown fields (if they exist - for settlements.html modal)
+    const basePayEl = document.getElementById('basePay');
+    const detentionPayEl = document.getElementById('detentionPay');
+    const advancesTotalEl = document.getElementById('advancesTotal');
+    const lumperTotalEl = document.getElementById('lumperTotal');
+
+    if (basePayEl) basePayEl.textContent = Utils.formatCurrency(basePay);
+    if (detentionPayEl) detentionPayEl.textContent = Utils.formatCurrency(detentionTotal);
+    if (advancesTotalEl) advancesTotalEl.textContent = Utils.formatCurrency(advancesTotal);
+    if (lumperTotalEl) lumperTotalEl.textContent = Utils.formatCurrency(lumperTotal);
 
     // Update UI
     document.getElementById('grossPay').textContent = Utils.formatCurrency(grossPay);
@@ -1389,22 +1633,6 @@ function toggleAllLoads(source) {
     calculateSettlementTotal();
 }
 
-// Maps API Mock
-const MapsAPI = {
-    calculateRoute: async (origin, dest) => {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        // Use Utils.calculateDistance for the mock logic
-        const distance = Utils.calculateDistance(origin, dest);
-
-        return {
-            distance: distance,
-            duration: Math.round(distance / 60 * 60) + ' mins' // rough estimate
-        };
-    }
-};
-
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -1436,3 +1664,27 @@ window.openCreateSettlementModal = () => {
     document.getElementById('createSettlementModal')?.classList.add('show');
     setTimeout(() => loadDriverUnpaidLoads(), 100); // auto-load on open
 };
+
+// Explicitly export services to window for inline scripts
+window.CONFIG = CONFIG;
+window.Utils = Utils;
+window.Auth = Auth;
+window.DataManager = DataManager;
+window.MapsAPI = MapsAPI;
+window.OCRService = OCRService;
+window.PDFService = PDFService;
+window.IFTACalculator = IFTACalculator;
+window.SettlementCalculator = SettlementCalculator;
+window.Analytics = Analytics;
+window.App = App;
+window.CompanySettings = CompanySettings;
+
+// CRITICAL GLOBAL EXPORTS FOR SETTLEMENTS
+// Note: These functions are defined in settlements.html
+// We're just declaring them here so they can be called from inline onclick handlers
+if (typeof syncAllDeliveredLoads !== 'undefined') {
+    window.syncAllDeliveredLoads = syncAllDeliveredLoads;
+}
+if (typeof openGenerateSettlementModal !== 'undefined') {
+    window.openGenerateSettlementModal = openGenerateSettlementModal;
+}

@@ -110,7 +110,7 @@
                     <span class="nav-item active px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-calculator mr-2"></i>Settlements
                     </span>
-                    <span class="text-sm">Welcome, John (Admin)</span>
+                    <span class="text-sm">Welcome, Abdihaliim</span>
                     <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </button>
@@ -127,10 +127,14 @@
                 <h2 class="text-3xl font-bold text-gray-900">Driver Settlements</h2>
                 <p class="text-gray-600 mt-2">Manage driver payments and settlements</p>
             </div>
-            <button onclick="openCreateSettlementModal()"
-                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                <i class="fas fa-plus mr-2"></i>Generate Settlement
-            </button>
+            <div class="flex items-center space-x-4">
+
+                <button onclick="openGenerateSettlementModal()"
+                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                    <i class="fas fa-plus"></i>
+                    Generate Settlement
+                </button>
+            </div>
         </div>
 
         <!-- Settlement Stats -->
@@ -145,7 +149,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">This Week</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">$45,230</dd>
+                            <dd id="thisWeekTotal" class="text-2xl font-semibold text-gray-900">$0</dd>
                         </dl>
                     </div>
                 </div>
@@ -161,7 +165,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Settlements</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">24</dd>
+                            <dd id="totalSettlements" class="text-2xl font-semibold text-gray-900">0</dd>
                         </dl>
                     </div>
                 </div>
@@ -177,7 +181,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Pending</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">8</dd>
+                            <dd id="pendingSettlements" class="text-2xl font-semibold text-gray-900">0</dd>
                         </dl>
                     </div>
                 </div>
@@ -193,7 +197,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Avg Settlement</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">$1,885</dd>
+                            <dd id="avgSettlement" class="text-2xl font-semibold text-gray-900">$0</dd>
                         </dl>
                     </div>
                 </div>
@@ -290,206 +294,7 @@
                         </tr>
                     </thead>
                     <tbody id="settlementsTableBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Sample settlements data -->
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">ST-2025-42</div>
-                                <div class="text-sm text-gray-500">Generated: 11/15/2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Mike Johnson</div>
-                                <div class="text-sm text-gray-500">DRV-001</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Week 42</div>
-                                <div class="text-sm text-gray-500">10/14 - 10/20</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">2,500</div>
-                                <div class="text-xs text-gray-500">2,000L + 500E</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$1,925.00</div>
-                                <div class="text-xs text-gray-500">Base + Fuel + Detention</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">$1,359.89</div>
-                                <div class="text-xs text-gray-500">Advances, Insurance, Taxes</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-bold text-gray-900">$565.11</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-paid">
-                                    Paid
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewSettlement('ST-2025-42')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="downloadSettlement('ST-2025-42')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                                <button onclick="printSettlement('ST-2025-42')"
-                                    class="text-purple-600 hover:text-purple-900">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">ST-2025-41</div>
-                                <div class="text-sm text-gray-500">Generated: 11/08/2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Sarah Davis</div>
-                                <div class="text-sm text-gray-500">DRV-002</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Week 41</div>
-                                <div class="text-sm text-gray-500">10/07 - 10/13</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">2,150</div>
-                                <div class="text-xs text-gray-500">1,800L + 350E</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$2,340.00</div>
-                                <div class="text-xs text-gray-500">Base + Fuel + Bonus</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">$1,245.67</div>
-                                <div class="text-xs text-gray-500">Advances, Insurance, Taxes</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-bold text-gray-900">$1,094.33</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-processed">
-                                    Processed
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewSettlement('ST-2025-41')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="downloadSettlement('ST-2025-41')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                                <button onclick="printSettlement('ST-2025-41')"
-                                    class="text-purple-600 hover:text-purple-900">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">ST-2025-40</div>
-                                <div class="text-sm text-gray-500">Generated: 11/01/2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Tom Wilson</div>
-                                <div class="text-sm text-gray-500">DRV-003</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Week 40</div>
-                                <div class="text-sm text-gray-500">09/30 - 10/06</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">1,875</div>
-                                <div class="text-xs text-gray-500">1,500L + 375E</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$1,650.00</div>
-                                <div class="text-xs text-gray-500">Base + Fuel</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">$892.45</div>
-                                <div class="text-xs text-gray-500">Advances, Insurance, Taxes</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-bold text-gray-900">$757.55</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-pending">
-                                    Pending
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewSettlement('ST-2025-40')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="processSettlement('ST-2025-40')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                <button onclick="printSettlement('ST-2025-40')"
-                                    class="text-purple-600 hover:text-purple-900">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">ST-2025-39</div>
-                                <div class="text-sm text-gray-500">Generated: 10/25/2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Mike Johnson</div>
-                                <div class="text-sm text-gray-500">DRV-001</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Week 39</div>
-                                <div class="text-sm text-gray-500">09/23 - 09/29</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">2,750</div>
-                                <div class="text-xs text-gray-500">2,200L + 550E</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$2,187.50</div>
-                                <div class="text-xs text-gray-500">Base + Fuel + Detention</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">$1,456.23</div>
-                                <div class="text-xs text-gray-500">Advances, Insurance, Taxes</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-bold text-gray-900">$731.27</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-paid">
-                                    Paid
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewSettlement('ST-2025-39')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="downloadSettlement('ST-2025-39')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                                <button onclick="printSettlement('ST-2025-39')"
-                                    class="text-purple-600 hover:text-purple-900">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                            </td>
-                        </tr>
+                        <!-- Populated by JS -->
                     </tbody>
                 </table>
             </div>
@@ -763,35 +568,66 @@
                         </div>
 
                         <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Fuel
-                                        Deductions</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-2 text-gray-500">$</span>
-                                        <input type="number" id="fuelDeduction" value="0" step="0.01"
-                                            class="w-full pl-6 pr-3 py-2 border rounded-md focus:ring-blue-500"
-                                            oninput="calculateSettlementTotal()">
+                            <!-- Pay Breakdown (Read-only) -->
+                            <div class="mb-6 pb-4 border-b border-gray-200">
+                                <h4 class="text-sm font-bold text-gray-700 uppercase mb-3">Pay Breakdown</h4>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">Base Driver Pay:</span>
+                                        <span id="basePay" class="font-medium text-gray-900">$0.00</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">+ Detention Pay:</span>
+                                        <span id="detentionPay" class="font-medium text-green-600">$0.00</span>
                                     </div>
                                 </div>
-                                <div>
-                                    <label
-                                        class="block text-xs font-bold text-gray-500 uppercase mb-1">Insurance</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-2 text-gray-500">$</span>
-                                        <input type="number" id="insuranceDeduction" value="45.00" step="0.01"
-                                            class="w-full pl-6 pr-3 py-2 border rounded-md focus:ring-blue-500"
-                                            oninput="calculateSettlementTotal()">
+                            </div>
+
+                            <!-- Deductions -->
+                            <div class="mb-6 pb-4 border-b border-gray-200">
+                                <h4 class="text-sm font-bold text-gray-700 uppercase mb-3">Load Deductions</h4>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">Advances:</span>
+                                        <span id="advancesTotal" class="font-medium text-red-600">$0.00</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">Lumper Fees:</span>
+                                        <span id="lumperTotal" class="font-medium text-red-600">$0.00</span>
                                     </div>
                                 </div>
-                                <div>
-                                    <label
-                                        class="block text-xs font-bold text-gray-500 uppercase mb-1">Other/Advance</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-2 text-gray-500">$</span>
-                                        <input type="number" id="otherDeduction" value="0" step="0.01"
-                                            class="w-full pl-6 pr-3 py-2 border rounded-md focus:ring-blue-500"
-                                            oninput="calculateSettlementTotal()">
+                            </div>
+
+                            <!-- Manual Deductions -->
+                            <div class="mb-6 pb-4 border-b border-gray-200">
+                                <h4 class="text-sm font-bold text-gray-700 uppercase mb-3">Manual Deductions</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">Fuel</label>
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                            <input type="number" id="fuelDeduction" value="0" step="0.01"
+                                                class="w-full pl-6 pr-3 py-2 border rounded-md focus:ring-blue-500"
+                                                oninput="calculateSettlementTotal()">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">Insurance</label>
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                            <input type="number" id="insuranceDeduction" value="45.00" step="0.01"
+                                                class="w-full pl-6 pr-3 py-2 border rounded-md focus:ring-blue-500"
+                                                oninput="calculateSettlementTotal()">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1">Other</label>
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                            <input type="number" id="otherDeduction" value="0" step="0.01"
+                                                class="w-full pl-6 pr-3 py-2 border rounded-md focus:ring-blue-500"
+                                                oninput="calculateSettlementTotal()">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -850,12 +686,43 @@
 
     <script src="main.js"></script>
     <script>
+        // === FORCE GLOBAL EXPORTS FIRST — THIS FIXES EVERYTHING ===
+        // Expose functions immediately so onclick handlers can find them
+        // Don't use 'let' - make them implicit globals so they work across the entire script
+        var _syncAllDeliveredLoads, _openGenerateSettlementModal;
+
+        window.syncAllDeliveredLoads = function () {
+            if (_syncAllDeliveredLoads) return _syncAllDeliveredLoads();
+        };
+        window.openGenerateSettlementModal = function () {
+            if (_openGenerateSettlementModal) return _openGenerateSettlementModal();
+        };
+
+        // Define renderSettlements globally BEFORE DOMContentLoaded
+        window.renderSettlements = () => {
+            renderSettlementsTable();
+            updateSettlementStats();
+            initializeSettlementCharts();
+        };
+
+        // Also refresh charts when loads change (since we track delivered loads)
+        window.renderLoads = () => {
+            updateSettlementStats();
+            initializeSettlementCharts();
+        };
+
+        // Refresh charts when drivers change (needed for pay calculation)
+        window.renderDrivers = () => {
+            initializeSettlementCharts();
+        };
+
         // Initialize charts
         document.addEventListener('DOMContentLoaded', async () => {
             Auth.init();
             await DataManager.init();
-            renderSettlements();
-            initializeSettlementCharts();
+
+            // Now we can safely call renderSettlements
+            if (window.renderSettlements) window.renderSettlements();
 
             // Explicitly attach event listener for driver selection
             const driverSelect = document.getElementById('driverSelect');
@@ -864,7 +731,37 @@
             }
         });
 
-        function renderSettlements() {
+        function updateSettlementStats() {
+            const settlements = DataManager.settlements || [];
+
+            // Calculate this week's total
+            const now = new Date();
+            const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+            const thisWeekSettlements = settlements.filter(s => {
+                const settlementDate = new Date(s.createdAt);
+                return settlementDate >= weekStart;
+            });
+            const thisWeekTotal = thisWeekSettlements.reduce((sum, s) => sum + (s.netPay || 0), 0);
+
+            // Count total settlements
+            const totalSettlements = settlements.length;
+
+            // Count pending settlements
+            const pendingCount = settlements.filter(s => s.status === 'pending').length;
+
+            // Calculate average settlement
+            const avgSettlement = totalSettlements > 0
+                ? settlements.reduce((sum, s) => sum + (s.netPay || 0), 0) / totalSettlements
+                : 0;
+
+            // Update UI
+            document.getElementById('thisWeekTotal').textContent = Utils.formatCurrency(thisWeekTotal);
+            document.getElementById('totalSettlements').textContent = totalSettlements;
+            document.getElementById('pendingSettlements').textContent = pendingCount;
+            document.getElementById('avgSettlement').textContent = Utils.formatCurrency(avgSettlement);
+        }
+
+        function renderSettlementsTable() {
             const tbody = document.getElementById('settlementsTableBody');
             tbody.innerHTML = '';
 
@@ -911,8 +808,11 @@
                         <button onclick="downloadSettlement('${settlement.id}')" class="text-green-600 hover:text-green-900 mr-3">
                             <i class="fas fa-download"></i>
                         </button>
-                        <button onclick="printSettlement('${settlement.id}')" class="text-purple-600 hover:text-purple-900">
+                        <button onclick="printSettlement('${settlement.id}')" class="text-purple-600 hover:text-purple-900 mr-3">
                             <i class="fas fa-print"></i>
+                        </button>
+                        <button onclick="deleteSettlement('${settlement.id}')" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash"></i>
                         </button>
                     </td>
                 `;
@@ -920,7 +820,7 @@
             });
         }
 
-        function openCreateSettlementModal() {
+        _openGenerateSettlementModal = function openCreateSettlementModal() {
             const modal = document.getElementById('createSettlementModal');
             const select = document.getElementById('driverSelect');
 
@@ -973,15 +873,31 @@
             const checked = document.querySelectorAll('.settlement-checkbox:checked');
             if (checked.length === 0) { Utils.showNotification('Select at least one load', 'warning'); return; }
 
-            // build settlement object (your existing code)
+            // Calculate all components
             const loadIds = Array.from(checked).map(cb => cb.value);
-            const grossPay = Array.from(checked).reduce((sum, cb) => sum + parseFloat(cb.dataset.pay), 0);
-            const deductions = {
-                fuel: parseFloat(document.getElementById('fuelDeduction').value) || 0,
-                insurance: parseFloat(document.getElementById('insuranceDeduction').value) || 0,
-                other: parseFloat(document.getElementById('otherDeduction').value) || 0
-            };
-            const totalDeductions = deductions.fuel + deductions.insurance + deductions.other;
+
+            let basePay = 0;
+            let detentionTotal = 0;
+            let advancesTotal = 0;
+            let lumperTotal = 0;
+            let totalMiles = 0;
+
+            checked.forEach(cb => {
+                basePay += parseFloat(cb.dataset.basePay || 0);
+                detentionTotal += parseFloat(cb.dataset.detention || 0);
+                advancesTotal += parseFloat(cb.dataset.advance || 0);
+                lumperTotal += parseFloat(cb.dataset.lumper || 0);
+                totalMiles += parseFloat(cb.dataset.miles || 0);
+            });
+
+            const grossPay = basePay + detentionTotal;
+
+            // Manual deductions
+            const fuel = parseFloat(document.getElementById('fuelDeduction').value) || 0;
+            const insurance = parseFloat(document.getElementById('insuranceDeduction').value) || 0;
+            const other = parseFloat(document.getElementById('otherDeduction').value) || 0;
+
+            const totalDeductions = advancesTotal + lumperTotal + fuel + insurance + other;
             const netPay = grossPay - totalDeductions;
 
             const settlementData = {
@@ -990,12 +906,20 @@
                 driverName: document.getElementById('driverSelect').options[document.getElementById('driverSelect').selectedIndex].text,
                 period: `Week ${Utils.getWeekNumber(new Date())} - ${new Date().getFullYear()}`,
                 loadIds,
+                basePay,
+                detentionPay: detentionTotal,
                 grossPay,
+                deductions: {
+                    advances: advancesTotal,
+                    lumperFees: lumperTotal,
+                    fuel: fuel,
+                    insurance: insurance,
+                    other: other
+                },
                 totalDeductions,
-                deductionsBreakdown: deductions,
                 netPay,
-                totalMiles: Array.from(checked).reduce((sum, cb) => sum + parseFloat(cb.dataset.miles), 0),
-                status: 'processed',
+                totalMiles,
+                status: 'pending',
                 createdAt: new Date().toISOString()
             };
 
@@ -1009,6 +933,7 @@
                 // Refresh the list to remove paid loads
                 loadDriverUnpaidLoads();
                 renderSettlements();
+                updateSettlementStats();
             } catch (e) {
                 Utils.showNotification('Error: ' + e.message, 'error');
             }
@@ -1019,104 +944,132 @@
             if (!settlement) return;
 
             const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
-            const loads = settlement.loadIds.map(id => DataManager.getLoad(id)).filter(l => l);
+            const loads = settlement.loadIds.map(id => DataManager.getLoad(id)).filter(Boolean);
 
             const printWindow = window.open('', '_blank');
+            const formatCurrency = (amt) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amt || 0);
+            const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+            // Helper to calculate driver pay correctly
+            const calculateDriverPay = (load) => {
+                if (!driver) return 0;
+                const totalRate = parseFloat(load.rate?.total) || 0;
+                const miles = parseFloat(load.mileage?.total) || 0;
+
+                if (driver.payment?.type === 'percentage' && totalRate > 0) {
+                    const rawValue = driver.payment.percentage;
+                    let percentage = 0;
+                    // Robust percentage parsing
+                    if (typeof rawValue === 'string' && rawValue.includes('%')) {
+                        percentage = parseFloat(rawValue.replace('%', '')) / 100;
+                    } else {
+                        const numValue = parseFloat(rawValue);
+                        // If value is > 1, assume it's a percentage (e.g., 40 means 40%)
+                        percentage = numValue > 1 ? numValue / 100 : numValue;
+                    }
+                    return totalRate * percentage;
+                } else {
+                    const ratePerMile = parseFloat(driver.payment?.perMileRate) || 0.64;
+                    return miles * ratePerMile;
+                }
+            };
+
             printWindow.document.write(`
+                <!DOCTYPE html>
                 <html>
                 <head>
                     <title>Settlement ${settlement.settlementNumber}</title>
                     <style>
-                        body { font-family: Arial, sans-serif; padding: 40px; }
-                        .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-                        .company-info h1 { margin: 0; color: #1e3a8a; }
-                        .settlement-details { text-align: right; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        body { font-family: Arial, sans-serif; padding: 40px; line-height: 1.6; }
+                        .header { display: flex; justify-content: space-between; border-bottom: 3px solid #1e3a8a; padding-bottom: 20px; margin-bottom: 30px; }
+                        .company h1 { margin: 0; color: #1e3a8a; font-size: 28px; }
+                        .settlement h2 { margin: 0; color: #1e3a8a; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
                         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
                         th { background-color: #f8f9fa; }
-                        .summary-box { margin-top: 30px; border: 1px solid #ddd; padding: 20px; width: 50%; margin-left: auto; }
-                        .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
-                        .net-pay { font-weight: bold; font-size: 1.2em; border-top: 2px solid #000; padding-top: 10px; }
-                        @media print { .no-print { display: none; } }
+                        .total { text-align: right; font-size: 20px; margin-top: 30px; }
+                        .net-pay { font-size: 24px; font-weight: bold; color: #10b981; }
+                        @media print { body { padding: 20px; } }
                     </style>
                 </head>
                 <body>
                     <div class="header">
-                        <div class="company-info">
+                        <div class="company">
                             <h1>Somali Truck TMS</h1>
-                            <p>3191 MORSE RD STE 15<br>COLUMBUS, OH 43231<br>(614) 254-0380</p>
+                            <p>3191 MORSE RD STE 15, COLUMBUS, OH 43231<br>(614) 254-0380</p>
                         </div>
-                        <div class="settlement-details">
+                        <div class="settlement">
                             <h2>DRIVER SETTLEMENT</h2>
-                            <p><strong>Settlement #:</strong> ${settlement.settlementNumber}</p>
-                            <p><strong>Date:</strong> ${Utils.formatDate(settlement.createdAt)}</p>
-                            <p><strong>Period:</strong> ${settlement.period}</p>
+                            <p><strong>#${settlement.settlementNumber}</strong><br>
+                            Date: ${formatDate(settlement.createdAt)}<br>
+                            Period: ${settlement.period}</p>
                         </div>
                     </div>
-
-                    <div class="driver-info">
-                        <h3>Driver: ${settlement.driverName}</h3>
-                        <p>ID: ${driver ? driver.driverNumber : 'N/A'}</p>
-                    </div>
-
+                    <h3>Driver: ${settlement.driverName}</h3>
+                    <p>ID: ${driver?.driverNumber || 'N/A'}</p>
                     <h3>Loads</h3>
                     <table>
                         <thead>
-                            <tr>
-                                <th>Load #</th>
-                                <th>Date</th>
-                                <th>Route</th>
-                                <th style="text-align: right">Pay Amount</th>
-                            </tr>
+                            <tr><th>Load #</th><th>Date</th><th>Route</th><th>Gross</th><th>Driver Pay</th></tr>
                         </thead>
                         <tbody>
-                            ${loads.map(load => `
-                                <tr>
-                                    <td>${load.loadNumber}</td>
-                                    <td>${Utils.formatDate(load.delivery?.date || load.updatedAt)}</td>
-                                    <td>${load.pickup?.city} -> ${load.delivery?.city}</td>
-                                    <td style="text-align: right">${Utils.formatCurrency(load.rate?.driverPay || (load.rate?.total * 0.75) || 0)}</td>
-                                </tr>
-                            `).join('')}
+                            ${loads.map(l => `<tr>
+                                <td>${l.loadNumber}</td>
+                                <td>${formatDate(l.delivery?.date || l.updatedAt)}</td>
+                                <td>${l.pickup?.city} → ${l.delivery?.city}</td>
+                                <td>${formatCurrency(l.rate?.total)}</td>
+                                <td>${formatCurrency(calculateDriverPay(l))}</td>
+                            </tr>`).join('')}
                         </tbody>
                     </table>
-
-                    <div class="summary-box">
-                        <div class="summary-row">
-                            <span>Gross Pay:</span>
-                            <span>\${Utils.formatCurrency(settlement.grossPay)}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Fuel Deductions:</span>
-                            <span>-\${Utils.formatCurrency(settlement.deductionsBreakdown?.fuel || 0)}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Insurance:</span>
-                            <span>-\${Utils.formatCurrency(settlement.deductionsBreakdown?.insurance || 0)}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Other Deductions:</span>
-                            <span>-\${Utils.formatCurrency(settlement.deductionsBreakdown?.other || 0)}</span>
-                        </div>
-                        <div class="summary-row net-pay">
-                            <span>NET PAY:</span>
-                            <span>\${Utils.formatCurrency(settlement.netPay)}</span>
-                        </div>
+                    <div class="total">
+                        <div>Gross Pay: <strong>${formatCurrency(settlement.grossPay)}</strong></div>
+                        <div>Deductions: <strong>-${formatCurrency(settlement.totalDeductions || 0)}</strong></div>
+                        <div class="net-pay">NET PAY: ${formatCurrency(settlement.netPay)}</div>
                     </div>
-                    
-                    <script>
-                        window.onload = function() { window.print(); }
-                    <\/script>
-</body>
-
-</html>
-`);
+                    <script>window.onload = () => window.print();<\/script>
+                </body>
+                </html>
+            `);
             printWindow.document.close();
         }
 
         function printSettlement(settlementId) {
             downloadSettlement(settlementId);
         }
+
+        async function deleteSettlement(settlementId) {
+            if (!confirm('Delete this settlement? This will also unlink all associated loads.')) return;
+
+            try {
+                const settlement = DataManager.getSettlement(settlementId);
+                if (!settlement) {
+                    Utils.showNotification('Settlement not found', 'error');
+                    return;
+                }
+
+                // Unlink all loads from this settlement
+                if (settlement.loadIds && settlement.loadIds.length > 0) {
+                    for (const loadId of settlement.loadIds) {
+                        await DataManager.updateLoad(loadId, { settlementId: null });
+                    }
+                }
+
+                // Delete the settlement
+                await DataManager.deleteSettlement(settlementId);
+
+                // Refresh the UI
+                if (window.renderSettlements) window.renderSettlements();
+
+                Utils.showNotification('Settlement deleted successfully', 'success');
+            } catch (error) {
+                console.error('Error deleting settlement:', error);
+                Utils.showNotification('Error deleting settlement: ' + error.message, 'error');
+            }
+        }
+
+        // Expose to global scope
+        window.deleteSettlement = deleteSettlement;
 
         function viewSettlement(settlementId) {
             const settlement = DataManager.getSettlement(settlementId);
@@ -1131,48 +1084,284 @@
         }
 
         function initializeSettlementCharts() {
-            // Settlement Trends Chart
-            const settlementData = {
-                x: ['Week 39', 'Week 40', 'Week 41', 'Week 42'],
-                y: [42750, 38900, 45100, 45230],
+            // --- 1. Weekly Settlement Trends (Delivered Loads Value) ---
+            const weeklyData = {};
+            const weeks = [];
+            const currentWeek = Utils.getWeekNumber(new Date());
+
+            // Initialize last 5 weeks
+            for (let i = 4; i >= 0; i--) {
+                const w = currentWeek - i;
+                // Handle year wrap roughly (e.g. Week -2 becomes Week 50)
+                const adjustedWeek = w > 0 ? w : 52 + w;
+                const label = `Week ${adjustedWeek}`;
+                weeklyData[label] = 0;
+                weeks.push(label);
+            }
+
+            // Aggregate Delivered Loads (Settled or Unsettled)
+            const deliveredLoads = DataManager.loads.filter(l => {
+                const status = (l.status || '').toLowerCase();
+                return status === 'delivered' || l.settlementId;
+            });
+
+            console.log('Chart Debug: Total Loads:', DataManager.loads.length);
+            console.log('Chart Debug: Delivered Loads:', deliveredLoads.length);
+
+            deliveredLoads.forEach(loadRef => {
+                // Get fresh load data to ensure we have all properties (fix for NaN issue)
+                const load = DataManager.loads.find(l => l.id === loadRef.id) || loadRef;
+
+                const dateStr = load.delivery?.date || load.updatedAt || new Date();
+                const date = new Date(dateStr);
+                const weekNum = Utils.getWeekNumber(date);
+                const label = `Week ${weekNum}`;
+
+                if (weeklyData.hasOwnProperty(label)) {
+                    // Calculate driver pay correctly based on driver's payment settings
+                    let pay = parseFloat(load.rate?.driverPay) || 0;
+
+                    // If driverPay not set, calculate it
+                    if (!pay && load.driverId) {
+                        const driver = DataManager.drivers.find(d => d.id === load.driverId);
+                        const totalRate = parseFloat(load.rate?.total) || 0;
+                        const miles = parseFloat(load.mileage?.total) || 0;
+
+                        if (driver && driver.payment) {
+                            // Debug driver structure
+                            if (driver.payment.type === 'percentage' && !driver.payment.percentage && !driver.payment.rate) {
+                                console.log('Chart Debug: Driver missing percentage/rate:', driver);
+                            }
+
+                            if (driver.payment.type === 'percentage') {
+                                const totalRate = parseFloat(load.rate?.total) || 0;
+                                // Check both percentage and rate properties
+                                const rawValue = driver.payment.percentage || driver.payment.rate;
+                                let percentage = 0;
+
+                                // Robust percentage parsing
+                                if (typeof rawValue === 'string' && rawValue.includes('%')) {
+                                    percentage = parseFloat(rawValue.replace('%', '')) / 100;
+                                } else {
+                                    const numValue = parseFloat(rawValue);
+                                    // If value is > 1, assume it's a percentage (e.g., 40 means 40%)
+                                    percentage = numValue > 1 ? numValue / 100 : numValue;
+                                }
+
+                                pay = totalRate * percentage;
+                                console.log(`Chart Debug: Load ${load.loadNumber} | Rate: ${totalRate} | Pct: ${percentage} | Pay: ${pay}`);
+                            } else if (miles > 0) {
+                                const ratePerMile = parseFloat(driver.payment.perMileRate) || 0.64;
+                                pay = miles * ratePerMile;
+                            }
+                        }
+                    }
+
+                    console.log(`Chart Debug: Load ${load.loadNumber} (Week ${weekNum}): Pay $${pay}`);
+                    weeklyData[label] += pay;
+                } else {
+                    console.warn(`Chart Debug: Week ${weekNum} not in range`, Object.keys(weeklyData));
+                }
+            });
+
+            const trendData = {
+                x: weeks,
+                y: weeks.map(w => weeklyData[w]),
                 type: 'scatter',
                 mode: 'lines+markers',
                 line: { color: '#3b82f6', width: 3 },
-                marker: { color: '#3b82f6', size: 8 }
+                marker: { color: '#3b82f6', size: 8 },
+                name: 'Delivered Value'
             };
 
             const settlementLayout = {
                 margin: { t: 20, r: 20, b: 40, l: 60 },
                 xaxis: { title: 'Week' },
-                yaxis: { title: 'Total Settlements ($)' },
+                yaxis: { title: 'Driver Pay Amount ($)' },
                 showlegend: false,
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 paper_bgcolor: 'rgba(0,0,0,0)'
             };
 
-            Plotly.newPlot('settlementChart', [settlementData], settlementLayout, { responsive: true, displayModeBar: false });
+            Plotly.newPlot('settlementChart', [trendData], settlementLayout, { responsive: true, displayModeBar: false });
 
-            // Payment Status Chart
+            // --- 2. Payment Status Distribution ---
+            let paidTotal = 0;
+            let processedTotal = 0;
+            let pendingTotal = 0;
+
+            // Sum from Settlements
+            DataManager.settlements.forEach(s => {
+                const status = (s.status || '').toLowerCase();
+                const pay = parseFloat(s.netPay) || 0;
+                if (status === 'paid') paidTotal += pay;
+                else if (status === 'processed') processedTotal += pay;
+                else if (status === 'pending') pendingTotal += pay;
+            });
+
+            // Add Unsettled Delivered Loads to Pending
+            const unsettledLoads = DataManager.loads.filter(l => {
+                const status = (l.status || '').toLowerCase();
+                return status === 'delivered' && !l.settlementId;
+            });
+
+            unsettledLoads.forEach(l => {
+                const pay = parseFloat(l.rate?.driverPay) || (parseFloat(l.rate?.total) * 0.75) || 0;
+                pendingTotal += pay;
+            });
+
             const paymentStatusData = [{
-                values: [12, 8, 4],
+                values: [paidTotal, pendingTotal, processedTotal],
                 labels: ['Paid', 'Pending', 'Processed'],
                 type: 'pie',
                 marker: {
                     colors: ['#10b981', '#f59e0b', '#3b82f6']
                 },
                 textinfo: 'label+percent',
-                textposition: 'outside'
+                textposition: 'outside',
+                hovertemplate: '%{label}: $%{value:,.2f}<extra></extra>'
             }];
 
             const paymentStatusLayout = {
                 margin: { t: 20, r: 20, b: 20, l: 20 },
-                showlegend: false,
+                showlegend: true,
+                legend: { orientation: 'h', y: -0.1 },
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 paper_bgcolor: 'rgba(0,0,0,0)'
             };
 
-            Plotly.newPlot('paymentStatusChart', paymentStatusData, paymentStatusLayout, { responsive: true, displayModeBar: false });
+            Plotly.newPlot('paymentStatusChart', paymentStatusData, paymentStatusLayout, {
+                responsive: true, displayModeBar: false
+            });
         }
+
+        // Sync all delivered loads to settlements
+        _syncAllDeliveredLoads = async function syncAllDeliveredLoads() {
+            if (!confirm('This will process ALL delivered loads and update settlements. Continue?')) return;
+
+            // FIX 1: Accept "Delivered", "delivered", "DELIVERED", etc.
+            const deliveredLoads = DataManager.loads.filter(l => {
+                const status = (l.status || '').toString().toLowerCase().trim();
+                return status === 'delivered' || status.includes('deliver');
+            });
+
+            if (deliveredLoads.length === 0) {
+                Utils.showNotification('No delivered loads found in the system', 'warning');
+                return;
+            }
+
+            Utils.showNotification(`Processing ${deliveredLoads.length} delivered loads...`, 'info');
+            let processed = 0;
+            let skipped = 0;
+
+            for (const load of deliveredLoads) {
+                // FIX 2: Make sure driver exists and has payment settings
+                const driver = DataManager.drivers.find(d => d.id === load.driverId);
+                if (!driver || !load.driverId) {
+                    skipped++;
+                    console.log(`Skipped ${load.loadNumber} - no driver assigned`);
+                    continue;
+                }
+
+                // FIX 3: Safely get rate and miles
+                const totalRate = parseFloat(load.rate?.total) || 0;
+                const miles = parseFloat(load.mileage?.total) || 0;
+
+                let driverPay = 0;
+                // FIX: Handle both "65" and "65%" formats
+                if (driver.payment?.type === 'percentage' && totalRate > 0) {
+                    // Check both percentage and rate properties
+                    const rawValue = driver.payment.percentage || driver.payment.rate;
+                    console.log(`DEBUG: Driver ${driver.firstName} ${driver.lastName}`);
+                    console.log(`  Payment type: ${driver.payment.type}`);
+                    console.log(`  Raw percentage value: "${rawValue}" (type: ${typeof rawValue})`);
+                    console.log(`  Load total: $${totalRate}`);
+
+                    let percentage = 0;
+                    if (typeof rawValue === 'string' && rawValue.includes('%')) {
+                        percentage = parseFloat(rawValue.replace('%', '')) / 100;
+                        console.log(`  Detected % symbol, percentage = ${percentage}`);
+                    } else {
+                        const numValue = parseFloat(rawValue);
+                        // If value is > 1, assume it's a percentage (e.g., 40 means 40%)
+                        percentage = numValue > 1 ? numValue / 100 : numValue;
+                        console.log(`  No % symbol, percentage = ${percentage}`);
+                    }
+                    driverPay = totalRate * percentage;
+                    console.log(`  Final driver pay: $${driverPay.toFixed(2)} (${totalRate} × ${percentage})`);
+                } else if (miles > 0) {
+                    const ratePerMile = parseFloat(driver.payment?.perMileRate) || 0.64;
+                    driverPay = miles * ratePerMile;
+                    console.log(`DEBUG: Per-mile driver ${driver.firstName}: ${miles} miles × $${ratePerMile} = $${driverPay.toFixed(2)}`);
+                } else {
+                    skipped++;
+                    console.log(`Skipped ${load.loadNumber} - no rate or miles`);
+                    continue;
+                }
+
+                // Get week from delivery date or today
+                const loadDate = load.delivery?.date || load.updatedAt || new Date();
+                const weekStart = Utils.getWeekStart(new Date(loadDate));
+                const weekKey = weekStart.toISOString().split('T')[0];
+
+                // Find or create settlement
+                let settlement = DataManager.settlements.find(s =>
+                    s.driverId === load.driverId &&
+                    s.weekStart === weekKey
+                );
+
+                if (!settlement) {
+                    settlement = {
+                        settlementNumber: `ST-${new Date().getFullYear()}-${String(DataManager.settlements.length + 1000).padStart(4, '0')}`,
+                        driverId: load.driverId,
+                        driverName: `${driver.firstName} ${driver.lastName}`,
+                        period: `Week ${Utils.getWeekNumber(weekStart)}`,
+                        weekStart: weekKey,
+                        grossPay: 0,
+                        totalDeductions: 0,
+                        netPay: 0,
+                        loadIds: [],
+                        totalMiles: 0,
+                        status: 'pending',
+                        createdAt: new Date().toISOString()
+                    };
+                    const id = await DataManager.addSettlement(settlement);
+                    settlement.id = id;
+                }
+
+                // Only add if not already included
+                if (!settlement.loadIds.includes(load.id)) {
+                    settlement.grossPay = (parseFloat(settlement.grossPay) || 0) + driverPay;
+                    settlement.totalMiles = (parseFloat(settlement.totalMiles) || 0) + miles;
+                    settlement.loadIds.push(load.id);
+                    settlement.netPay = settlement.grossPay - (parseFloat(settlement.totalDeductions) || 0);
+
+                    await DataManager.updateSettlement(settlement.id, {
+                        grossPay: settlement.grossPay,
+                        totalMiles: settlement.totalMiles,
+                        loadIds: settlement.loadIds,
+                        netPay: settlement.netPay
+                    });
+
+                    // Link load back to settlement
+                    await DataManager.updateLoad(load.id, { settlementId: settlement.id });
+
+                    processed++;
+                    console.log(`Processed ${processed}/${deliveredLoads.length}: ${load.loadNumber} → $${driverPay.toFixed(2)}`);
+                }
+            }
+
+            // Refresh UI
+            if (window.renderSettlements) window.renderSettlements();
+
+            Utils.showNotification(
+                `SYNC COMPLETE! ${processed} loads processed${skipped > 0 ? `, ${skipped} skipped` : ''}`,
+                'success'
+            );
+        }
+
+        // Expose to global scope
+        window.syncAllDeliveredLoads = syncAllDeliveredLoads;
 
         // Close modal when clicking outside
         window.onclick = function (event) {

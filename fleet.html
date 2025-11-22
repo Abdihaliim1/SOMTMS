@@ -323,6 +323,7 @@
             </div>
 
             <form id="truckForm" class="space-y-4">
+                <input type="hidden" id="truckId">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Truck Number</label>
@@ -421,79 +422,40 @@
     <script>
         // Fleet Management Module
         const FleetManager = {
-            trucks: [],
-
             // Initialize fleet management
-            init: () => {
-                FleetManager.loadSampleData();
+            init: async () => {
+                // Auth.init() and DataManager.init() are called in main.js but we ensure they are ready
+                if (!DataManager.initialized) {
+                    await DataManager.init();
+                }
+
+                // Expose render function globally for main.js to call on updates
+                window.renderFleet = () => {
+                    FleetManager.renderFleetTable();
+                    FleetManager.updateOverviewCards();
+                };
+
                 FleetManager.renderFleetTable();
                 FleetManager.updateOverviewCards();
                 FleetManager.loadDrivers();
                 FleetManager.setupEventListeners();
             },
 
-            // Load sample data
-            loadSampleData: () => {
-                FleetManager.trucks = [
-                    {
-                        id: 'T001',
-                        number: '101',
-                        licensePlate: 'ABC123',
-                        make: 'Freightliner',
-                        model: 'Cascadia',
-                        year: 2020,
-                        vin: '1FUJGLDR53LX08123',
-                        status: 'available',
-                        currentMileage: 125000,
-                        lastServiceDate: '2024-10-15',
-                        assignedDriver: 'D001',
-                        notes: 'Well maintained, ready for dispatch'
-                    },
-                    {
-                        id: 'T002',
-                        number: '102',
-                        licensePlate: 'DEF456',
-                        make: 'Peterbilt',
-                        model: '579',
-                        year: 2019,
-                        vin: '1XPWD40X9KD123456',
-                        status: 'in_transit',
-                        currentMileage: 98750,
-                        lastServiceDate: '2024-11-01',
-                        assignedDriver: 'D002',
-                        notes: 'Currently on load to Chicago'
-                    },
-                    {
-                        id: 'T003',
-                        number: '103',
-                        licensePlate: 'GHI789',
-                        make: 'Volvo',
-                        model: 'VNL',
-                        year: 2021,
-                        vin: '4V4NC9EJ8MN123456',
-                        status: 'maintenance',
-                        currentMileage: 45000,
-                        lastServiceDate: '2024-11-10',
-                        assignedDriver: '',
-                        notes: 'Scheduled maintenance - oil change and brake inspection'
-                    }
-                ];
-            },
-
             // Load drivers for dropdown
             loadDrivers: () => {
-                const drivers = [
-                    { id: 'D001', name: 'John Smith' },
-                    { id: 'D002', name: 'Mike Johnson' },
-                    { id: 'D003', name: 'Sarah Davis' }
-                ];
-
+                const drivers = DataManager.drivers || [];
                 const driverSelect = document.getElementById('assignedDriver');
+
+                // Keep the first "Unassigned" option
+                driverSelect.innerHTML = '<option value="">Unassigned</option>';
+
                 drivers.forEach(driver => {
-                    const option = document.createElement('option');
-                    option.value = driver.id;
-                    option.textContent = driver.name;
-                    driverSelect.appendChild(option);
+                    if (driver.status === 'active') {
+                        const option = document.createElement('option');
+                        option.value = driver.id;
+                        option.textContent = `${driver.firstName} ${driver.lastName}`;
+                        driverSelect.appendChild(option);
+                    }
                 });
             },
 
@@ -502,7 +464,17 @@
                 const tbody = document.getElementById('fleetTableBody');
                 tbody.innerHTML = '';
 
-                FleetManager.trucks.forEach(truck => {
+                const trucks = DataManager.trucks || [];
+
+                if (trucks.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No trucks found. Add a new truck to get started.</td></tr>';
+                    return;
+                }
+
+                trucks.forEach(truck => {
+                    const driver = truck.assignedDriver ? DataManager.getDriver(truck.assignedDriver) : null;
+                    const driverName = driver ? `${driver.firstName} ${driver.lastName}` : 'Unassigned';
+
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -518,22 +490,18 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${truck.assignedDriver ? 'John Smith' : 'Unassigned'}
+                            ${driverName}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${truck.currentMileage.toLocaleString()} mi
+                            ${(truck.currentMileage || 0).toLocaleString()} mi
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${new Date(truck.lastServiceDate).toLocaleDateString()}
+                            ${truck.lastServiceDate ? new Date(truck.lastServiceDate).toLocaleDateString() : '-'}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button onclick="FleetManager.editTruck('${truck.id}')" 
                                     class="text-blue-600 hover:text-blue-900 mr-3">
                                 <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="FleetManager.scheduleMaintenance('${truck.id}')" 
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                <i class="fas fa-wrench"></i>
                             </button>
                             <button onclick="FleetManager.deleteTruck('${truck.id}')" 
                                     class="text-red-600 hover:text-red-900">
@@ -559,10 +527,11 @@
 
             // Update overview cards
             updateOverviewCards: () => {
-                const total = FleetManager.trucks.length;
-                const available = FleetManager.trucks.filter(t => t.status === 'available').length;
-                const inTransit = FleetManager.trucks.filter(t => t.status === 'in_transit').length;
-                const maintenance = FleetManager.trucks.filter(t => t.status === 'maintenance' || t.status === 'repair').length;
+                const trucks = DataManager.trucks || [];
+                const total = trucks.length;
+                const available = trucks.filter(t => t.status === 'available').length;
+                const inTransit = trucks.filter(t => t.status === 'in_transit').length;
+                const maintenance = trucks.filter(t => t.status === 'maintenance' || t.status === 'repair').length;
 
                 document.getElementById('totalTrucks').textContent = total;
                 document.getElementById('availableTrucks').textContent = available;
@@ -574,6 +543,11 @@
             openAddTruckModal: () => {
                 document.getElementById('truckModalTitle').textContent = 'Add New Truck';
                 document.getElementById('truckForm').reset();
+                document.getElementById('truckId').value = ''; // Clear hidden ID
+
+                // Reload drivers to ensure list is fresh
+                FleetManager.loadDrivers();
+
                 document.getElementById('truckModal').classList.remove('hidden');
             },
 
@@ -585,10 +559,14 @@
 
             // Edit truck
             editTruck: (truckId) => {
-                const truck = FleetManager.trucks.find(t => t.id === truckId);
+                const truck = DataManager.getTruck(truckId);
                 if (!truck) return;
 
                 document.getElementById('truckModalTitle').textContent = `Edit Truck ${truck.number}`;
+                document.getElementById('truckId').value = truckId; // Set hidden ID
+
+                // Reload drivers
+                FleetManager.loadDrivers();
 
                 // Populate form
                 document.getElementById('truckNumber').value = truck.number;
@@ -599,26 +577,17 @@
                 document.getElementById('truckVin').value = truck.vin;
                 document.getElementById('truckStatus').value = truck.status;
                 document.getElementById('currentMileage').value = truck.currentMileage;
-                document.getElementById('assignedDriver').value = truck.assignedDriver;
-                document.getElementById('lastServiceDate').value = truck.lastServiceDate;
-                document.getElementById('truckNotes').value = truck.notes;
+                document.getElementById('assignedDriver').value = truck.assignedDriver || '';
+                document.getElementById('lastServiceDate').value = truck.lastServiceDate || '';
+                document.getElementById('truckNotes').value = truck.notes || '';
 
                 document.getElementById('truckModal').classList.remove('hidden');
             },
 
-            // Schedule maintenance
-            scheduleMaintenance: (truckId) => {
-                Utils.showNotification('Maintenance scheduling feature coming soon', 'info');
-            },
-
             // Delete truck
-            deleteTruck: (truckId) => {
-                if (confirm('Are you sure you want to delete this truck?')) {
-                    FleetManager.trucks = FleetManager.trucks.filter(t => t.id !== truckId);
-                    FleetManager.renderFleetTable();
-                    FleetManager.updateOverviewCards();
-                    Utils.showNotification('Truck deleted successfully', 'success');
-                }
+            deleteTruck: async (truckId) => {
+                await DataManager.deleteTruck(truckId);
+                // Render handled by listener
             },
 
             // Setup event listeners
@@ -650,46 +619,52 @@
                 });
 
                 // Form submission
-                document.getElementById('truckForm').addEventListener('submit', (e) => {
+                document.getElementById('truckForm').addEventListener('submit', async (e) => {
                     e.preventDefault();
 
-                    const truckData = {
-                        number: document.getElementById('truckNumber').value,
-                        licensePlate: document.getElementById('licensePlate').value,
-                        make: document.getElementById('truckMake').value,
-                        model: document.getElementById('truckModel').value,
-                        year: parseInt(document.getElementById('truckYear').value),
-                        vin: document.getElementById('truckVin').value,
-                        status: document.getElementById('truckStatus').value,
-                        currentMileage: parseInt(document.getElementById('currentMileage').value) || 0,
-                        assignedDriver: document.getElementById('assignedDriver').value,
-                        lastServiceDate: document.getElementById('lastServiceDate').value,
-                        notes: document.getElementById('truckNotes').value
-                    };
+                    const submitBtn = document.querySelector('#truckForm button[type="submit"]');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Saving...';
 
-                    if (document.getElementById('truckModalTitle').textContent.includes('Edit')) {
-                        // Update existing truck
-                        const truckId = FleetManager.trucks.find(t => t.number === truckData.number)?.id;
+                    try {
+                        const truckData = {
+                            number: document.getElementById('truckNumber').value,
+                            licensePlate: document.getElementById('licensePlate').value,
+                            make: document.getElementById('truckMake').value,
+                            model: document.getElementById('truckModel').value,
+                            year: parseInt(document.getElementById('truckYear').value),
+                            vin: document.getElementById('truckVin').value,
+                            status: document.getElementById('truckStatus').value,
+                            currentMileage: parseInt(document.getElementById('currentMileage').value) || 0,
+                            assignedDriver: document.getElementById('assignedDriver').value,
+                            lastServiceDate: document.getElementById('lastServiceDate').value,
+                            notes: document.getElementById('truckNotes').value
+                        };
+
+                        const truckId = document.getElementById('truckId').value;
+
                         if (truckId) {
-                            const index = FleetManager.trucks.findIndex(t => t.id === truckId);
-                            FleetManager.trucks[index] = { ...FleetManager.trucks[index], ...truckData };
+                            await DataManager.updateTruck(truckId, truckData);
+                        } else {
+                            await DataManager.addTruck(truckData);
                         }
-                    } else {
-                        // Add new truck
-                        truckData.id = 'T' + String(FleetManager.trucks.length + 1).padStart(3, '0');
-                        FleetManager.trucks.push(truckData);
-                    }
 
-                    FleetManager.renderFleetTable();
-                    FleetManager.updateOverviewCards();
-                    FleetManager.closeTruckModal();
-                    Utils.showNotification('Truck saved successfully', 'success');
+                        FleetManager.closeTruckModal();
+                    } catch (error) {
+                        console.error('Error saving truck:', error);
+                        alert('Failed to save truck: ' + error.message);
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }
                 });
             }
         };
 
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
+            Auth.init(); // Ensure Auth is initialized
             FleetManager.init();
         });
     </script>

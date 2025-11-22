@@ -57,6 +57,34 @@
         .nav-item.active {
             background-color: rgba(255, 255, 255, 0.2);
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 
@@ -82,7 +110,7 @@
                     <span class="nav-item active px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-file-invoice mr-2"></i>Invoices
                     </span>
-                    <span class="text-sm">Welcome, John (Admin)</span>
+                    <span class="text-sm">Welcome, Abdihaliim</span>
                     <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </button>
@@ -117,7 +145,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Total Invoices</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">156</dd>
+                            <dd id="totalInvoices" class="text-2xl font-semibold text-gray-900">0</dd>
                         </dl>
                     </div>
                 </div>
@@ -133,7 +161,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Paid This Month</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">$127,450</dd>
+                            <dd id="paidAmount" class="text-2xl font-semibold text-gray-900">$0</dd>
                         </dl>
                     </div>
                 </div>
@@ -149,7 +177,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Pending</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">23</dd>
+                            <dd id="pendingCount" class="text-2xl font-semibold text-gray-900">0</dd>
                         </dl>
                     </div>
                 </div>
@@ -165,7 +193,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Overdue</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">8</dd>
+                            <dd id="overdueCount" class="text-2xl font-semibold text-gray-900">0</dd>
                         </dl>
                     </div>
                 </div>
@@ -208,161 +236,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">INV-2025-001</div>
-                                <div class="text-sm text-gray-500">3 loads</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">ABC Manufacturing</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Nov 15, 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Dec 15, 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$7,500.00</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-paid">
-                                    Paid
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewInvoice('INV-2025-001')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="downloadInvoice('INV-2025-001')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                                <button onclick="printInvoice('INV-2025-001')"
-                                    class="text-purple-600 hover:text-purple-900">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">INV-2025-002</div>
-                                <div class="text-sm text-gray-500">5 loads</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">XYZ Logistics</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Nov 14, 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Dec 14, 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$12,300.00</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-pending">
-                                    Pending
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewInvoice('INV-2025-002')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="markPaid('INV-2025-002')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                <button onclick="printInvoice('INV-2025-002')"
-                                    class="text-purple-600 hover:text-purple-900">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">INV-2025-003</div>
-                                <div class="text-sm text-gray-500">2 loads</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Global Transport</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Nov 13, 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Dec 13, 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$4,800.00</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-overdue">
-                                    Overdue
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewInvoice('INV-2025-003')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="sendReminder('INV-2025-003')"
-                                    class="text-yellow-600 hover:text-yellow-900 mr-3">
-                                    <i class="fas fa-envelope"></i>
-                                </button>
-                                <button onclick="printInvoice('INV-2025-003')"
-                                    class="text-purple-600 hover:text-purple-900">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">INV-2025-004</div>
-                                <div class="text-sm text-gray-500">4 loads</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Midwest Freight</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Nov 12, 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Dec 12, 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$9,200.00</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 status-draft">
-                                    Draft
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewInvoice('INV-2025-004')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="sendInvoice('INV-2025-004')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                                <button onclick="editInvoice('INV-2025-004')"
-                                    class="text-orange-600 hover:text-orange-900">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </td>
-                        </tr>
+                        <!-- Populated by JavaScript -->
                     </tbody>
                 </table>
             </div>
@@ -642,8 +516,9 @@
             document.getElementById('invoiceModal').classList.remove('show');
         }
 
-        document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Form submission handler for Universal Form Handler
+        window.invoiceForm_handler = async function (e) {
+            // e.preventDefault() is handled by main.js
 
             const customerSelect = document.getElementById('customerSelect');
             const customerId = customerSelect.value;
@@ -683,7 +558,7 @@
             closeModal();
             renderInvoices();
             updateStats();
-        });
+        };
 
         function downloadInvoice(invoiceId) {
             const invoice = DataManager.getInvoice(invoiceId);
@@ -761,6 +636,28 @@
                     
                     <script>
                         window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `);
+        }
+
+        function printInvoice(invoiceId) {
+            downloadInvoice(invoiceId);
+        }
+
+        function viewInvoice(invoiceId) {
+            downloadInvoice(invoiceId);
+        }
+
+        // Expose functions to global scope for onclick handlers
+        window.createInvoice = createInvoice;
+        window.loadCustomerLoads = loadCustomerLoads;
+        window.calculateTotal = calculateTotal;
+        window.closeModal = closeModal;
+        window.downloadInvoice = downloadInvoice;
+        window.printInvoice = printInvoice;
+        window.viewInvoice = viewInvoice;
     </script>
 </body>
 

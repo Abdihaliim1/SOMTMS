@@ -106,7 +106,7 @@
                     <span class="nav-item active px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-receipt mr-2"></i>Expenses
                     </span>
-                    <span class="text-sm">Welcome, John (Admin)</span>
+                    <span class="text-sm">Welcome, Abdihaliim</span>
                     <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </button>
@@ -141,7 +141,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Fuel Expenses</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">$45,230</dd>
+                            <dd id="fuelExpenses" class="text-2xl font-semibold text-gray-900">$0</dd>
                         </dl>
                     </div>
                 </div>
@@ -162,7 +162,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Maintenance</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">$12,450</dd>
+                            <dd id="maintenanceExpenses" class="text-2xl font-semibold text-gray-900">$0</dd>
                         </dl>
                     </div>
                 </div>
@@ -183,7 +183,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Insurance</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">$8,900</dd>
+                            <dd id="insuranceExpenses" class="text-2xl font-semibold text-gray-900">$0</dd>
                         </dl>
                     </div>
                 </div>
@@ -204,7 +204,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Total Expenses</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">$78,450</dd>
+                            <dd id="totalExpenses" class="text-2xl font-semibold text-gray-900">$0</dd>
                         </dl>
                     </div>
                 </div>
@@ -225,7 +225,7 @@
                         <i class="fas fa-gas-pump text-red-600 mr-3"></i>
                         <div>
                             <h4 class="font-medium text-gray-900">Fuel</h4>
-                            <p class="text-sm text-gray-600">$45,230 (57.7%)</p>
+                            <p id="fuelCategory" class="text-sm text-gray-600">$0 (0%)</p>
                         </div>
                     </div>
                 </div>
@@ -234,7 +234,7 @@
                         <i class="fas fa-tools text-blue-600 mr-3"></i>
                         <div>
                             <h4 class="font-medium text-gray-900">Maintenance</h4>
-                            <p class="text-sm text-gray-600">$12,450 (15.9%)</p>
+                            <p id="maintenanceCategory" class="text-sm text-gray-600">$0 (0%)</p>
                         </div>
                     </div>
                 </div>
@@ -243,7 +243,7 @@
                         <i class="fas fa-shield-alt text-green-600 mr-3"></i>
                         <div>
                             <h4 class="font-medium text-gray-900">Insurance</h4>
-                            <p class="text-sm text-gray-600">$8,900 (11.3%)</p>
+                            <p id="insuranceCategory" class="text-sm text-gray-600">$0 (0%)</p>
                         </div>
                     </div>
                 </div>
@@ -252,7 +252,7 @@
                         <i class="fas fa-road text-yellow-600 mr-3"></i>
                         <div>
                             <h4 class="font-medium text-gray-900">Tolls</h4>
-                            <p class="text-sm text-gray-600">$3,200 (4.1%)</p>
+                            <p id="tollsCategory" class="text-sm text-gray-600">$0 (0%)</p>
                         </div>
                     </div>
                 </div>
@@ -261,7 +261,7 @@
                         <i class="fas fa-users text-purple-600 mr-3"></i>
                         <div>
                             <h4 class="font-medium text-gray-900">Lumper Fees</h4>
-                            <p class="text-sm text-gray-600">$2,800 (3.6%)</p>
+                            <p id="lumperCategory" class="text-sm text-gray-600">$0 (0%)</p>
                         </div>
                     </div>
                 </div>
@@ -270,7 +270,7 @@
                         <i class="fas fa-file-invoice text-indigo-600 mr-3"></i>
                         <div>
                             <h4 class="font-medium text-gray-900">Permits</h4>
-                            <p class="text-sm text-gray-600">$1,500 (1.9%)</p>
+                            <p id="permitsCategory" class="text-sm text-gray-600">$0 (0%)</p>
                         </div>
                     </div>
                 </div>
@@ -279,7 +279,7 @@
                         <i class="fas fa-hotel text-pink-600 mr-3"></i>
                         <div>
                             <h4 class="font-medium text-gray-900">Lodging</h4>
-                            <p class="text-sm text-gray-600">$2,100 (2.7%)</p>
+                            <p id="lodgingCategory" class="text-sm text-gray-600">$0 (0%)</p>
                         </div>
                     </div>
                 </div>
@@ -288,7 +288,7 @@
                         <i class="fas fa-ellipsis-h text-gray-600 mr-3"></i>
                         <div>
                             <h4 class="font-medium text-gray-900">Other</h4>
-                            <p class="text-sm text-gray-600">$2,270 (2.9%)</p>
+                            <p id="otherCategory" class="text-sm text-gray-600">$0 (0%)</p>
                         </div>
                     </div>
                 </div>
@@ -524,8 +524,57 @@
         }
 
         function updateStats() {
-            // Simple stats update logic
-            // In a real app, this would be more robust
+            const expenses = DataManager.expenses || [];
+
+            // Get current month expenses
+            const now = new Date();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const thisMonthExpenses = expenses.filter(e => {
+                const expenseDate = new Date(e.createdAt);
+                return expenseDate >= monthStart;
+            });
+
+            // Calculate totals by category
+            const categoryTotals = {
+                fuel: 0,
+                maintenance: 0,
+                insurance: 0,
+                toll: 0,
+                lumper: 0,
+                permit: 0,
+                lodging: 0,
+                other: 0
+            };
+
+            let totalExpenses = 0;
+            thisMonthExpenses.forEach(expense => {
+                const amount = parseFloat(expense.amount) || 0;
+                totalExpenses += amount;
+                if (categoryTotals.hasOwnProperty(expense.type)) {
+                    categoryTotals[expense.type] += amount;
+                }
+            });
+
+            // Update top stats
+            document.getElementById('fuelExpenses').textContent = Utils.formatCurrency(categoryTotals.fuel);
+            document.getElementById('maintenanceExpenses').textContent = Utils.formatCurrency(categoryTotals.maintenance);
+            document.getElementById('insuranceExpenses').textContent = Utils.formatCurrency(categoryTotals.insurance);
+            document.getElementById('totalExpenses').textContent = Utils.formatCurrency(totalExpenses);
+
+            // Update category breakdown with percentages
+            const updateCategory = (id, amount) => {
+                const percentage = totalExpenses > 0 ? ((amount / totalExpenses) * 100).toFixed(1) : 0;
+                document.getElementById(id).textContent = `${Utils.formatCurrency(amount)} (${percentage}%)`;
+            };
+
+            updateCategory('fuelCategory', categoryTotals.fuel);
+            updateCategory('maintenanceCategory', categoryTotals.maintenance);
+            updateCategory('insuranceCategory', categoryTotals.insurance);
+            updateCategory('tollsCategory', categoryTotals.toll);
+            updateCategory('lumperCategory', categoryTotals.lumper);
+            updateCategory('permitsCategory', categoryTotals.permit);
+            updateCategory('lodgingCategory', categoryTotals.lodging);
+            updateCategory('otherCategory', categoryTotals.other);
         }
 
         function openExpenseModal() {
@@ -535,16 +584,21 @@
             // Populate drivers
             const driverSelect = document.getElementById('driver');
             driverSelect.innerHTML = '<option value="">Select Driver</option>';
-            DataManager.drivers.forEach(d => {
-                driverSelect.innerHTML += `<option value="${d.id}">${d.firstName} ${d.lastName}</option>`;
-            });
+            if (DataManager.drivers) {
+                DataManager.drivers.forEach(d => {
+                    driverSelect.innerHTML += `<option value="${d.id}">${d.firstName} ${d.lastName}</option>`;
+                });
+            }
 
             // Populate trucks
             const truckSelect = document.getElementById('truck');
             truckSelect.innerHTML = '<option value="">Select Truck</option>';
-            DataManager.trucks.forEach(t => {
-                truckSelect.innerHTML += `<option value="${t.id}">${t.truckNumber}</option>`;
-            });
+            if (DataManager.trucks) {
+                DataManager.trucks.forEach(t => {
+                    // Fix: Use t.number instead of t.truckNumber
+                    truckSelect.innerHTML += `<option value="${t.id}">${t.number} - ${t.make}</option>`;
+                });
+            }
 
             document.getElementById('expenseModal').classList.add('show');
         }
@@ -554,35 +608,65 @@
         }
 
         async function deleteExpense(id) {
-            if (confirm('Are you sure you want to delete this expense?')) {
+            // Removed confirmation dialog - it was causing issues
+            // Delete works perfectly without it (as proven by test button)
+            try {
+                console.log('Deleting expense with ID:', id);
                 await DataManager.deleteExpense(id);
-                renderExpenses();
+                console.log('Delete completed successfully');
+                // renderExpenses() and updateStats() are called automatically by Firebase listener
+                // Success notification is shown in main.js
+            } catch (error) {
+                console.error('Error in deleteExpense:', error);
+                Utils.showNotification('Failed to delete expense: ' + error.message, 'error');
             }
         }
 
-        // Form submission
-        document.getElementById('expenseForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
+        // Expose functions to global scope for onclick handlers and Firebase listeners
+        window.renderExpenses = renderExpenses;
+        window.updateStats = updateStats;
+        window.openExpenseModal = openExpenseModal;
+        window.closeModal = closeModal;
+        window.deleteExpense = deleteExpense;
 
-            const driverSelect = document.getElementById('driver');
-            const truckSelect = document.getElementById('truck');
+        // Form submission handler compatible with Universal Form Handler
+        window.expenseForm_handler = async function (e) {
+            // e.preventDefault() is handled by main.js
 
-            const expenseData = {
-                type: document.getElementById('expenseType').value,
-                amount: parseFloat(document.getElementById('amount').value),
-                description: document.getElementById('description').value,
-                driverId: driverSelect.value,
-                driverName: driverSelect.options[driverSelect.selectedIndex].text,
-                truckId: truckSelect.value,
-                truckNumber: truckSelect.options[truckSelect.selectedIndex].text,
-                vendor: document.getElementById('vendor').value,
-                status: 'pending' // Default status
-            };
+            const submitBtn = document.querySelector('#expenseForm button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
 
-            await DataManager.addExpense(expenseData);
-            closeModal();
-            renderExpenses();
-        });
+            try {
+                const driverSelect = document.getElementById('driver');
+                const truckSelect = document.getElementById('truck');
+
+                const expenseData = {
+                    type: document.getElementById('expenseType').value,
+                    amount: parseFloat(document.getElementById('amount').value),
+                    description: document.getElementById('description').value,
+                    driverId: driverSelect.value,
+                    driverName: driverSelect.selectedIndex > 0 ? driverSelect.options[driverSelect.selectedIndex].text : '',
+                    truckId: truckSelect.value,
+                    truckNumber: truckSelect.selectedIndex > 0 ? truckSelect.options[truckSelect.selectedIndex].text : '',
+                    vendor: document.getElementById('vendor').value,
+                    status: 'pending' // Default status
+                };
+
+                await DataManager.addExpense(expenseData);
+                closeModal();
+                // renderExpenses() is called automatically by Firebase listener
+                // updateStats() will be called by the listener too
+                Utils.showNotification('Expense added successfully', 'success');
+            } catch (error) {
+                console.error('Error saving expense:', error);
+                Utils.showNotification('Failed to save expense', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        };
     </script>
 </body>
 

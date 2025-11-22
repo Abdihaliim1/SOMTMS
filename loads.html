@@ -114,7 +114,7 @@
                     <a href="drivers.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-users mr-2"></i>Drivers
                     </a>
-                    <span class="text-sm">Welcome, John (Admin)</span>
+                    <span class="text-sm">Welcome, Abdihaliim</span>
                     <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </button>
@@ -778,9 +778,10 @@
             renderLoads();
             populateSelects();
 
-            // Re-render when drivers/customers change
+            // Re-render when drivers/customers/trucks change
             window.renderDrivers = populateSelects;
             window.renderCustomers = populateSelects;
+            window.renderFleet = populateSelects;
         });
 
         function populateSelects() {
@@ -806,6 +807,15 @@
                 driverSelect.innerHTML += `<option value="${d.id}">${name}</option>`;
                 driverFilter.innerHTML += `<option value="${d.id}">${name}</option>`;
             });
+
+            // Trucks
+            const truckSelect = document.getElementById('truck');
+            truckSelect.innerHTML = '<option value="">Select Truck</option>';
+            if (DataManager.trucks) {
+                DataManager.trucks.forEach(t => {
+                    truckSelect.innerHTML += `<option value="${t.id}">${t.number} (${t.make})</option>`;
+                });
+            }
         }
 
         function renderLoads() {
@@ -885,13 +895,17 @@
             currentLoadId = null;
             document.getElementById('modalTitle').textContent = 'Create New Load';
             document.getElementById('loadForm').reset();
-            document.getElementById('loadNumber').value = `ST-${new Date().getFullYear()}-${String(DataManager.loads.length + 1000).padStart(4, '0')}`;
+            document.getElementById('loadNumber').value = 'LD-' + (1000 + DataManager.loads.length + 1);
             document.getElementById('loadModal').classList.add('show');
         }
 
         function closeModal() {
             document.getElementById('loadModal').classList.remove('show');
         }
+
+        // Expose functions to global scope for onclick handlers
+        window.openCreateLoadModal = openCreateLoadModal;
+        window.closeModal = closeModal;
 
         function editLoad(loadId) {
             const load = DataManager.getLoad(loadId);
@@ -904,6 +918,7 @@
             document.getElementById('loadStatus').value = load.status || 'available';
             document.getElementById('customer').value = load.customerId || '';
             document.getElementById('driver').value = load.driverId || '';
+            document.getElementById('truck').value = load.truckId || '';
 
             document.getElementById('pickupAddress').value = load.pickup?.address || '';
             document.getElementById('pickupCity').value = load.pickup?.city || '';
@@ -935,6 +950,10 @@
             }
         }
 
+        // Expose action functions to global scope
+        window.editLoad = editLoad;
+        window.deleteLoad = deleteLoad;
+
         function viewLoad(loadId) {
             const load = DataManager.getLoad(loadId);
             if (!load) return;
@@ -944,6 +963,7 @@ LOAD #${load.loadNumber}
 Status: ${load.status}
 Customer: ${load.customer || 'N/A'}
 Driver: ${load.driver || 'Unassigned'}
+Truck: ${load.truckNumber || 'Unassigned'}
 
 PICKUP: ${load.pickup?.city}, ${load.pickup?.state} @ ${load.pickup?.date || 'N/A'}
 DELIVERY: ${load.delivery?.city}, ${load.delivery?.state} @ ${load.delivery?.date || 'N/A'}
@@ -951,6 +971,50 @@ DELIVERY: ${load.delivery?.city}, ${load.delivery?.state} @ ${load.delivery?.dat
 Rate: ${Utils.formatCurrency(load.rate?.total || 0)} (${Utils.formatCurrency(load.rate?.ratePerMile || 0)}/mile)
 Miles: ${load.mileage?.total || 0}
         `);
+        }
+
+        async function calculateMileage() {
+            const pickupCity = document.getElementById('pickupCity').value;
+            const pickupState = document.getElementById('pickupState').value;
+            const deliveryCity = document.getElementById('deliveryCity').value;
+            const deliveryState = document.getElementById('deliveryState').value;
+
+            if (!pickupCity || !pickupState || !deliveryCity || !deliveryState) {
+                Utils.showNotification('Please enter pickup and delivery cities first', 'warning');
+                return;
+            }
+
+            const origin = `${pickupCity}, ${pickupState}`;
+            const destination = `${deliveryCity}, ${deliveryState}`;
+
+            try {
+                if (typeof MapsAPI === 'undefined' || !MapsAPI.calculateRoute) {
+                    console.warn('MapsAPI not available, using fallback or skipping.');
+                    Utils.showNotification('Maps service unavailable', 'warning');
+                    return;
+                }
+
+                Utils.showNotification('Calculating mileage...', 'info');
+                const result = await MapsAPI.calculateRoute(origin, destination);
+
+                if (result && result.distance) {
+                    document.getElementById('totalMiles').value = result.distance;
+
+                    // Auto-calculate rate per mile if total rate is already entered
+                    const totalRate = parseFloat(document.getElementById('totalRate').value);
+                    if (totalRate) {
+                        const ratePerMile = (totalRate / result.distance).toFixed(2);
+                        document.getElementById('ratePerMile').value = ratePerMile;
+                    }
+
+                    Utils.showNotification(`Calculated ${result.distance} miles`, 'success');
+                } else {
+                    throw new Error('Invalid result from MapsAPI');
+                }
+            } catch (err) {
+                Utils.showNotification('Failed to calculate mileage', 'error');
+                console.error('Mileage calculation error:', err);
+            }
         }
 
         // Form Submit Handler
@@ -969,6 +1033,8 @@ Miles: ${load.mileage?.total || 0}
                     customer: document.getElementById('customer').selectedOptions[0]?.text || '',
                     driverId: document.getElementById('driver').value || null,
                     driver: document.getElementById('driver').selectedOptions[0]?.text || 'Unassigned',
+                    truckId: document.getElementById('truck').value || null,
+                    truckNumber: document.getElementById('truck').selectedOptions[0]?.text || 'Unassigned',
                     pickup: {
                         address: document.getElementById('pickupAddress').value,
                         city: document.getElementById('pickupCity').value,
@@ -998,7 +1064,82 @@ Miles: ${load.mileage?.total || 0}
                 };
 
                 if (currentLoadId) {
+                    // Get the original load to check for status change
+                    const originalLoad = DataManager.getLoad(currentLoadId);
+                    const oldStatus = originalLoad ? originalLoad.status : '';
+                    const newStatus = loadData.status;
+
                     await DataManager.updateLoad(currentLoadId, loadData);
+
+                    // If status changed to 'delivered', trigger settlement update
+                    if (oldStatus !== 'delivered' && newStatus === 'delivered') {
+                        const load = DataManager.getLoad(currentLoadId); // Get updated load data
+                        if (!load) return;
+
+                        const driver = DataManager.drivers.find(d => d.id === load.driverId);
+                        if (!driver) {
+                            console.warn('No driver found for load', currentLoadId);
+                        } else {
+                            let driverPay = 0;
+                            if (driver.payment?.type === 'percentage') {
+                                driverPay = parseFloat(load.rate?.total || 0) * (parseFloat(driver.payment.percentage || 75) / 100);
+                            } else {
+                                // Per mile (default)
+                                const miles = parseFloat(load.mileage?.total || 0);
+                                const rate = parseFloat(driver.payment?.perMileRate || 0.64);
+                                driverPay = miles * rate;
+                            }
+
+                            // Find or create this week's settlement
+                            const weekStart = Utils.getWeekStart(new Date());
+                            const weekKey = weekStart.toISOString().split('T')[0];
+
+                            let settlement = DataManager.settlements.find(s =>
+                                s.driverId === load.driverId &&
+                                s.weekStart === weekKey
+                            );
+
+                            if (!settlement) {
+                                settlement = {
+                                    settlementNumber: `ST-${new Date().getFullYear()}-${DataManager.settlements.length + 1000}`,
+                                    driverId: load.driverId,
+                                    driverName: `${driver.firstName} ${driver.lastName}`,
+                                    period: `Week ${Utils.getWeekNumber(new Date())}`,
+                                    weekStart: weekKey,
+                                    grossPay: 0,
+                                    totalDeductions: 0,
+                                    netPay: 0,
+                                    loadIds: [],
+                                    totalMiles: 0,
+                                    status: 'pending',
+                                    createdAt: new Date().toISOString()
+                                };
+                                const id = await DataManager.addSettlement(settlement);
+                                settlement.id = id;
+                            }
+
+                            // Add this load's pay
+                            // Ensure we don't double count if load is already in settlement
+                            if (!settlement.loadIds.includes(currentLoadId)) {
+                                settlement.grossPay = (parseFloat(settlement.grossPay) || 0) + driverPay;
+                                settlement.totalMiles = (parseFloat(settlement.totalMiles) || 0) + (parseFloat(load.mileage?.total) || 0);
+                                settlement.loadIds.push(currentLoadId);
+                                settlement.netPay = settlement.grossPay - (parseFloat(settlement.totalDeductions) || 0);
+
+                                await DataManager.updateSettlement(settlement.id, {
+                                    grossPay: settlement.grossPay,
+                                    totalMiles: settlement.totalMiles,
+                                    loadIds: settlement.loadIds,
+                                    netPay: settlement.netPay
+                                });
+
+                                // Link load to settlement
+                                await DataManager.updateLoad(currentLoadId, { settlementId: settlement.id });
+
+                                Utils.showNotification(`$${driverPay.toFixed(2)} added to ${driver.firstName}'s settlement`, 'success');
+                            }
+                        }
+                    }
                 } else {
                     await DataManager.addLoad(loadData);
                 }

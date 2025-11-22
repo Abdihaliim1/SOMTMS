@@ -260,9 +260,9 @@
                     <div class="bg-white rounded-lg p-6 card-shadow">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-600">Profit Margin</p>
-                                <p class="text-2xl font-bold text-orange-600" id="profitMargin">0%</p>
-                                <p class="text-sm text-gray-500">+2.1% from last month</p>
+                                <p class="text-sm font-medium text-gray-600">Net Profit</p>
+                                <p class="text-2xl font-bold text-orange-600" id="netProfit">$0</p>
+                                <p class="text-sm text-gray-500"><span id="profitMargin">0%</span> margin</p>
                             </div>
                             <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                                 <i class="fas fa-chart-line text-orange-600 text-xl"></i>
@@ -446,38 +446,39 @@
             calculateRealData: () => {
                 const invoices = DataManager.invoices || [];
                 const loads = DataManager.loads || [];
-                const expenses = DataManager.expenses || []; // Assuming expenses are stored here
+                const expenses = DataManager.expenses || [];
                 const drivers = DataManager.drivers || [];
                 const customers = DataManager.customers || [];
                 const settlements = DataManager.settlements || [];
 
-                // 1. Revenue (Sum of all invoices)
-                const totalRevenue = invoices.reduce((sum, inv) => sum + (parseFloat(inv.amount) || 0), 0);
+                // 1. Revenue (Sum of all DELIVERED/COMPLETED loads, not invoices)
+                const completedLoads = loads.filter(l => l.status === 'delivered' || l.status === 'completed');
+                const totalRevenue = completedLoads.reduce((sum, l) => sum + (parseFloat(l.rate) || 0), 0);
 
                 // 2. Miles (Sum of all completed/delivered loads)
-                const completedLoads = loads.filter(l => l.status === 'delivered' || l.status === 'completed');
                 const totalMiles = completedLoads.reduce((sum, l) => sum + (parseFloat(l.miles) || 0), 0);
 
-                // 3. Expenses (Sum of expenses + settlement deductions)
-                // Note: We need to fetch expenses from DataManager if available, otherwise use 0
-                // For now, we'll assume DataManager.expenses exists or we'll use a placeholder
-                const trackedExpenses = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+                // 3. Driver Pay (Sum of net pay from all settlements)
+                const totalDriverPay = settlements.reduce((sum, st) => sum + (parseFloat(st.netPay) || 0), 0);
 
-                const settlementDeductions = settlements.reduce((sum, st) => sum + (parseFloat(st.totalDeductions) || 0), 0);
-                const totalExpenses = trackedExpenses + settlementDeductions;
+                // 4. Expenses (Sum of all tracked expenses)
+                const totalExpenses = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
 
-                // 4. Profit Margin
-                const profitMargin = totalRevenue > 0 ? ((totalRevenue - totalExpenses) / totalRevenue * 100).toFixed(1) : 0;
+                // 5. Net Profit = Revenue - Driver Pay - Expenses
+                const netProfit = totalRevenue - totalDriverPay - totalExpenses;
 
-                // 5. Monthly Revenue (Group invoices by month)
+                // 6. Profit Margin = (Net Profit / Revenue) × 100
+                const profitMargin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : 0;
+
+                // 7. Monthly Revenue (Group completed loads by month)
                 const monthlyRevenue = Array(12).fill(0);
                 const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-                invoices.forEach(inv => {
-                    const date = new Date(inv.date);
+                completedLoads.forEach(load => {
+                    const date = new Date(load.deliveryDate || load.createdAt);
                     const month = date.getMonth(); // 0-11
                     if (!isNaN(month)) {
-                        monthlyRevenue[month] += (parseFloat(inv.amount) || 0);
+                        monthlyRevenue[month] += (parseFloat(load.rate) || 0);
                     }
                 });
 
@@ -547,6 +548,9 @@
                     revenue: totalRevenue,
                     miles: totalMiles,
                     loads: completedLoads.length,
+                    driverPay: totalDriverPay,
+                    expenses: totalExpenses,
+                    netProfit: netProfit,
                     profitMargin,
                     monthlyRevenue: {
                         labels: monthLabels,
@@ -614,6 +618,7 @@
                 document.getElementById('totalRevenue').textContent = Utils.formatCurrency(ReportManager.data.revenue);
                 document.getElementById('totalMiles').textContent = ReportManager.data.miles.toLocaleString();
                 document.getElementById('loadsCompleted').textContent = ReportManager.data.loads;
+                document.getElementById('netProfit').textContent = Utils.formatCurrency(ReportManager.data.netProfit);
                 document.getElementById('profitMargin').textContent = ReportManager.data.profitMargin + '%';
 
                 // Revenue trend chart
@@ -835,7 +840,10 @@
         };
 
         // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Wait for DataManager to load all data from Firebase first
+            await DataManager.init();
+            // Then initialize reports with the loaded data
             ReportManager.init();
         });
     </script>

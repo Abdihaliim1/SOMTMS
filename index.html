@@ -206,7 +206,8 @@
 
             <!-- Key Metrics -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="metric-card bg-white rounded-lg p-6 card-shadow">
+                <div onclick="navigateTo('loads.html')"
+                    class="metric-card bg-white rounded-lg p-6 card-shadow cursor-pointer hover:bg-gray-50">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -228,7 +229,8 @@
                     </div>
                 </div>
 
-                <div class="metric-card bg-white rounded-lg p-6 card-shadow">
+                <div onclick="navigateTo('invoices.html')"
+                    class="metric-card bg-white rounded-lg p-6 card-shadow cursor-pointer hover:bg-gray-50">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -237,7 +239,8 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate">Weekly Revenue</dt>
+                                <dt class="text-sm font-medium text-gray-500 truncate" id="revenueLabel">Weekly Revenue
+                                </dt>
                                 <dd class="text-2xl font-semibold text-gray-900" id="weeklyRevenue">-</dd>
                             </dl>
                         </div>
@@ -250,7 +253,8 @@
                     </div>
                 </div>
 
-                <div class="metric-card bg-white rounded-lg p-6 card-shadow">
+                <div onclick="navigateTo('drivers.html')"
+                    class="metric-card bg-white rounded-lg p-6 card-shadow cursor-pointer hover:bg-gray-50">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -272,7 +276,8 @@
                     </div>
                 </div>
 
-                <div class="metric-card bg-white rounded-lg p-6 card-shadow">
+                <div onclick="navigateTo('reports.html')"
+                    class="metric-card bg-white rounded-lg p-6 card-shadow cursor-pointer hover:bg-gray-50">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -463,27 +468,45 @@
         });
 
         function updateDashboard() {
+            console.log('Updating Dashboard...');
+
             // 1. Update Metrics
-            const activeLoads = DataManager.loads.filter(l => ['dispatched', 'in_transit', 'picked_up'].includes(l.status));
+            const activeLoads = DataManager.loads.filter(l => ['dispatched', 'in_transit', 'picked_up'].includes((l.status || '').toLowerCase()));
             document.getElementById('activeLoadsCount').textContent = activeLoads.length;
 
-            const activeDrivers = DataManager.drivers.filter(d => d.status === 'active');
+            // Debug Driver Status
+            console.log('All Drivers:', DataManager.drivers);
+            const activeDrivers = DataManager.drivers.filter(d => {
+                const status = (d.status || '').toLowerCase();
+                console.log(`Driver ${d.firstName} status: '${status}'`);
+                return status === 'active';
+            });
             document.getElementById('activeDriversCount').textContent = activeDrivers.length;
 
-            // Calculate weekly revenue (last 7 days)
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            const weeklyRevenue = DataManager.invoices
-                .filter(inv => new Date(inv.date) >= oneWeekAgo)
-                .reduce((sum, inv) => sum + (parseFloat(inv.amount) || 0), 0);
-            document.getElementById('weeklyRevenue').textContent = Utils.formatCurrency(weeklyRevenue);
-
-            // Calculate monthly miles
+            // Calculate Revenue This Month (aligned with Miles This Month)
             const startOfMonth = new Date();
             startOfMonth.setDate(1);
+            startOfMonth.setHours(0, 0, 0, 0);
+
+            const monthlyRevenue = DataManager.loads
+                .filter(l => {
+                    const date = new Date(l.delivery?.date || l.updatedAt || l.createdAt);
+                    const status = (l.status || '').toLowerCase();
+                    return date >= startOfMonth && (status === 'delivered' || status === 'completed');
+                })
+                .reduce((sum, l) => sum + (parseFloat(l.rate?.total) || 0), 0);
+            document.getElementById('weeklyRevenue').textContent = Utils.formatCurrency(monthlyRevenue);
+            // Update label to match logic
+            document.getElementById('revenueLabel').textContent = 'Revenue This Month';
+
+            // Calculate monthly miles
             const monthlyMiles = DataManager.loads
-                .filter(l => new Date(l.delivery?.date || l.createdAt) >= startOfMonth && (l.status === 'delivered' || l.status === 'completed'))
-                .reduce((sum, l) => sum + (parseFloat(l.miles) || 0), 0);
+                .filter(l => {
+                    const date = new Date(l.delivery?.date || l.updatedAt || l.createdAt);
+                    const status = (l.status || '').toLowerCase();
+                    return date >= startOfMonth && (status === 'delivered' || status === 'completed');
+                })
+                .reduce((sum, l) => sum + (parseFloat(l.mileage?.total || l.totalMiles) || 0), 0);
             document.getElementById('monthlyMiles').textContent = monthlyMiles.toLocaleString();
 
             // 2. Update Recent Loads
@@ -511,12 +534,12 @@
                         <div class="w-3 h-3 ${color} rounded-full"></div>
                         <div>
                             <p class="font-medium text-gray-900">${load.loadNumber}</p>
-                            <p class="text-sm text-gray-600">${load.pickup.city}, ${load.pickup.state} → ${load.delivery.city}, ${load.delivery.state}</p>
+                            <p class="text-sm text-gray-600">${load.pickup?.city || 'Unknown'}, ${load.pickup?.state || ''} → ${load.delivery?.city || 'Unknown'}, ${load.delivery?.state || ''}</p>
                         </div>
                     </div>
                     <div class="text-right">
-                        <p class="font-medium text-gray-900">${Utils.formatCurrency(load.rate.total)}</p>
-                        <p class="text-sm text-gray-600 capitalize">${load.status.replace('_', ' ')}</p>
+                        <p class="font-medium text-gray-900">${Utils.formatCurrency(load.rate?.total || 0)}</p>
+                        <p class="text-sm text-gray-600 capitalize">${(load.status || '').replace('_', ' ')}</p>
                     </div>
                 `;
                 recentContainer.appendChild(div);
@@ -537,11 +560,15 @@
                 months.push(d.toLocaleString('default', { month: 'short' }));
             }
 
-            DataManager.invoices.forEach(inv => {
-                const d = new Date(inv.date);
-                const monthDiff = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
-                if (monthDiff >= 0 && monthDiff < 6) {
-                    monthlyRevenue[5 - monthDiff] += (parseFloat(inv.amount) || 0);
+            // Use DataManager.loads instead of invoices
+            DataManager.loads.forEach(l => {
+                const status = (l.status || '').toLowerCase();
+                if (status === 'delivered' || status === 'completed') {
+                    const d = new Date(l.delivery?.date || l.updatedAt || l.createdAt);
+                    const monthDiff = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
+                    if (monthDiff >= 0 && monthDiff < 6) {
+                        monthlyRevenue[5 - monthDiff] += (parseFloat(l.rate?.total) || 0);
+                    }
                 }
             });
 

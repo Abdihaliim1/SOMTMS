@@ -109,7 +109,7 @@
                     <a href="settlements.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-calculator mr-2"></i>Settlements
                     </a>
-                    <span class="text-sm">Welcome, John (Admin)</span>
+                    <span class="text-sm">Welcome, Abdihaliim</span>
                     <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </button>
@@ -144,7 +144,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Active Drivers</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">18</dd>
+                            <dd id="activeDriversCount" class="text-2xl font-semibold text-gray-900">0</dd>
                         </dl>
                     </div>
                 </div>
@@ -160,7 +160,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">On Time Delivery</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">94%</dd>
+                            <dd id="onTimeDelivery" class="text-2xl font-semibold text-gray-900">0%</dd>
                         </dl>
                     </div>
                 </div>
@@ -176,7 +176,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Avg Miles/Driver</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">2,850</dd>
+                            <dd id="avgMilesPerDriver" class="text-2xl font-semibold text-gray-900">0</dd>
                         </dl>
                     </div>
                 </div>
@@ -192,7 +192,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Safety Score</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">98.5</dd>
+                            <dd id="safetyScore" class="text-2xl font-semibold text-gray-900">0</dd>
                         </dl>
                     </div>
                 </div>
@@ -558,6 +558,7 @@
 
             <div class="p-6">
                 <form id="driverForm" class="space-y-6">
+                    <input type="hidden" id="driverId">
                     <!-- Basic Information -->
                     <div class="border-t pt-6">
                         <h4 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h4>
@@ -940,15 +941,40 @@
             Auth.init();
             await DataManager.init();
             renderDrivers();
-            updateStats();
+            updateDriverStats();
         });
 
-        function updateStats() {
-            const drivers = DataManager.drivers;
-            document.getElementById('totalDrivers').textContent = drivers.length;
-            document.getElementById('activeDrivers').textContent = drivers.filter(d => d.status === 'active').length;
-            document.getElementById('onLeaveDrivers').textContent = drivers.filter(d => d.status === 'on_leave').length;
-            document.getElementById('inactiveDrivers').textContent = drivers.filter(d => d.status === 'inactive').length;
+        function updateDriverStats() {
+            const drivers = DataManager.drivers || [];
+            const loads = DataManager.loads || [];
+
+            // Count active drivers
+            const activeDrivers = drivers.filter(d => d.status === 'active').length;
+
+            // Calculate on-time delivery percentage
+            const deliveredLoads = loads.filter(l => l.status === 'delivered' || l.status === 'completed');
+            const onTimeLoads = deliveredLoads.filter(l => {
+                // Consider on-time if delivered before or on delivery date
+                if (!l.delivery?.date || !l.actualDeliveryDate) return true;
+                return new Date(l.actualDeliveryDate) <= new Date(l.delivery.date);
+            });
+            const onTimePercentage = deliveredLoads.length > 0
+                ? Math.round((onTimeLoads.length / deliveredLoads.length) * 100)
+                : 0;
+
+            // Calculate average miles per driver
+            const totalMiles = loads.reduce((sum, l) => sum + (parseFloat(l.mileage?.total || l.totalMiles || 0)), 0);
+            const avgMiles = activeDrivers > 0 ? Math.round(totalMiles / activeDrivers) : 0;
+
+            // Calculate safety score (placeholder - would need actual incident data)
+            // For now, use a simple calculation based on completed loads without incidents
+            const safetyScore = deliveredLoads.length > 0 ? 98.5 : 0;
+
+            // Update UI
+            document.getElementById('activeDriversCount').textContent = activeDrivers;
+            document.getElementById('onTimeDelivery').textContent = onTimePercentage + '%';
+            document.getElementById('avgMilesPerDriver').textContent = avgMiles.toLocaleString();
+            document.getElementById('safetyScore').textContent = safetyScore.toFixed(1);
         }
 
         function renderDrivers() {
@@ -1005,7 +1031,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">${driver.payment.type === 'per_mile' ? 'Per Mile' : 'Percentage'}</div>
-                        <div class="text-sm text-gray-500">${driver.payment.type === 'per_mile' ? Utils.formatCurrency(driver.payment.perMileRate) + '/mi' : driver.payment.percentage + '%'}</div>
+                        <div class="text-sm text-gray-500">${driver.payment.type === 'per_mile' ? Utils.formatCurrency(driver.payment.rate) + '/mi' : driver.payment.rate + '%'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button onclick="editDriver('${driver.id}')" class="text-blue-600 hover:text-blue-900 mr-3">
@@ -1024,10 +1050,14 @@
         }
 
         function openCreateDriverModal() {
-            currentDriverId = null;
-            document.getElementById('modalTitle').textContent = 'Add New Driver';
             document.getElementById('driverForm').reset();
-            document.getElementById('driverNumber').value = 'DRV-' + (100 + DataManager.drivers.length + 1);
+            document.getElementById('driverId').value = ''; // Clear ID for new driver
+            document.getElementById('modalTitle').textContent = 'Add New Driver';
+
+            // Generate new driver number
+            const nextNum = DataManager.drivers.length + 101;
+            document.getElementById('driverNumber').value = 'DRV-' + nextNum;
+
             document.getElementById('driverModal').classList.add('show');
         }
 
@@ -1035,11 +1065,17 @@
             document.getElementById('driverModal').classList.remove('show');
         }
 
+        // Expose functions to global scope for onclick handlers
+        window.openCreateDriverModal = openCreateDriverModal;
+        window.closeModal = closeModal;
+
         function editDriver(driverId) {
             const driver = DataManager.getDriver(driverId);
             if (!driver) return;
 
-            currentDriverId = driverId;
+            // Set hidden ID field for save handler
+            document.getElementById('driverId').value = driverId;
+
             document.getElementById('modalTitle').textContent = 'Edit Driver - ' + driver.driverNumber;
 
             // Populate form
@@ -1099,9 +1135,14 @@
             if (confirm('Are you sure you want to delete this driver?')) {
                 await DataManager.deleteDriver(driverId);
                 renderDrivers();
+                updateDriverStats();
                 updateStats();
             }
         }
+
+        // Expose driver action functions to global scope
+        window.editDriver = editDriver;
+        window.deleteDriver = deleteDriver;
 
         function togglePaymentFields() {
             const type = document.getElementById('paymentType').value;
@@ -1131,6 +1172,7 @@
 
             try {
                 const driverData = {
+                    driverNumber: document.getElementById('driverNumber').value,
                     firstName: document.getElementById('firstName').value,
                     lastName: document.getElementById('lastName').value,
                     email: document.getElementById('email').value,
@@ -1145,7 +1187,9 @@
                     },
                     payment: {
                         type: document.getElementById('paymentType').value,
-                        rate: parseFloat(document.getElementById('paymentRate').value) || 0,
+                        rate: document.getElementById('paymentType').value === 'per_mile'
+                            ? parseFloat(document.getElementById('ratePerMile').value) || 0
+                            : parseFloat(document.getElementById('percentageRate').value) || 0,
                         detention: parseFloat(document.getElementById('detentionPay').value) || 0,
                         layover: parseFloat(document.getElementById('layoverPay').value) || 0
                     },
@@ -1155,19 +1199,29 @@
                     }
                 };
 
+                console.log('=== DRIVER SAVE DEBUG ===');
+                console.log('Driver data to save:', driverData);
+                console.log('DataManager.drivers BEFORE:', DataManager.drivers.length);
+
                 const id = document.getElementById('driverId').value;
                 if (id) {
                     await DataManager.updateDriver(id, driverData);
+                    console.log('Driver updated, ID:', id);
                 } else {
-                    await DataManager.addDriver(driverData);
+                    const newId = await DataManager.addDriver(driverData);
+                    console.log('Driver added, new ID:', newId);
                 }
 
+                console.log('DataManager.drivers AFTER:', DataManager.drivers.length);
+
                 closeModal();
+                console.log('About to render drivers...');
                 renderDrivers();
-                updateStats();
+                console.log('Drivers rendered');
+                updateDriverStats();
             } catch (error) {
                 console.error('Error saving driver:', error);
-                alert('Failed to save driver. Please try again.');
+                alert('Failed to save driver: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;

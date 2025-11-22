@@ -357,6 +357,7 @@
 
             try {
                 const customerData = {
+                    customerNumber: document.getElementById('customerNumber').value,
                     company: {
                         name: document.getElementById('companyName').value,
                         address: document.getElementById('address').value,
@@ -368,12 +369,7 @@
                         name: document.getElementById('contactName').value,
                         email: document.getElementById('email').value,
                         phone: document.getElementById('phone').value
-                    },
-                    billing: {
-                        terms: document.getElementById('paymentTerms').value,
-                        creditLimit: parseFloat(document.getElementById('creditLimit').value) || 0
-                    },
-                    notes: document.getElementById('notes').value
+                    }
                 };
 
                 const id = document.getElementById('customerId').value;
@@ -387,7 +383,7 @@
                 renderCustomers();
             } catch (error) {
                 console.error('Error saving customer:', error);
-                alert('Failed to save customer. Please try again.');
+                alert('Failed to save customer: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;

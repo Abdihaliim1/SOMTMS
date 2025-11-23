@@ -1,14 +1,18 @@
-// Somali Truck - Transportation Management System
+// ATS FREIGHT LLC - Transportation Management System
 // Main JavaScript File
 
 // Global Configuration
 const CONFIG = {
     company: {
-        name: 'Somali Truck',
-        logo: 'ST',
-        address: '3191 MORSE RD STE 15, COLUMBUS, OH 43231',
+        name: 'ATS FREIGHT LLC',
+        logo: 'ATS',
+        logoImage: 'resources/ats-freight-logo.png',
+        address: '3191 MORSE RD STE 15',
+        city: 'COLUMBUS, OH 43231',
+        fullAddress: '3191 MORSE RD STE 15, COLUMBUS, OH 43231',
         phone: '(614) 254-0380',
-        email: 'dispatch@somalitruck.com'
+        email: 'dispatch@atsfreight.com',
+        dot: 'DOT 3169186'
     },
     api: {
         googleMapsKey: 'YOUR_GOOGLE_MAPS_API_KEY',
@@ -356,6 +360,41 @@ const Utils = {
         d.setDate(d.getDate() + 4 - (d.getDay() || 7));
         const yearStart = new Date(d.getFullYear(), 0, 1);
         return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    },
+
+    // Format date range for settlement period (e.g., "Nov 10 - Nov 17, 2025")
+    formatDateRange: (startDate, endDate) => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        const startMonth = monthNames[start.getMonth()];
+        const startDay = start.getDate();
+        const endMonth = monthNames[end.getMonth()];
+        const endDay = end.getDate();
+        const year = end.getFullYear();
+        
+        // If same month, format as "Nov 10 - 17, 2025"
+        if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+            return `${startMonth} ${startDay} - ${endDay}, ${year}`;
+        }
+        // If different months but same year, format as "Nov 30 - Dec 7, 2025"
+        else if (start.getFullYear() === end.getFullYear()) {
+            return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
+        }
+        // If different years, format as "Dec 28, 2024 - Jan 4, 2025"
+        else {
+            return `${startMonth} ${startDay}, ${start.getFullYear()} - ${endMonth} ${endDay}, ${year}`;
+        }
+    },
+
+    // Get week end date (6 days after week start)
+    getWeekEnd: (weekStart) => {
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
+        return weekEnd;
     }
 };
 
@@ -592,6 +631,9 @@ const DataManager = {
             db.collection('invoices').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
                 DataManager.invoices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.invoices.length} invoices from Firebase`);
+                // Re-render invoices when data updates
+                if (window.renderInvoices) window.renderInvoices();
+                if (window.updateStats) window.updateStats();
             }, error => {
                 console.error('Error loading invoices:', error);
             });
@@ -621,7 +663,7 @@ const DataManager = {
             const payload = JSON.parse(JSON.stringify(loadData));
             payload.createdAt = new Date().toISOString();
             payload.updatedAt = new Date().toISOString();
-            payload.companyId = 'somali_truck';
+            payload.companyId = 'ats_freight';
 
             const docRef = await db.collection('loads').add(payload);
 
@@ -678,7 +720,7 @@ const DataManager = {
             const payload = JSON.parse(JSON.stringify(driverData));
             payload.createdAt = new Date().toISOString();
             payload.updatedAt = new Date().toISOString();
-            payload.companyId = 'somali_truck';
+            payload.companyId = 'ats_freight';
 
             const docRef = await db.collection('drivers').add(payload);
 
@@ -734,7 +776,7 @@ const DataManager = {
             const payload = JSON.parse(JSON.stringify(truckData));
             payload.createdAt = new Date().toISOString();
             payload.updatedAt = new Date().toISOString();
-            payload.companyId = 'somali_truck';
+            payload.companyId = 'ats_freight';
 
             const docRef = await db.collection('trucks').add(payload);
             Utils.showNotification('Truck added successfully!', 'success');
@@ -782,7 +824,7 @@ const DataManager = {
             const payload = JSON.parse(JSON.stringify(customerData));
             payload.createdAt = new Date().toISOString();
             payload.updatedAt = new Date().toISOString();
-            payload.companyId = 'somali_truck';
+            payload.companyId = 'ats_freight';
 
             const docRef = await db.collection('customers').add(payload);
 
@@ -838,7 +880,7 @@ const DataManager = {
             const payload = JSON.parse(JSON.stringify(invoiceData));
             payload.createdAt = new Date().toISOString();
             payload.updatedAt = new Date().toISOString();
-            payload.companyId = 'somali_truck';
+            payload.companyId = 'ats_freight';
 
             const docRef = await db.collection('invoices').add(payload);
             Utils.showNotification('Invoice created successfully!', 'success');
@@ -864,15 +906,43 @@ const DataManager = {
     },
 
     deleteInvoice: async (invoiceId) => {
-        if (confirm('Are you sure you want to delete this invoice?')) {
-            try {
-                await db.collection('invoices').doc(invoiceId).delete();
-                Utils.showNotification('Invoice deleted successfully!', 'success');
-            } catch (e) {
-                console.error('Error deleting invoice:', e);
-                Utils.showNotification('Error deleting invoice: ' + e.message, 'error');
-                throw e;
+        try {
+            // Get invoice to unlink from loads
+            const invoice = await db.collection('invoices').doc(invoiceId).get();
+            if (invoice.exists) {
+                const invoiceData = invoice.data();
+                // Unlink invoice from associated loads
+                if (invoiceData.loadIds && invoiceData.loadIds.length > 0) {
+                    const batch = db.batch();
+                    let validLoads = 0;
+                    
+                    for (const loadId of invoiceData.loadIds) {
+                        try {
+                            const loadRef = db.collection('loads').doc(loadId);
+                            const loadDoc = await loadRef.get();
+                            if (loadDoc.exists) {
+                                batch.update(loadRef, { invoiceId: null });
+                                validLoads++;
+                            } else {
+                                console.warn(`Load ${loadId} does not exist, skipping unlink`);
+                            }
+                        } catch (err) {
+                            console.warn(`Error checking load ${loadId}:`, err);
+                        }
+                    }
+                    
+                    // Only commit if there are valid loads to update
+                    if (validLoads > 0) {
+                        await batch.commit();
+                    }
+                }
             }
+
+            // Delete the invoice
+            await db.collection('invoices').doc(invoiceId).delete();
+        } catch (e) {
+            console.error('Error deleting invoice:', e);
+            throw e;
         }
     },
 
@@ -886,7 +956,7 @@ const DataManager = {
             const payload = JSON.parse(JSON.stringify(settlementData));
             payload.createdAt = new Date().toISOString();
             payload.updatedAt = new Date().toISOString();
-            payload.companyId = 'somali_truck';
+            payload.companyId = 'ats_freight';
 
             const docRef = await db.collection('settlements').add(payload);
             Utils.showNotification('Settlement created successfully!', 'success');
@@ -912,29 +982,61 @@ const DataManager = {
     },
 
     deleteSettlement: async (settlementId) => {
-        if (confirm('Are you sure you want to delete this settlement? This will also unlink all associated loads.')) {
-            try {
-                // Unlink loads first
-                const settlement = await db.collection('settlements').doc(settlementId).get();
-                if (settlement.exists) {
-                    const data = settlement.data();
-                    if (data.loadIds && data.loadIds.length > 0) {
-                        const batch = db.batch();
-                        data.loadIds.forEach(loadId => {
+        try {
+            // Unlink loads and expenses first - check if they exist before updating
+            const settlement = await db.collection('settlements').doc(settlementId).get();
+            if (settlement.exists) {
+                const data = settlement.data();
+                const batch = db.batch();
+                let validUpdates = 0;
+                
+                // Unlink loads
+                if (data.loadIds && data.loadIds.length > 0) {
+                    for (const loadId of data.loadIds) {
+                        try {
                             const loadRef = db.collection('loads').doc(loadId);
-                            batch.update(loadRef, { settlementId: null });
-                        });
-                        await batch.commit();
+                            const loadDoc = await loadRef.get();
+                            if (loadDoc.exists) {
+                                batch.update(loadRef, { settlementId: null });
+                                validUpdates++;
+                            } else {
+                                console.warn(`Load ${loadId} does not exist, skipping unlink`);
+                            }
+                        } catch (err) {
+                            console.warn(`Error checking load ${loadId}:`, err);
+                        }
                     }
                 }
-
-                await db.collection('settlements').doc(settlementId).delete();
-                Utils.showNotification('Settlement deleted successfully!', 'success');
-            } catch (e) {
-                console.error('Error deleting settlement:', e);
-                Utils.showNotification('Error deleting settlement: ' + e.message, 'error');
-                throw e;
+                
+                // Unlink expenses
+                if (data.expenseIds && data.expenseIds.length > 0) {
+                    for (const expenseId of data.expenseIds) {
+                        try {
+                            const expenseRef = db.collection('expenses').doc(expenseId);
+                            const expenseDoc = await expenseRef.get();
+                            if (expenseDoc.exists) {
+                                batch.update(expenseRef, { settlementId: null });
+                                validUpdates++;
+                            } else {
+                                console.warn(`Expense ${expenseId} does not exist, skipping unlink`);
+                            }
+                        } catch (err) {
+                            console.warn(`Error checking expense ${expenseId}:`, err);
+                        }
+                    }
+                }
+                
+                // Only commit if there are valid updates
+                if (validUpdates > 0) {
+                    await batch.commit();
+                }
             }
+
+            // Delete the settlement
+            await db.collection('settlements').doc(settlementId).delete();
+        } catch (e) {
+            console.error('Error deleting settlement:', e);
+            throw e;
         }
     },
 
@@ -948,7 +1050,7 @@ const DataManager = {
             const payload = JSON.parse(JSON.stringify(expenseData));
             payload.createdAt = new Date().toISOString();
             payload.updatedAt = new Date().toISOString();
-            payload.companyId = 'somali_truck';
+            payload.companyId = 'ats_freight';
 
             const docRef = await db.collection('expenses').add(payload);
             Utils.showNotification('Expense added successfully!', 'success');
@@ -2101,7 +2203,7 @@ function loadDriverUnpaidLoads() {
                     data-advance="${advanceAmount.toFixed(2)}"
                     data-lumper="${lumperFees.toFixed(2)}"
                     data-miles="${load.mileage?.total || load.totalMiles || 0}"
-                    onchange="calculateSettlementTotal()"></td>
+                    onchange="calculateSettlementTotal(); if (window.autoSelectExpensesForLoad) autoSelectExpensesForLoad('${load.id}')"></td>
                 <td class="px-4 py-3 text-sm font-medium text-gray-900">${load.loadNumber}</td>
                 <td class="px-4 py-3 text-sm text-gray-500">${Utils.formatDate(load.delivery?.date || load.updatedAt)}</td>
                 <td class="px-4 py-3 text-sm text-gray-500 truncate max-w-xs">${load.pickup?.city} → ${load.delivery?.city}</td>
@@ -2113,9 +2215,271 @@ function loadDriverUnpaidLoads() {
     calculateSettlementTotal();
 }
 
+// Load driver expenses for settlement - with automatic load matching
+function loadDriverExpenses() {
+    const driverId = document.getElementById('driverSelect')?.value;
+    const expensesBody = document.getElementById('driverExpensesBody');
+    
+    if (!expensesBody) return;
+    
+    // Reset
+    expensesBody.innerHTML = '';
+    
+    if (!driverId) {
+        expensesBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-4 py-3 text-sm text-gray-500 text-center">
+                    Select a driver to see expenses
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Get driver to find associated trucks
+    const driver = DataManager.drivers.find(d => d.id === driverId);
+    if (!driver) {
+        expensesBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-4 py-3 text-sm text-gray-500 text-center">
+                    Driver not found
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Get all loads for this driver (including unpaid delivered loads)
+    const driverLoads = DataManager.loads.filter(l => {
+        const isDriverMatch = String(l.driverId) === String(driverId);
+        const status = (l.status || '').toLowerCase();
+        const isDelivered = status === 'delivered' || status === 'completed';
+        const isUnpaid = !l.settlementId || l.settlementId === 'null' || l.settlementId === 'undefined';
+        return isDriverMatch && isDelivered && isUnpaid;
+    });
+    
+    const truckIds = [...new Set(driverLoads.map(l => l.truckId).filter(Boolean))];
+    
+    // Find expenses for this driver (and optionally trucks they used)
+    // Filter expenses that:
+    // 1. Are assigned to this driver (driverId matches)
+    // 2. OR are assigned to trucks this driver used (truckId matches)
+    // 3. Are not already included in a settlement (settlementId is null/undefined)
+    const eligibleExpenses = DataManager.expenses.filter(e => {
+        const isDriverMatch = e.driverId === driverId;
+        const isTruckMatch = e.truckId && truckIds.includes(e.truckId);
+        const isUnsettled = !e.settlementId || e.settlementId === 'null' || e.settlementId === 'undefined';
+        
+        return (isDriverMatch || isTruckMatch) && isUnsettled;
+    });
+    
+    console.log(`Found ${eligibleExpenses.length} eligible expenses for driver ${driverId}`);
+    
+    if (eligibleExpenses.length === 0) {
+        expensesBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-4 py-3 text-sm text-gray-500 text-center">
+                    No expenses found for this driver
+                </td>
+            </tr>
+        `;
+    } else {
+        // Match expenses to loads based on dates
+        const expenseLoadMap = new Map(); // expenseId -> loadId
+        
+        eligibleExpenses.forEach(expense => {
+            const expenseDate = new Date(expense.date || expense.createdAt);
+            expenseDate.setHours(0, 0, 0, 0);
+            
+            // First, check if expense already has a loadId
+            if (expense.loadId) {
+                const load = driverLoads.find(l => l.id === expense.loadId);
+                if (load) {
+                    expenseLoadMap.set(expense.id, expense.loadId);
+                    return;
+                }
+            }
+            
+            // Otherwise, try to match by date
+            // Match if expense date is between load pickup and delivery dates
+            for (const load of driverLoads) {
+                const pickupDate = load.pickup?.scheduledDate || load.pickup?.date || load.createdAt;
+                const deliveryDate = load.delivery?.date || load.deliveredAt || load.updatedAt;
+                
+                if (pickupDate && deliveryDate) {
+                    const pickup = new Date(pickupDate);
+                    const delivery = new Date(deliveryDate);
+                    pickup.setHours(0, 0, 0, 0);
+                    delivery.setHours(23, 59, 59, 999);
+                    
+                    // Also check if expense is within 2 days before pickup or 2 days after delivery
+                    // (to catch fuel purchased before trip, or expenses after delivery)
+                    const pickupWindow = new Date(pickup);
+                    pickupWindow.setDate(pickupWindow.getDate() - 2);
+                    const deliveryWindow = new Date(delivery);
+                    deliveryWindow.setDate(deliveryWindow.getDate() + 2);
+                    
+                    if (expenseDate >= pickupWindow && expenseDate <= deliveryWindow) {
+                        expenseLoadMap.set(expense.id, load.id);
+                        break; // Match to first load that fits
+                    }
+                }
+            }
+        });
+        
+        // Group expenses by load
+        const expensesByLoad = new Map();
+        const unlinkedExpenses = [];
+        
+        eligibleExpenses.forEach(expense => {
+            const loadId = expenseLoadMap.get(expense.id);
+            if (loadId) {
+                if (!expensesByLoad.has(loadId)) {
+                    expensesByLoad.set(loadId, []);
+                }
+                expensesByLoad.get(loadId).push(expense);
+            } else {
+                unlinkedExpenses.push(expense);
+            }
+        });
+        
+        // Sort expenses within each group by date
+        expensesByLoad.forEach((expenses, loadId) => {
+            expenses.sort((a, b) => {
+                const dateA = new Date(a.date || a.createdAt || 0);
+                const dateB = new Date(b.date || b.createdAt || 0);
+                return dateA - dateB;
+            });
+        });
+        
+        // Sort unlinked expenses by date
+        unlinkedExpenses.sort((a, b) => {
+            const dateA = new Date(a.date || a.createdAt || 0);
+            const dateB = new Date(b.date || b.createdAt || 0);
+            return dateA - dateB;
+        });
+        
+        // Display expenses grouped by load
+        expensesByLoad.forEach((expenses, loadId) => {
+            const load = driverLoads.find(l => l.id === loadId);
+            const loadNumber = load?.loadNumber || 'Unknown Load';
+            const loadPickup = load?.pickup?.city || '';
+            const loadDelivery = load?.delivery?.city || '';
+            
+            // Add header row for this load's expenses
+            const headerRow = document.createElement('tr');
+            headerRow.className = "bg-blue-50 font-semibold";
+            headerRow.innerHTML = `
+                <td colspan="6" class="px-3 py-2 text-xs text-blue-800">
+                    <i class="fas fa-truck mr-2"></i>Load: ${loadNumber} (${loadPickup} → ${loadDelivery})
+                </td>
+            `;
+            expensesBody.appendChild(headerRow);
+            
+            // Add expense rows for this load
+            expenses.forEach(expense => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50 transition-colors";
+                tr.setAttribute('data-load-id', loadId);
+                
+                const expenseDate = expense.date || expense.createdAt;
+                const expenseType = expense.type || 'other';
+                const expenseAmount = parseFloat(expense.amount || 0);
+                const vendorName = expense.vendor?.name || '';
+                const description = expense.description || expense.subcategory || expenseType;
+                
+                tr.innerHTML = `
+                    <td class="px-3 py-2">
+                        <input type="checkbox" class="expense-checkbox w-4 h-4 text-blue-600 rounded" 
+                            value="${expense.id}" 
+                            data-amount="${expenseAmount.toFixed(2)}"
+                            data-load-id="${loadId}"
+                            onchange="calculateSettlementTotal(); syncExpenseWithLoad('${expense.id}', '${loadId}')">
+                    </td>
+                    <td class="px-3 py-2 text-sm text-gray-600">${Utils.formatDate(expenseDate)}</td>
+                    <td class="px-3 py-2 text-sm text-gray-900 capitalize">${expenseType.replace('_', ' ')}</td>
+                    <td class="px-3 py-2 text-sm text-gray-700">${description}${vendorName ? ` - ${vendorName}` : ''}</td>
+                    <td class="px-3 py-2 text-sm text-blue-600 font-medium">${loadNumber}</td>
+                    <td class="px-3 py-2 text-sm font-medium text-red-600 text-right">${Utils.formatCurrency(expenseAmount)}</td>
+                `;
+                expensesBody.appendChild(tr);
+            });
+        });
+        
+        // Display unlinked expenses (if any)
+        if (unlinkedExpenses.length > 0) {
+            const headerRow = document.createElement('tr');
+            headerRow.className = "bg-gray-50 font-semibold";
+            headerRow.innerHTML = `
+                <td colspan="6" class="px-3 py-2 text-xs text-gray-600">
+                    <i class="fas fa-question-circle mr-2"></i>Unlinked Expenses (No matching load found)
+                </td>
+            `;
+            expensesBody.appendChild(headerRow);
+            
+            unlinkedExpenses.forEach(expense => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors";
+                
+                const expenseDate = expense.date || expense.createdAt;
+                const expenseType = expense.type || 'other';
+                const expenseAmount = parseFloat(expense.amount || 0);
+                const vendorName = expense.vendor?.name || '';
+                const description = expense.description || expense.subcategory || expenseType;
+                
+                tr.innerHTML = `
+                    <td class="px-3 py-2">
+                        <input type="checkbox" class="expense-checkbox w-4 h-4 text-blue-600 rounded" 
+                            value="${expense.id}" 
+                            data-amount="${expenseAmount.toFixed(2)}"
+                            onchange="calculateSettlementTotal()">
+                    </td>
+                    <td class="px-3 py-2 text-sm text-gray-600">${Utils.formatDate(expenseDate)}</td>
+                    <td class="px-3 py-2 text-sm text-gray-900 capitalize">${expenseType.replace('_', ' ')}</td>
+                    <td class="px-3 py-2 text-sm text-gray-700">${description}${vendorName ? ` - ${vendorName}` : ''}</td>
+                    <td class="px-3 py-2 text-sm text-gray-400">-</td>
+                    <td class="px-3 py-2 text-sm font-medium text-red-600 text-right">${Utils.formatCurrency(expenseAmount)}</td>
+                `;
+                expensesBody.appendChild(tr);
+            });
+        }
+    }
+    
+    calculateSettlementTotal();
+}
+
+// Sync expense selection with load selection
+function syncExpenseWithLoad(expenseId, loadId) {
+    // When an expense is checked, automatically check its associated load
+    const loadCheckbox = document.querySelector(`.settlement-checkbox[value="${loadId}"]`);
+    const expenseCheckbox = document.querySelector(`.expense-checkbox[value="${expenseId}"]`);
+    
+    if (expenseCheckbox && expenseCheckbox.checked && loadCheckbox && !loadCheckbox.checked) {
+        loadCheckbox.checked = true;
+        calculateSettlementTotal();
+    }
+}
+
+// Auto-select expenses when a load is selected
+function autoSelectExpensesForLoad(loadId) {
+    const loadCheckbox = document.querySelector(`.settlement-checkbox[value="${loadId}"]`);
+    if (!loadCheckbox) return;
+    
+    // Find all expenses linked to this load
+    const expenseCheckboxes = document.querySelectorAll(`.expense-checkbox[data-load-id="${loadId}"]`);
+    
+    expenseCheckboxes.forEach(expenseCheckbox => {
+        // If load is checked, check the expense. If load is unchecked, uncheck the expense.
+        expenseCheckbox.checked = loadCheckbox.checked;
+    });
+    
+    calculateSettlementTotal();
+}
+
 // 2. Updated Calculation Logic (Updates the totals in real-time)
 function calculateSettlementTotal() {
     const checkboxes = document.querySelectorAll('.settlement-checkbox:checked');
+    const expenseCheckboxes = document.querySelectorAll('.expense-checkbox:checked');
     const generateBtn = document.getElementById('generateSettlementBtn');
 
     let basePay = 0;
@@ -2128,6 +2492,12 @@ function calculateSettlementTotal() {
         detentionTotal += parseFloat(cb.dataset.detention || 0);
         advancesTotal += parseFloat(cb.dataset.advance || 0);
         lumperTotal += parseFloat(cb.dataset.lumper || 0);
+    });
+
+    // Calculate expenses total
+    let expensesTotal = 0;
+    expenseCheckboxes.forEach(cb => {
+        expensesTotal += parseFloat(cb.dataset.amount || 0);
     });
 
     // Gross pay = base + detention
@@ -2162,9 +2532,15 @@ function calculateSettlementTotal() {
     
     const totalTaxes = Object.values(taxes).reduce((sum, tax) => sum + tax, 0);
 
-    // Total deductions = load deductions + manual deductions + taxes
-    const totalDeductions = advancesTotal + lumperTotal + fuel + insurance + other + totalTaxes;
+    // Total deductions = load deductions + expenses + manual deductions + taxes
+    const totalDeductions = advancesTotal + lumperTotal + expensesTotal + fuel + insurance + other + totalTaxes;
     const netPay = grossPay - totalDeductions;
+    
+    // Update expenses total display
+    const expensesTotalEl = document.getElementById('expensesTotal');
+    if (expensesTotalEl) {
+        expensesTotalEl.textContent = Utils.formatCurrency(expensesTotal);
+    }
 
     // Update breakdown fields (if they exist - for settlements.html modal)
     const basePayEl = document.getElementById('basePay');
@@ -2208,6 +2584,15 @@ function toggleAllLoads(source) {
     calculateSettlementTotal();
 }
 
+// Toggle All Expenses Helper
+function toggleAllExpenses(source) {
+    const checkboxes = document.querySelectorAll('.expense-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = source.checked;
+    });
+    calculateSettlementTotal();
+}
+
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -2233,8 +2618,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // GLOBAL EXPORTS — DO NOT DELETE EVER AGAIN
 window.loadDriverUnpaidLoads = loadDriverUnpaidLoads;
+window.loadDriverExpenses = loadDriverExpenses;
 window.calculateSettlementTotal = calculateSettlementTotal;
 window.toggleAllLoads = toggleAllLoads;
+window.toggleAllExpenses = toggleAllExpenses;
+window.autoSelectExpensesForLoad = autoSelectExpensesForLoad;
+window.syncExpenseWithLoad = syncExpenseWithLoad;
 window.checkExpirations = checkExpirations;
 window.openCreateSettlementModal = () => {
     document.getElementById('createSettlementModal')?.classList.add('show');

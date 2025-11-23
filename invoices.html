@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoicing System - Somali Truck TMS TMS</title>
+    <title>Invoicing System - ATS FREIGHT LLC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
@@ -94,9 +94,10 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-4">
-                    <img src="resources/company-logo.png" alt="Somali Truck TMS" class="h-10 w-10 rounded-lg">
+                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="company-logo" style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1e3a8a;">ATS</div>
                     <div>
-                        <h1 class="text-xl font-bold">Somali Truck TMS</h1>
+                        <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
                         <p class="text-sm opacity-90">Transportation Management System</p>
                     </div>
                 </div>
@@ -110,7 +111,7 @@
                     <span class="nav-item active px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-file-invoice mr-2"></i>Invoices
                     </span>
-                    <span class="text-sm">Welcome, Abdihaliim</span>
+                    <span class="text-sm">Welcome, Liban Ali</span>
                     <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </button>
@@ -125,12 +126,8 @@
         <div class="flex justify-between items-center mb-8">
             <div>
                 <h2 class="text-3xl font-bold text-gray-900">Invoicing System</h2>
-                <p class="text-gray-600 mt-2">Manage customer invoices and payments</p>
+                <p class="text-gray-600 mt-2">Invoices are automatically created when loads are delivered</p>
             </div>
-            <button onclick="createInvoice()"
-                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                <i class="fas fa-plus mr-2"></i>Create Invoice
-            </button>
         </div>
 
         <!-- Invoice Stats -->
@@ -276,90 +273,12 @@
     <!-- Footer -->
     <footer class="mt-12 py-8 border-t border-gray-200">
         <div class="text-center">
-            <p class="text-gray-600">&copy; 2025 Somali Truck TMS. All rights reserved.</p>
+            <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
+            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT 3169186</p>
             <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380</p>
         </div>
     </footer>
 
-    <!-- Create Invoice Modal -->
-    <div id="invoiceModal" class="modal">
-        <div class="modal-content">
-            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-xl font-semibold">Create New Invoice</h3>
-                    <button onclick="closeModal()" class="text-white hover:text-gray-200">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="p-6">
-                <form id="invoiceForm" class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Customer</label>
-                        <select id="customerSelect"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            onchange="loadCustomerLoads()">
-                            <option value="">Select a customer...</option>
-                        </select>
-                    </div>
-
-                    <div id="loadsSection" class="hidden">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Available Loads</h4>
-                        <div class="overflow-x-auto border rounded-lg">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                            Select</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Load
-                                            #</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date
-                                        </th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                            Route</th>
-                                        <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                                            Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="availableLoadsBody" class="bg-white divide-y divide-gray-200">
-                                    <!-- Populated by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="mt-4 flex justify-end items-center">
-                            <span class="text-lg font-semibold mr-4">Total: <span id="invoiceTotal">$0.00</span></span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Invoice Date</label>
-                            <input type="date" id="invoiceDate" required
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                            <input type="date" id="dueDate" required
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        </div>
-                    </div>
-
-                    <div class="border-t pt-6 flex justify-end space-x-4">
-                        <button type="button" onclick="closeModal()"
-                            class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                            Cancel
-                        </button>
-                        <button type="submit"
-                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                            Generate Invoice
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -371,28 +290,141 @@
         document.addEventListener('DOMContentLoaded', async () => {
             Auth.init();
             await DataManager.init();
+            
+            // Check for overdue invoices on page load
+            await checkOverdueInvoices();
+            
+            // Create invoices for any delivered loads that don't have invoices yet
+            await createInvoicesForDeliveredLoads();
+            
             renderInvoices();
             updateStats();
+            
+            // Check for overdue invoices every hour
+            setInterval(async () => {
+                await checkOverdueInvoices();
+                await createInvoicesForDeliveredLoads();
+                renderInvoices();
+                updateStats();
+            }, 60 * 60 * 1000); // Every hour
         });
 
         function updateStats() {
+            // Check overdue invoices before updating stats
+            checkOverdueInvoices();
+            
             const invoices = DataManager.invoices;
             document.getElementById('totalInvoices').textContent = invoices.length;
 
             const paidAmount = invoices
                 .filter(i => i.status === 'paid')
-                .reduce((sum, i) => sum + i.amount, 0);
+                .reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
             document.getElementById('paidAmount').textContent = Utils.formatCurrency(paidAmount);
 
             document.getElementById('pendingCount').textContent = invoices.filter(i => i.status === 'pending').length;
             document.getElementById('overdueCount').textContent = invoices.filter(i => i.status === 'overdue').length;
         }
 
-        function renderInvoices() {
+        // Check and update overdue invoices automatically
+        async function checkOverdueInvoices() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const overdueInvoices = DataManager.invoices.filter(invoice => {
+                // Only check invoices that are pending (not paid or already overdue)
+                if (invoice.status === 'paid' || invoice.status === 'overdue') {
+                    return false;
+                }
+                
+                const dueDate = new Date(invoice.dueDate);
+                dueDate.setHours(0, 0, 0, 0);
+                
+                // If due date has passed, mark as overdue
+                return dueDate < today;
+            });
+
+            // Update overdue invoices
+            for (const invoice of overdueInvoices) {
+                try {
+                    await DataManager.updateInvoice(invoice.id, { 
+                        status: 'overdue',
+                        updatedAt: new Date().toISOString()
+                    });
+                } catch (error) {
+                    console.error(`Error updating overdue invoice ${invoice.id}:`, error);
+                }
+            }
+        }
+
+        // Mark invoice as paid
+        async function markInvoiceAsPaid(invoiceId) {
+            const invoice = DataManager.getInvoice(invoiceId);
+            if (!invoice) {
+                Utils.showNotification('Invoice not found', 'error');
+                return;
+            }
+
+            if (invoice.status === 'paid') {
+                Utils.showNotification('Invoice is already marked as paid', 'info');
+                return;
+            }
+
+            // Ask for payment date (default to today)
+            const paymentDate = prompt('Enter payment date (YYYY-MM-DD) or leave blank for today:', new Date().toISOString().split('T')[0]);
+            
+            if (paymentDate === null) {
+                return; // User cancelled
+            }
+
+            let paidDate;
+            if (paymentDate.trim() === '') {
+                paidDate = new Date().toISOString();
+            } else {
+                const date = new Date(paymentDate);
+                if (isNaN(date.getTime())) {
+                    Utils.showNotification('Invalid date format. Please use YYYY-MM-DD', 'error');
+                    return;
+                }
+                paidDate = date.toISOString();
+            }
+
+            try {
+                await DataManager.updateInvoice(invoiceId, {
+                    status: 'paid',
+                    paidAt: paidDate,
+                    updatedAt: new Date().toISOString()
+                });
+
+                Utils.showNotification('Invoice marked as paid successfully', 'success');
+                renderInvoices();
+                updateStats();
+            } catch (error) {
+                console.error('Error marking invoice as paid:', error);
+                Utils.showNotification('Error marking invoice as paid: ' + error.message, 'error');
+            }
+        }
+
+        async function renderInvoices() {
             const tbody = document.querySelector('tbody');
+            if (!tbody) {
+                console.error('Table body not found');
+                return;
+            }
+            
             tbody.innerHTML = '';
 
+            // Check if invoices are loaded
+            if (!DataManager.invoices || DataManager.invoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No invoices found. Invoices are automatically created when loads are delivered.</td></tr>';
+                return;
+            }
+
+            // First, check and update overdue invoices (don't await to avoid blocking)
+            checkOverdueInvoices().catch(err => console.error('Error checking overdue invoices:', err));
+
             DataManager.invoices.forEach(invoice => {
+                if (!invoice || !invoice.id) return; // Skip invalid invoices
+                
                 const statusClass = {
                     'paid': 'status-paid',
                     'pending': 'status-pending',
@@ -400,23 +432,29 @@
                     'draft': 'status-draft'
                 }[invoice.status] || 'bg-gray-500';
 
+                const loadIds = invoice.loadIds || [];
+                const loadCount = Array.isArray(loadIds) ? loadIds.length : 0;
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">${invoice.invoiceNumber}</div>
-                        <div class="text-sm text-gray-500">${invoice.loadIds.length} loads</div>
+                        <div class="text-sm font-medium text-gray-900">${invoice.invoiceNumber || 'N/A'}</div>
+                        <div class="text-sm text-gray-500">${loadCount} load${loadCount !== 1 ? 's' : ''}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">${invoice.customerName}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${Utils.formatDate(invoice.date)}</div>
+                        <div class="text-sm text-gray-900">${invoice.date ? Utils.formatDate(invoice.date) : 'N/A'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${Utils.formatDate(invoice.dueDate)}</div>
+                        <div class="text-sm text-gray-900">${invoice.dueDate ? Utils.formatDate(invoice.dueDate) : 'N/A'}</div>
+                        ${invoice.status === 'paid' && invoice.paidAt ? `
+                        <div class="text-xs text-green-600 mt-1">Paid: ${Utils.formatDate(invoice.paidAt)}</div>
+                        ` : ''}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">${Utils.formatCurrency(invoice.amount)}</div>
+                        <div class="text-sm font-medium text-gray-900">${Utils.formatCurrency(invoice.amount || 0)}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white ${statusClass}">
@@ -424,185 +462,248 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onclick="viewInvoice('${invoice.id}')" class="text-blue-600 hover:text-blue-900 mr-3">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button onclick="downloadInvoice('${invoice.id}')" class="text-green-600 hover:text-green-900 mr-3">
+                        <button onclick="downloadInvoice('${invoice.id}')" class="text-green-600 hover:text-green-900 mr-3" title="Download">
                             <i class="fas fa-download"></i>
                         </button>
-                        <button onclick="printInvoice('${invoice.id}')" class="text-purple-600 hover:text-purple-900">
+                        <button onclick="printInvoice('${invoice.id}')" class="text-purple-600 hover:text-purple-900 mr-3" title="Print">
                             <i class="fas fa-print"></i>
                         </button>
+                        ${invoice.status !== 'paid' ? `
+                        <button onclick="markInvoiceAsPaid('${invoice.id}')" class="text-emerald-600 hover:text-emerald-900 mr-3" title="Mark as Paid">
+                            <i class="fas fa-check-circle"></i>
+                        </button>
+                        ` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function createInvoice() {
-            // Populate customers
-            const select = document.getElementById('customerSelect');
-            select.innerHTML = '<option value="">Select a customer...</option>';
-            DataManager.customers.forEach(c => {
-                select.innerHTML += `<option value="${c.id}">${c.company.name}</option>`;
+        // Create invoices for all delivered loads that don't have invoices
+        async function createInvoicesForDeliveredLoads() {
+            const deliveredLoads = DataManager.loads.filter(load => {
+                const status = (load.status || '').toLowerCase();
+                const isDelivered = status === 'delivered' || status === 'completed';
+                const hasNoInvoice = !load.invoiceId || load.invoiceId === 'null' || load.invoiceId === 'undefined';
+                return isDelivered && hasNoInvoice && load.customerId;
             });
 
-            // Set dates
-            const today = new Date();
-            document.getElementById('invoiceDate').value = today.toISOString().split('T')[0];
-
-            const due = new Date();
-            due.setDate(due.getDate() + 30); // Net 30 default
-            document.getElementById('dueDate').value = due.toISOString().split('T')[0];
-
-            document.getElementById('loadsSection').classList.add('hidden');
-            document.getElementById('invoiceForm').reset();
-            document.getElementById('invoiceModal').classList.add('show');
-        }
-
-        function loadCustomerLoads() {
-            const customerId = document.getElementById('customerSelect').value;
-            const loadsSection = document.getElementById('loadsSection');
-            const tbody = document.getElementById('availableLoadsBody');
-
-            if (!customerId) {
-                loadsSection.classList.add('hidden');
-                return;
-            }
-
-            // Find loads for this customer that are delivered but not invoiced
-            // Note: In a real app, we'd check if load.invoiceId is null. 
-            // For this demo, we'll just show all delivered loads for the customer.
-            // Find loads for this customer that are delivered but not invoiced
-            const loads = DataManager.loads.filter(l =>
-                l.customerId === customerId &&
-                (l.status === 'delivered' || l.status === 'completed') &&
-                !l.invoiceId
-            );
-
-            if (loads.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-gray-500">No billable loads found for this customer.</td></tr>';
-            } else {
-                tbody.innerHTML = '';
-                loads.forEach(load => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="px-4 py-2">
-                            <input type="checkbox" class="load-checkbox rounded text-blue-600" value="${load.id}" data-amount="${load.rate.total}" onchange="calculateTotal()">
-                        </td>
-                        <td class="px-4 py-2 text-sm text-gray-900">${load.loadNumber}</td>
-                        <td class="px-4 py-2 text-sm text-gray-500">${Utils.formatDate(load.delivery.date)}</td>
-                        <td class="px-4 py-2 text-sm text-gray-500">${load.pickup.city} -> ${load.delivery.city}</td>
-                        <td class="px-4 py-2 text-sm text-gray-900 text-right">${Utils.formatCurrency(load.rate.total)}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-
-            loadsSection.classList.remove('hidden');
-            calculateTotal();
-        }
-
-        function calculateTotal() {
-            const checkboxes = document.querySelectorAll('.load-checkbox:checked');
-            let total = 0;
-            checkboxes.forEach(cb => {
-                total += parseFloat(cb.dataset.amount);
-            });
-            document.getElementById('invoiceTotal').textContent = Utils.formatCurrency(total);
-        }
-
-        function closeModal() {
-            document.getElementById('invoiceModal').classList.remove('show');
-        }
-
-        // Form submission handler for Universal Form Handler
-        window.invoiceForm_handler = async function (e) {
-            // e.preventDefault() is handled by main.js
-
-            const customerSelect = document.getElementById('customerSelect');
-            const customerId = customerSelect.value;
-            const customerName = customerSelect.options[customerSelect.selectedIndex].text;
-
-            const selectedLoadIds = Array.from(document.querySelectorAll('.load-checkbox:checked')).map(cb => cb.value);
-
-            if (selectedLoadIds.length === 0) {
-                alert('Please select at least one load to invoice.');
-                return;
-            }
-
-            const totalAmount = Array.from(document.querySelectorAll('.load-checkbox:checked'))
-                .reduce((sum, cb) => sum + parseFloat(cb.dataset.amount), 0);
-
-            const invoiceData = {
-                invoiceNumber: 'INV-' + new Date().getFullYear() + '-' + (DataManager.invoices.length + 1001),
-                customerId: customerId,
-                customerName: customerName,
-                date: document.getElementById('invoiceDate').value,
-                dueDate: document.getElementById('dueDate').value,
-                loadIds: selectedLoadIds,
-                amount: totalAmount,
-                status: 'pending'
-            };
-
-            const invoiceId = await DataManager.addInvoice(invoiceData);
-
-            // Update loads with invoiceId
-            for (const loadId of selectedLoadIds) {
-                const load = DataManager.getLoad(loadId);
-                if (load) {
-                    await DataManager.updateLoad(loadId, { invoiceId: invoiceId });
+            for (const load of deliveredLoads) {
+                try {
+                    await window.createInvoiceForLoad(load.id);
+                } catch (error) {
+                    console.error(`Error creating invoice for load ${load.id}:`, error);
                 }
             }
+        }
 
-            closeModal();
-            renderInvoices();
-            updateStats();
+        // Automatic invoice creation function (called from loads.html when load is delivered)
+        window.createInvoiceForLoad = async function(loadId) {
+            try {
+                const load = DataManager.getLoad(loadId);
+                if (!load) {
+                    console.warn(`Load ${loadId} not found for invoice creation`);
+                    return null;
+                }
+
+                // Check if invoice already exists for this load
+                if (load.invoiceId) {
+                    console.log(`Load ${loadId} already has invoice ${load.invoiceId}`);
+                    return load.invoiceId;
+                }
+
+                // Check if load is delivered
+                const status = (load.status || '').toLowerCase();
+                if (status !== 'delivered' && status !== 'completed') {
+                    console.log(`Load ${loadId} is not delivered, skipping invoice creation`);
+                    return null;
+                }
+
+                // Check if customer exists
+                if (!load.customerId) {
+                    console.warn(`Load ${loadId} has no customer, cannot create invoice`);
+                    return null;
+                }
+
+                const customer = DataManager.getCustomer(load.customerId);
+                if (!customer) {
+                    console.warn(`Customer ${load.customerId} not found for load ${loadId}`);
+                    return null;
+                }
+
+                const customerName = customer.company?.name || customer.name || 'Unknown Customer';
+
+                // Calculate invoice amount
+                const rateTotal = parseFloat(load.rate?.total || load.rate || 0);
+                if (rateTotal <= 0) {
+                    console.warn(`Load ${loadId} has no rate, cannot create invoice`);
+                    return null;
+                }
+
+                // Check if invoice already exists for this customer with this load
+                const existingInvoice = DataManager.invoices.find(inv => 
+                    inv.customerId === load.customerId && 
+                    inv.loadIds && 
+                    inv.loadIds.includes(loadId)
+                );
+
+                if (existingInvoice) {
+                    console.log(`Invoice already exists for load ${loadId}: ${existingInvoice.id}`);
+                    // Link load to existing invoice
+                    await DataManager.updateLoad(loadId, { invoiceId: existingInvoice.id });
+                    return existingInvoice.id;
+                }
+
+                // Generate invoice number
+                const invoiceNumber = 'INV-' + new Date().getFullYear() + '-' + (DataManager.invoices.length + 1001);
+
+                // Set dates
+                const today = new Date();
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + 30); // Net 30 default
+
+                const invoiceData = {
+                    invoiceNumber: invoiceNumber,
+                    customerId: load.customerId,
+                    customerName: customerName,
+                    date: today.toISOString().split('T')[0],
+                    dueDate: dueDate.toISOString().split('T')[0],
+                    loadIds: [loadId],
+                    amount: rateTotal,
+                    status: 'pending'
+                };
+
+                const invoiceId = await DataManager.addInvoice(invoiceData);
+
+                // Link load to invoice
+                await DataManager.updateLoad(loadId, { invoiceId: invoiceId });
+
+                console.log(`Invoice ${invoiceId} created automatically for load ${loadId}`);
+                return invoiceId;
+            } catch (error) {
+                console.error(`Error creating invoice for load ${loadId}:`, error);
+                return null;
+            }
         };
 
         function downloadInvoice(invoiceId) {
             const invoice = DataManager.getInvoice(invoiceId);
-            if (!invoice) return;
+            if (!invoice) {
+                Utils.showNotification('Invoice not found', 'error');
+                return;
+            }
 
             const customer = DataManager.getCustomer(invoice.customerId);
-            const loads = invoice.loadIds.map(id => DataManager.getLoad(id)).filter(l => l);
+            const loadIds = invoice.loadIds || [];
+            const loads = loadIds.map(id => DataManager.getLoad(id)).filter(l => l);
+
+            if (loads.length === 0) {
+                Utils.showNotification('No loads found for this invoice', 'warning');
+                return;
+            }
+
+            // Helper functions for formatting (will be available in new window)
+            const formatDate = (dateStr) => {
+                if (!dateStr) return 'N/A';
+                try {
+                    const date = new Date(dateStr);
+                    if (isNaN(date.getTime())) return dateStr;
+                    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                } catch (e) {
+                    return dateStr;
+                }
+            };
+
+            const formatCurrency = (amount) => {
+                if (!amount && amount !== 0) return '$0.00';
+                return '$' + parseFloat(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            };
+
+            // Format customer info
+            const customerName = customer?.company?.name || customer?.name || invoice.customerName || 'N/A';
+            const customerAddress = customer?.company?.address || '';
+            const customerCity = customer?.company?.city || '';
+            const customerState = customer?.company?.state || '';
+            const customerZip = customer?.company?.zip || '';
+            const customerLocation = [customerCity, customerState, customerZip].filter(Boolean).join(', ');
+
+            // Build load rows
+            const loadRows = loads.map(load => {
+                const loadNumber = load.loadNumber || 'N/A';
+                const deliveryDate = load.delivery?.date || load.deliveredAt || load.delivery?.actualDate || load.date || 'N/A';
+                const pickupCity = load.pickup?.city || 'N/A';
+                const pickupState = load.pickup?.state || '';
+                const deliveryCity = load.delivery?.city || 'N/A';
+                const deliveryState = load.delivery?.state || '';
+                const rateTotal = parseFloat(load.rate?.total || load.rate || 0);
+                
+                return `
+                    <tr>
+                        <td>${loadNumber}</td>
+                        <td>${formatDate(deliveryDate)}</td>
+                        <td>Freight: ${pickupCity}${pickupState ? ', ' + pickupState : ''} to ${deliveryCity}${deliveryState ? ', ' + deliveryState : ''}</td>
+                        <td style="text-align: right">${formatCurrency(rateTotal)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const invoiceDate = formatDate(invoice.date);
+            const dueDate = formatDate(invoice.dueDate);
+            const invoiceAmount = formatCurrency(invoice.amount || 0);
 
             const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                Utils.showNotification('Please allow popups to print invoices', 'warning');
+                return;
+            }
+
             printWindow.document.write(`
+                <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Invoice ${invoice.invoiceNumber}</title>
+                    <title>Invoice ${invoice.invoiceNumber || 'N/A'}</title>
                     <style>
-                        body { font-family: Arial, sans-serif; padding: 40px; }
+                        body { font-family: Arial, sans-serif; padding: 40px; margin: 0; }
                         .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
                         .company-info h1 { margin: 0; color: #1e3a8a; }
                         .invoice-details { text-align: right; }
+                        .bill-to { margin-bottom: 30px; }
+                        .bill-to h3 { margin-bottom: 10px; }
                         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
                         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                        th { background-color: #f8f9fa; }
+                        th { background-color: #f8f9fa; font-weight: bold; }
                         .total { margin-top: 20px; text-align: right; font-size: 1.2em; font-weight: bold; }
-                        @media print { .no-print { display: none; } }
+                        @media print { 
+                            .no-print { display: none; }
+                            body { padding: 20px; }
+                        }
                     </style>
                 </head>
                 <body>
                     <div class="header">
                         <div class="company-info">
-                            <h1>Somali Truck TMS</h1>
-                            <p>3191 MORSE RD STE 15<br>COLUMBUS, OH 43231<br>(614) 254-0380</p>
+                            <div style="display:flex; align-items:center; gap:15px; margin-bottom:10px;">
+                                <img src="${window.location.origin}/resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" style="height:60px; width:auto;" onerror="this.style.display='none';">
+                                <div>
+                                    <h1 style="margin:0; color:#1e3a8a; font-size:28px; font-weight:700;">ATS FREIGHT LLC</h1>
+                                    <p style="margin:5px 0 0 0; color:#666; font-size:12px;">DOT 3169186</p>
+                                </div>
+                            </div>
+                            <p style="margin:0; color:#666; font-size:12px; line-height:1.6;">3191 MORSE RD STE 15<br>COLUMBUS, OH 43231<br>(614) 254-0380</p>
                         </div>
                         <div class="invoice-details">
                             <h2>INVOICE</h2>
-                            <p><strong>Invoice #:</strong> ${invoice.invoiceNumber}</p>
-                            <p><strong>Date:</strong> ${Utils.formatDate(invoice.date)}</p>
-                            <p><strong>Due Date:</strong> ${Utils.formatDate(invoice.dueDate)}</p>
+                            <p><strong>Invoice #:</strong> ${invoice.invoiceNumber || 'N/A'}</p>
+                            <p><strong>Date:</strong> ${invoiceDate}</p>
+                            <p><strong>Due Date:</strong> ${dueDate}</p>
                         </div>
                     </div>
 
                     <div class="bill-to">
                         <h3>Bill To:</h3>
-                        <p><strong>${customer ? customer.company.name : invoice.customerName}</strong><br>
-                        ${customer ? customer.company.address : ''}<br>
-                        ${customer ? customer.company.city + ', ' + customer.company.state + ' ' + customer.company.zip : ''}</p>
+                        <p><strong>${customerName}</strong><br>
+                        ${customerAddress ? customerAddress + '<br>' : ''}
+                        ${customerLocation || ''}</p>
                     </div>
 
                     <table>
@@ -615,31 +716,22 @@
                             </tr>
                         </thead>
                         <tbody>
-                            ${loads.map(load => `
-                                <tr>
-                                    <td>${load.loadNumber}</td>
-                                    <td>${Utils.formatDate(load.delivery.date)}</td>
-                                    <td>Freight: ${load.pickup.city}, ${load.pickup.state} to ${load.delivery.city}, ${load.delivery.state}</td>
-                                    <td style="text-align: right">${Utils.formatCurrency(load.rate.total)}</td>
-                                </tr>
-                            `).join('')}
+                            ${loadRows}
                         </tbody>
                     </table>
 
                     <div class="total">
-                        Total Due: ${Utils.formatCurrency(invoice.amount)}
+                        Total Due: ${invoiceAmount}
                     </div>
 
                     <div style="margin-top: 50px; text-align: center; color: #666; font-size: 0.9em;">
                         <p>Thank you for your business!</p>
                     </div>
-                    
-                    <script>
-                        window.onload = function() { window.print(); }
-                    <\/script>
                 </body>
                 </html>
             `);
+            
+            printWindow.document.close();
         }
 
         function printInvoice(invoiceId) {
@@ -650,14 +742,59 @@
             downloadInvoice(invoiceId);
         }
 
+        async function deleteInvoice(invoiceId) {
+            if (!confirm('Are you sure you want to delete this invoice? This will also unlink it from associated loads.')) {
+                return;
+            }
+
+            try {
+                const invoice = DataManager.getInvoice(invoiceId);
+                if (!invoice) {
+                    Utils.showNotification('Invoice not found', 'error');
+                    return;
+                }
+
+                // Unlink invoice from loads (handle missing loads gracefully)
+                if (invoice.loadIds && invoice.loadIds.length > 0) {
+                    for (const loadId of invoice.loadIds) {
+                        try {
+                            // Check if load exists before trying to update
+                            const load = DataManager.getLoad(loadId);
+                            if (load) {
+                                await DataManager.updateLoad(loadId, { invoiceId: null });
+                            } else {
+                                console.warn(`Load ${loadId} not found, skipping unlink`);
+                            }
+                        } catch (err) {
+                            console.warn(`Error unlinking load ${loadId}:`, err);
+                            // Continue with other loads even if one fails
+                        }
+                    }
+                }
+
+                // Delete the invoice (this function now handles unlinking internally)
+                await DataManager.deleteInvoice(invoiceId);
+
+                // Refresh the UI
+                renderInvoices();
+                updateStats();
+
+                Utils.showNotification('Invoice deleted successfully', 'success');
+            } catch (error) {
+                console.error('Error deleting invoice:', error);
+                Utils.showNotification('Error deleting invoice: ' + error.message, 'error');
+            }
+        }
+
         // Expose functions to global scope for onclick handlers
-        window.createInvoice = createInvoice;
-        window.loadCustomerLoads = loadCustomerLoads;
-        window.calculateTotal = calculateTotal;
-        window.closeModal = closeModal;
         window.downloadInvoice = downloadInvoice;
+        window.deleteInvoice = deleteInvoice;
         window.printInvoice = printInvoice;
         window.viewInvoice = viewInvoice;
+        window.markInvoiceAsPaid = markInvoiceAsPaid;
+        window.checkOverdueInvoices = checkOverdueInvoices;
+        window.renderInvoices = renderInvoices;
+        window.updateStats = updateStats;
     </script>
 </body>
 

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Load Management - Somali Truck TMS TMS</title>
+    <title>Load Management - ATS FREIGHT LLC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
@@ -98,9 +98,10 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-4">
-                    <img src="resources/company-logo.png" alt="Somali Truck TMS" class="h-10 w-10 rounded-lg">
+                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="company-logo" style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1e3a8a;">ATS</div>
                     <div>
-                        <h1 class="text-xl font-bold">Somali Truck TMS</h1>
+                        <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
                         <p class="text-sm opacity-90">Transportation Management System</p>
                     </div>
                 </div>
@@ -114,7 +115,7 @@
                     <a href="drivers.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-users mr-2"></i>Drivers
                     </a>
-                    <span class="text-sm">Welcome, Abdihaliim</span>
+                    <span class="text-sm">Welcome, Liban Ali</span>
                     <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </button>
@@ -596,7 +597,8 @@
     <!-- Footer -->
     <footer class="mt-12 py-8 border-t border-gray-200">
         <div class="text-center">
-            <p class="text-gray-600">&copy; 2025 Somali Truck TMS. All rights reserved.</p>
+            <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
+            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT 3169186</p>
             <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380</p>
         </div>
     </footer>
@@ -983,10 +985,19 @@ Miles: ${load.mileage?.total || 0}
 
                     await DataManager.updateLoad(currentLoadId, loadData);
 
-                    // If status changed to 'delivered', trigger settlement update
+                    // If status changed to 'delivered', trigger settlement update and invoice creation
                     if (oldStatus !== 'delivered' && newStatus === 'delivered') {
                         const load = DataManager.getLoad(currentLoadId); // Get updated load data
                         if (!load) return;
+
+                        // Automatically create invoice for delivered load
+                        if (window.createInvoiceForLoad) {
+                            try {
+                                await window.createInvoiceForLoad(currentLoadId);
+                            } catch (err) {
+                                console.error('Error creating invoice for load:', err);
+                            }
+                        }
 
                         const driver = DataManager.drivers.find(d => d.id === load.driverId);
                         if (!driver) {

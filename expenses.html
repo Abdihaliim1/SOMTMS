@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expense Tracking - Somali Truck TMS TMS</title>
+    <title>Expense Tracking - ATS FREIGHT LLC TMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
@@ -90,9 +90,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-4">
-                    <img src="resources/company-logo.png" alt="Somali Truck TMS" class="h-10 w-10 rounded-lg">
+                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-10 w-10 rounded-lg">
                     <div>
-                        <h1 class="text-xl font-bold">Somali Truck TMS</h1>
+                        <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
                         <p class="text-sm opacity-90">Transportation Management System</p>
                     </div>
                 </div>
@@ -106,7 +106,7 @@
                     <span class="nav-item active px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-receipt mr-2"></i>Expenses
                     </span>
-                    <span class="text-sm">Welcome, Abdihaliim</span>
+                    <span class="text-sm">Welcome, Liban Ali</span>
                     <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </button>
@@ -389,7 +389,8 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Driver</label>
                             <select id="driver"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                onchange="updateLoadOptions()">
                                 <option value="">Select Driver</option>
                             </select>
                         </div>
@@ -398,11 +399,17 @@
                             <select id="truck"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <option value="">Select Truck</option>
-                                <option value="truck1">TRK-001</option>
-                                <option value="truck2">TRK-002</option>
-                                <option value="truck3">TRK-003</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Link to Load (Optional)</label>
+                        <select id="loadId"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">No specific load (will auto-match by date)</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">If left blank, system will automatically match expenses to loads based on dates</p>
                     </div>
 
                     <div>
@@ -437,8 +444,8 @@
     <!-- Footer -->
     <footer class="mt-12 py-8 border-t border-gray-200">
         <div class="text-center">
-            <p class="text-gray-600">&copy; 2025 Somali Truck TMS. All rights reserved.</p>
-            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380</p>
+            <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
+            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT 3169186</p>
         </div>
     </footer>
 
@@ -597,7 +604,47 @@
                 });
             }
 
+            // Reset load options
+            updateLoadOptions();
+
             document.getElementById('expenseModal').classList.add('show');
+        }
+
+        function updateLoadOptions() {
+            const driverId = document.getElementById('driver')?.value;
+            const loadSelect = document.getElementById('loadId');
+            
+            if (!loadSelect) return;
+            
+            loadSelect.innerHTML = '<option value="">No specific load (will auto-match by date)</option>';
+            
+            if (driverId && DataManager.loads) {
+                // Get all loads for this driver (delivered or in transit)
+                const driverLoads = DataManager.loads.filter(l => {
+                    const isDriverMatch = String(l.driverId) === String(driverId);
+                    const status = (l.status || '').toLowerCase();
+                    const isActive = status === 'delivered' || status === 'completed' || status === 'in_transit' || status === 'dispatched';
+                    return isDriverMatch && isActive;
+                });
+                
+                // Sort by delivery date (newest first)
+                driverLoads.sort((a, b) => {
+                    const dateA = new Date(a.delivery?.date || a.deliveredAt || a.createdAt || 0);
+                    const dateB = new Date(b.delivery?.date || b.deliveredAt || b.createdAt || 0);
+                    return dateB - dateA;
+                });
+                
+                driverLoads.forEach(load => {
+                    const loadNumber = load.loadNumber || 'Unknown';
+                    const pickup = load.pickup?.city || '';
+                    const delivery = load.delivery?.city || '';
+                    const route = pickup && delivery ? `${pickup} → ${delivery}` : '';
+                    const date = load.delivery?.date || load.deliveredAt || load.createdAt;
+                    const dateStr = date ? Utils.formatDate(date) : '';
+                    
+                    loadSelect.innerHTML += `<option value="${load.id}">${loadNumber}${route ? ` - ${route}` : ''}${dateStr ? ` (${dateStr})` : ''}</option>`;
+                });
+            }
         }
 
         function closeModal() {
@@ -639,6 +686,7 @@
                 const driverSelect = document.getElementById('driver');
                 const truckSelect = document.getElementById('truck');
 
+                const loadSelect = document.getElementById('loadId');
                 const expenseData = {
                     type: document.getElementById('expenseType').value,
                     amount: parseFloat(document.getElementById('amount').value),
@@ -647,6 +695,7 @@
                     driverName: driverSelect.selectedIndex > 0 ? driverSelect.options[driverSelect.selectedIndex].text : '',
                     truckId: truckSelect.value,
                     truckNumber: truckSelect.selectedIndex > 0 ? truckSelect.options[truckSelect.selectedIndex].text : '',
+                    loadId: loadSelect?.value || null, // Link to specific load if selected
                     vendor: document.getElementById('vendor').value,
                     status: 'pending' // Default status
                 };

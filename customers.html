@@ -168,8 +168,8 @@
     </div>
 
     <!-- Create/Edit Customer Modal -->
-    <div id="customerModal" class="modal">
-        <div class="modal-content">
+    <div id="customerModal" class="modal" onclick="if(event.target === this) closeModal();">
+        <div class="modal-content" onclick="event.stopPropagation();">
             <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4">
                 <div class="flex justify-between items-center">
                     <h3 id="modalTitle" class="text-xl font-semibold">Add New Customer</h3>
@@ -310,33 +310,85 @@
         }
 
         function openCreateCustomerModal() {
-            document.getElementById('modalTitle').textContent = 'Add New Customer';
-            document.getElementById('customerForm').reset();
-            document.getElementById('customerId').value = '';
-            document.getElementById('customerModal').classList.add('show');
+            try {
+                const modal = document.getElementById('customerModal');
+                const form = document.getElementById('customerForm');
+                const modalTitle = document.getElementById('modalTitle');
+                const customerId = document.getElementById('customerId');
+                
+                if (!modal || !form || !modalTitle) {
+                    console.error('Modal elements not found');
+                    Utils.showNotification('Error opening customer form', 'error');
+                    return;
+                }
+                
+                modalTitle.textContent = 'Add New Customer';
+                form.reset();
+                if (customerId) customerId.value = '';
+                modal.classList.add('show');
+            } catch (error) {
+                console.error('Error opening customer modal:', error);
+                Utils.showNotification('Error opening customer form: ' + error.message, 'error');
+            }
         }
 
         function closeModal() {
-            document.getElementById('customerModal').classList.remove('show');
+            try {
+                const modal = document.getElementById('customerModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                }
+            } catch (error) {
+                console.error('Error closing modal:', error);
+            }
         }
 
         function editCustomer(id) {
-            const customer = DataManager.getCustomer(id);
-            if (!customer) return;
+            try {
+                const customer = DataManager.getCustomer(id);
+                if (!customer) {
+                    Utils.showNotification('Customer not found', 'error');
+                    return;
+                }
 
-            document.getElementById('modalTitle').textContent = 'Edit Customer';
-            document.getElementById('customerId').value = customer.id;
-            document.getElementById('companyName').value = customer.company.name;
-            document.getElementById('customerNumber').value = customer.customerNumber;
-            document.getElementById('contactName').value = customer.contact.name;
-            document.getElementById('phone').value = customer.contact.phone;
-            document.getElementById('email').value = customer.contact.email;
-            document.getElementById('address').value = customer.company.address;
-            document.getElementById('city').value = customer.company.city;
-            document.getElementById('state').value = customer.company.state;
-            document.getElementById('zip').value = customer.company.zip;
+                const modal = document.getElementById('customerModal');
+                const modalTitle = document.getElementById('modalTitle');
+                const customerId = document.getElementById('customerId');
+                
+                if (!modal || !modalTitle) {
+                    console.error('Modal elements not found');
+                    return;
+                }
 
-            document.getElementById('customerModal').classList.add('show');
+                modalTitle.textContent = 'Edit Customer';
+                if (customerId) customerId.value = customer.id;
+                
+                // Safely populate form fields
+                const companyName = document.getElementById('companyName');
+                const customerNumber = document.getElementById('customerNumber');
+                const contactName = document.getElementById('contactName');
+                const phone = document.getElementById('phone');
+                const email = document.getElementById('email');
+                const address = document.getElementById('address');
+                const city = document.getElementById('city');
+                const state = document.getElementById('state');
+                const zip = document.getElementById('zip');
+                
+                if (companyName) companyName.value = customer.company?.name || '';
+                if (customerNumber) customerNumber.value = customer.customerNumber || '';
+                if (contactName) contactName.value = customer.contact?.name || '';
+                if (phone) phone.value = customer.contact?.phone || '';
+                if (email) email.value = customer.contact?.email || '';
+                if (address) address.value = customer.company?.address || '';
+                if (city) city.value = customer.company?.city || '';
+                if (state) state.value = customer.company?.state || '';
+                if (zip) zip.value = customer.company?.zip || '';
+
+                modal.classList.add('show');
+            } catch (error) {
+                console.error('Error editing customer:', error);
+                Utils.showNotification('Error opening customer form: ' + error.message, 'error');
+            }
         }
 
         async function deleteCustomer(id) {
@@ -351,51 +403,67 @@
             // e.preventDefault() is handled by main.js universal listener
 
             const submitBtn = document.querySelector('#customerForm button[type="submit"]');
+            if (!submitBtn) {
+                console.error('Submit button not found');
+                return;
+            }
+
             const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
             submitBtn.textContent = 'Saving...';
 
             try {
+                // Validate required fields manually
+                const companyName = document.getElementById('companyName');
+                const customerNumber = document.getElementById('customerNumber');
+                
+                if (!companyName || !companyName.value.trim()) {
+                    throw new Error('Company Name is required');
+                }
+                if (!customerNumber || !customerNumber.value.trim()) {
+                    throw new Error('Customer Number is required');
+                }
+
                 const customerData = {
-                    customerNumber: document.getElementById('customerNumber').value,
+                    customerNumber: customerNumber.value.trim(),
                     company: {
-                        name: document.getElementById('companyName').value,
-                        address: document.getElementById('address').value,
-                        city: document.getElementById('city').value,
-                        state: document.getElementById('state').value,
-                        zip: document.getElementById('zip').value
+                        name: companyName.value.trim(),
+                        address: document.getElementById('address')?.value?.trim() || '',
+                        city: document.getElementById('city')?.value?.trim() || '',
+                        state: document.getElementById('state')?.value?.trim() || '',
+                        zip: document.getElementById('zip')?.value?.trim() || ''
                     },
                     contact: {
-                        name: document.getElementById('contactName').value,
-                        email: document.getElementById('email').value,
-                        phone: document.getElementById('phone').value
+                        name: document.getElementById('contactName')?.value?.trim() || '',
+                        email: document.getElementById('email')?.value?.trim() || '',
+                        phone: document.getElementById('phone')?.value?.trim() || ''
                     }
                 };
 
-                const id = document.getElementById('customerId').value;
+                const id = document.getElementById('customerId')?.value;
                 if (id) {
                     await DataManager.updateCustomer(id, customerData);
+                    Utils.showNotification('Customer updated successfully!', 'success');
                 } else {
                     await DataManager.addCustomer(customerData);
+                    Utils.showNotification('Customer added successfully!', 'success');
                 }
 
                 closeModal();
                 renderCustomers();
             } catch (error) {
                 console.error('Error saving customer:', error);
-                alert('Failed to save customer: ' + error.message);
+                Utils.showNotification('Failed to save customer: ' + (error.message || 'Unknown error'), 'error');
+                // Don't close modal on error - let user fix and try again
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
             }
         };
 
-        window.onclick = function (event) {
-            const modal = document.getElementById('customerModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        }
+        // Modal close is handled inline in the HTML onclick handler
     </script>
 </body>
 

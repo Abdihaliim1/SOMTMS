@@ -240,6 +240,9 @@
     }
   ],
   
+  // Compliance & Expiration Tracking
+  medicalExpirationDate: timestamp, // Required - Medical card expiration for FMCSA compliance
+  
   // Performance Tracking
   performance: {
     totalMiles: 125000,
@@ -316,6 +319,11 @@
       }
     ]
   },
+  
+  // Compliance & Expiration Tracking
+  registrationExpiry: timestamp, // Vehicle registration expiration date
+  inspectionDueDate: timestamp, // Annual inspection due date
+  cabCardRenewalDate: timestamp, // IRP (International Registration Plan) cab card renewal date
   
   // Insurance
   insurance: {

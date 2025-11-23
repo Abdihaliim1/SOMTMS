@@ -225,9 +225,6 @@
                     <select id="driverFilter"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">All Drivers</option>
-                        <option value="driver1">Mike Johnson</option>
-                        <option value="driver2">Sarah Davis</option>
-                        <option value="driver3">Tom Wilson</option>
                     </select>
                 </div>
                 <div>
@@ -348,9 +345,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="bg-gray-50 rounded-lg p-4">
                         <h5 class="font-semibold text-gray-900 mb-2">Driver Information</h5>
-                        <p class="text-sm text-gray-600">Mike Johnson (DRV-001)</p>
-                        <p class="text-sm text-gray-600">Payment Type: Per Mile</p>
-                        <p class="text-sm text-gray-600">Rate: $0.65/mile</p>
+                        <p class="text-sm text-gray-600" id="selectedDriverName">Select a driver...</p>
+                        <p class="text-sm text-gray-600" id="selectedDriverPaymentType">-</p>
+                        <p class="text-sm text-gray-600" id="selectedDriverRate">-</p>
                     </div>
                     <div class="bg-gray-50 rounded-lg p-4">
                         <h5 class="font-semibold text-gray-900 mb-2">Settlement Period</h5>
@@ -469,27 +466,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td class="px-4 py-2 text-sm text-gray-900">Somali Truck-2025-001</td>
-                                <td class="px-4 py-2 text-sm text-gray-900">Columbus, OH → Chicago, IL</td>
-                                <td class="px-4 py-2 text-sm text-gray-900 text-right">1,000</td>
-                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$0.65</td>
-                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$650.00</td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-2 text-sm text-gray-900">Somali Truck-2025-002</td>
-                                <td class="px-4 py-2 text-sm text-gray-900">Chicago, IL → Nashville, TN</td>
-                                <td class="px-4 py-2 text-sm text-gray-900 text-right">850</td>
-                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$0.65</td>
-                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$552.50</td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-2 text-sm text-gray-900">Somali Truck-2025-003</td>
-                                <td class="px-4 py-2 text-sm text-gray-900">Nashville, TN → Columbus, OH</td>
-                                <td class="px-4 py-2 text-sm text-gray-900 text-right">650</td>
-                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$0.65</td>
-                                <td class="px-4 py-2 text-sm text-gray-900 text-right">$422.50</td>
-                            </tr>
+                            <!-- Loads will be populated dynamically when driver is selected -->
                         </tbody>
                     </table>
                 </div>
@@ -615,7 +592,7 @@
                                         <label class="block text-xs font-medium text-gray-500 mb-1">Insurance</label>
                                         <div class="relative">
                                             <span class="absolute left-3 top-2 text-gray-500">$</span>
-                                            <input type="number" id="insuranceDeduction" value="45.00" step="0.01"
+                                            <input type="number" id="insuranceDeduction" value="" step="0.01" placeholder="Auto-calculated"
                                                 class="w-full pl-6 pr-3 py-2 border rounded-md focus:ring-blue-500"
                                                 oninput="calculateSettlementTotal()">
                                         </div>
@@ -727,7 +704,53 @@
             // Explicitly attach event listener for driver selection
             const driverSelect = document.getElementById('driverSelect');
             if (driverSelect) {
-                driverSelect.addEventListener('change', loadDriverUnpaidLoads);
+                driverSelect.addEventListener('change', () => {
+                    loadDriverUnpaidLoads();
+                    // Auto-populate insurance based on driver type
+                    const driverId = driverSelect.value;
+                    if (driverId) {
+                        const driver = DataManager.drivers.find(d => d.id === driverId);
+                        const isOwnerOperator = driver?.payment?.type === 'percentage' || driver?.payment?.type === 'owner_operator';
+                        const insuranceField = document.getElementById('insuranceDeduction');
+                        if (insuranceField) {
+                            if (isOwnerOperator) {
+                                insuranceField.value = '0';
+                                insuranceField.placeholder = 'Owner Operator (No Insurance)';
+                            } else {
+                                insuranceField.value = '45.00';
+                                insuranceField.placeholder = 'Auto-calculated';
+                            }
+                            calculateSettlementTotal(); // Recalculate with new insurance
+                        }
+                        
+                        // Update driver info display
+                        if (driver) {
+                            const driverNameEl = document.getElementById('selectedDriverName');
+                            const paymentTypeEl = document.getElementById('selectedDriverPaymentType');
+                            const rateEl = document.getElementById('selectedDriverRate');
+                            
+                            if (driverNameEl) {
+                                driverNameEl.textContent = `${driver.firstName} ${driver.lastName} (${driver.driverNumber || 'No ID'})`;
+                            }
+                            if (paymentTypeEl) {
+                                const paymentType = driver.payment?.type || 'per_mile';
+                                paymentTypeEl.textContent = `Payment Type: ${paymentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+                            }
+                            if (rateEl) {
+                                if (driver.payment?.type === 'percentage') {
+                                    rateEl.textContent = `Rate: ${driver.payment.percentage || driver.payment.rate || 75}%`;
+                                } else {
+                                    rateEl.textContent = `Rate: ${Utils.formatCurrency(driver.payment?.perMileRate || 0.65)}/mile`;
+                                }
+                            }
+                        }
+                    } else {
+                        // Reset driver info display
+                        document.getElementById('selectedDriverName').textContent = 'Select a driver...';
+                        document.getElementById('selectedDriverPaymentType').textContent = '-';
+                        document.getElementById('selectedDriverRate').textContent = '-';
+                    }
+                });
             }
         });
 
@@ -782,7 +805,7 @@
                         <div class="text-sm text-gray-900">${settlement.driverName}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${settlement.period || 'N/A'}</div>
+                        <div class="text-sm text-gray-900">${settlement.period?.display || settlement.period || 'N/A'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">${settlement.totalMiles || 0}</div>
@@ -897,14 +920,47 @@
             const insurance = parseFloat(document.getElementById('insuranceDeduction').value) || 0;
             const other = parseFloat(document.getElementById('otherDeduction').value) || 0;
 
-            const totalDeductions = advancesTotal + lumperTotal + fuel + insurance + other;
+            // Calculate tax deductions based on driver type
+            const driver = DataManager.drivers.find(d => d.id === driverId);
+            const isOwnerOperator = driver?.payment?.type === 'percentage' || driver?.payment?.type === 'owner_operator';
+            
+            // Tax calculations (only for company drivers, not owner operators)
+            const taxes = {
+                federal: isOwnerOperator ? 0 : grossPay * 0.075, // 7.5% federal tax
+                state: isOwnerOperator ? 0 : grossPay * 0.02,     // 2% state tax
+                socialSecurity: isOwnerOperator ? 0 : grossPay * 0.062, // 6.2% social security
+                medicare: isOwnerOperator ? 0 : grossPay * 0.0145  // 1.45% medicare
+            };
+            
+            const totalTaxes = Object.values(taxes).reduce((sum, tax) => sum + tax, 0);
+            
+            // Auto-calculate insurance if not manually entered (only for company drivers)
+            let insuranceDeduction = insurance;
+            if (!insurance && !isOwnerOperator) {
+                insuranceDeduction = 45.00; // Default insurance deduction for company drivers
+            }
+
+            const totalDeductions = advancesTotal + lumperTotal + fuel + insuranceDeduction + other + totalTaxes;
             const netPay = grossPay - totalDeductions;
+
+            // Calculate settlement period (week start and end dates)
+            const now = new Date();
+            const weekStart = Utils.getWeekStart(now);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            weekEnd.setHours(23, 59, 59, 999);
 
             const settlementData = {
                 settlementNumber: 'ST-' + new Date().getFullYear() + '-' + (DataManager.settlements.length + 1001),
                 driverId,
                 driverName: document.getElementById('driverSelect').options[document.getElementById('driverSelect').selectedIndex].text,
-                period: `Week ${Utils.getWeekNumber(new Date())} - ${new Date().getFullYear()}`,
+                period: {
+                    startDate: weekStart.toISOString(),
+                    endDate: weekEnd.toISOString(),
+                    weekNumber: Utils.getWeekNumber(now),
+                    year: now.getFullYear(),
+                    display: `Week ${Utils.getWeekNumber(now)} - ${now.getFullYear()}`
+                },
                 loadIds,
                 basePay,
                 detentionPay: detentionTotal,
@@ -913,8 +969,9 @@
                     advances: advancesTotal,
                     lumperFees: lumperTotal,
                     fuel: fuel,
-                    insurance: insurance,
-                    other: other
+                    insurance: insuranceDeduction,
+                    other: other,
+                    taxes: taxes
                 },
                 totalDeductions,
                 netPay,
@@ -1002,7 +1059,7 @@
                             <h2>DRIVER SETTLEMENT</h2>
                             <p><strong>#${settlement.settlementNumber}</strong><br>
                             Date: ${formatDate(settlement.createdAt)}<br>
-                            Period: ${settlement.period}</p>
+                            Period: ${settlement.period?.display || settlement.period || 'N/A'}</p>
                         </div>
                     </div>
                     <h3>Driver: ${settlement.driverName}</h3>

@@ -204,6 +204,23 @@
                 <p class="text-gray-600 mt-2">Real-time insights into your trucking operations</p>
             </div>
 
+            <!-- Compliance Alerts -->
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 hidden" id="complianceAlerts">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-red-800 mb-2 flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Upcoming Expirations (Next 30 Days)
+                        </h3>
+                        <ul id="expirationList" class="text-sm text-red-700 space-y-1"></ul>
+                    </div>
+                    <button onclick="document.getElementById('complianceAlerts').classList.add('hidden')" 
+                            class="text-red-600 hover:text-red-800 ml-4">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
             <!-- Key Metrics -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div onclick="navigateTo('loads.html')"
@@ -229,7 +246,7 @@
                     </div>
                 </div>
 
-                <div onclick="navigateTo('invoices.html')"
+                <div onclick="navigateToMonthlyLoads()"
                     class="metric-card bg-white rounded-lg p-6 card-shadow cursor-pointer hover:bg-gray-50">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
@@ -239,7 +256,7 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate" id="revenueLabel">Weekly Revenue
+                                <dt class="text-sm font-medium text-gray-500 truncate" id="revenueLabel">Revenue This Month
                                 </dt>
                                 <dd class="text-2xl font-semibold text-gray-900" id="weeklyRevenue">-</dd>
                             </dl>
@@ -253,7 +270,7 @@
                     </div>
                 </div>
 
-                <div onclick="navigateTo('drivers.html')"
+                <div onclick="navigateToActiveDrivers()"
                     class="metric-card bg-white rounded-lg p-6 card-shadow cursor-pointer hover:bg-gray-50">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
@@ -460,10 +477,69 @@
 
     <script src="main.js"></script>
     <script>
+        // Navigation functions
+        function navigateToMonthlyLoads() {
+            // Store filter in localStorage to apply when loads page loads
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0, 0, 0, 0);
+            localStorage.setItem('loadsFilter', JSON.stringify({
+                dateFrom: startOfMonth.toISOString(),
+                dateTo: new Date().toISOString(),
+                status: 'all' // Show all loads from this month
+            }));
+            window.location.href = 'loads.html';
+        }
+
+        function navigateToActiveDrivers() {
+            // Store filter in localStorage to apply when drivers page loads
+            localStorage.setItem('driversFilter', JSON.stringify({
+                status: 'active'
+            }));
+            window.location.href = 'drivers.html';
+        }
+
+        // Compliance alerts renderer
+        window.renderComplianceAlerts = (alerts) => {
+            const box = document.getElementById('complianceAlerts');
+            const list = document.getElementById('expirationList');
+            
+            if (!box || !list) return;
+            
+            // Group alerts by urgency
+            const expired = alerts.filter(a => a.days < 0);
+            const expiring = alerts.filter(a => a.days >= 0 && a.days <= 7);
+            const upcoming = alerts.filter(a => a.days > 7);
+            
+            let html = '';
+            
+            if (expired.length > 0) {
+                html += '<div class="font-bold text-red-900 mb-2">⚠️ EXPIRED:</div>';
+                html += expired.map(a => `<li class="font-semibold">• ${a.message}</li>`).join('');
+            }
+            
+            if (expiring.length > 0) {
+                if (html) html += '<div class="mt-3"></div>';
+                html += '<div class="font-semibold text-red-800 mb-2">⚠️ Expiring This Week:</div>';
+                html += expiring.map(a => `<li>• ${a.message}</li>`).join('');
+            }
+            
+            if (upcoming.length > 0) {
+                if (html) html += '<div class="mt-3"></div>';
+                html += '<div class="font-medium text-red-700 mb-2">📅 Upcoming:</div>';
+                html += upcoming.map(a => `<li>• ${a.message}</li>`).join('');
+            }
+            
+            list.innerHTML = html;
+            box.classList.remove('hidden');
+        };
+
         // Initialize dashboard charts
         document.addEventListener('DOMContentLoaded', function () {
             DataManager.init().then(() => {
                 updateDashboard();
+                // Check for expirations after data is loaded
+                checkExpirations();
             });
         });
 
@@ -474,13 +550,31 @@
             const activeLoads = DataManager.loads.filter(l => ['dispatched', 'in_transit', 'picked_up'].includes((l.status || '').toLowerCase()));
             document.getElementById('activeLoadsCount').textContent = activeLoads.length;
 
-            // Debug Driver Status
-            console.log('All Drivers:', DataManager.drivers);
+            // Count Active Drivers - check status field (case-insensitive)
             const activeDrivers = DataManager.drivers.filter(d => {
-                const status = (d.status || '').toLowerCase();
-                console.log(`Driver ${d.firstName} status: '${status}'`);
-                return status === 'active';
+                if (!d) return false;
+                
+                // Get status from driver object (check multiple possible locations)
+                const status = (d.status || d.employment?.status || '').toString().toLowerCase().trim();
+                
+                // If status is explicitly 'active', count it
+                if (status === 'active') return true;
+                
+                // If status is explicitly 'inactive' or 'terminated', don't count it
+                if (status === 'inactive' || status === 'terminated' || status === 'on_leave') return false;
+                
+                // If no status field exists but driver has basic info, count as active (default)
+                if (!status && (d.firstName || d.driverNumber)) return true;
+                
+                return false;
             });
+            
+            console.log(`Active Drivers: ${activeDrivers.length} out of ${DataManager.drivers.length} total`);
+            console.log('Driver statuses:', DataManager.drivers.map(d => ({ 
+                name: `${d.firstName} ${d.lastName}`, 
+                status: d.status || 'no status' 
+            })));
+            
             document.getElementById('activeDriversCount').textContent = activeDrivers.length;
 
             // Calculate Revenue This Month (aligned with Miles This Month)

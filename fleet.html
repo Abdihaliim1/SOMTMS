@@ -394,6 +394,31 @@
                     </div>
                 </div>
 
+                <!-- Compliance & Expiration Dates -->
+                <div class="border-t pt-4 mt-4">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">Compliance & Expiration Dates</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Registration Expiry</label>
+                            <input type="date" id="registrationExpiry"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Vehicle registration expiration</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Annual Inspection Due</label>
+                            <input type="date" id="inspectionDueDate"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Next annual inspection date</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cab Card (IRP) Renewal</label>
+                            <input type="date" id="cabCardRenewalDate"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">IRP cab card renewal date</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                     <textarea id="truckNotes" rows="3"
@@ -579,6 +604,9 @@
                 document.getElementById('currentMileage').value = truck.currentMileage;
                 document.getElementById('assignedDriver').value = truck.assignedDriver || '';
                 document.getElementById('lastServiceDate').value = truck.lastServiceDate || '';
+                document.getElementById('registrationExpiry').value = truck.registrationExpiry || '';
+                document.getElementById('inspectionDueDate').value = truck.inspectionDueDate || '';
+                document.getElementById('cabCardRenewalDate').value = truck.cabCardRenewalDate || '';
                 document.getElementById('truckNotes').value = truck.notes || '';
 
                 document.getElementById('truckModal').classList.remove('hidden');
@@ -639,6 +667,9 @@
                             currentMileage: parseInt(document.getElementById('currentMileage').value) || 0,
                             assignedDriver: document.getElementById('assignedDriver').value,
                             lastServiceDate: document.getElementById('lastServiceDate').value,
+                            registrationExpiry: document.getElementById('registrationExpiry').value || null,
+                            inspectionDueDate: document.getElementById('inspectionDueDate').value || null,
+                            cabCardRenewalDate: document.getElementById('cabCardRenewalDate').value || null,
                             notes: document.getElementById('truckNotes').value
                         };
 

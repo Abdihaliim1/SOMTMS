@@ -77,30 +77,210 @@ const Utils = {
         return prefix + Date.now().toString(36) + Math.random().toString(36).substr(2);
     },
 
-    // Calculate distance between two points (mock implementation)
+    // Calculate distance between two points
     calculateDistance: (origin, destination) => {
-        // This would use Google Maps API in production
-        // Keys must match "city, state_city, state" format (lowercase)
+        // Expanded lookup table for common routes (in miles)
         const distances = {
+            // Columbus, OH routes
             'columbus, oh_chicago, il': 355,
             'columbus, oh_nashville, tn': 380,
             'columbus, oh_atlanta, ga': 550,
             'columbus, oh_dallas, tx': 930,
+            'columbus, oh_phoenix, az': 1888,
+            'columbus, oh_new york, ny': 580,
+            'columbus, oh_detroit, mi': 200,
+            'columbus, oh_pittsburgh, pa': 185,
+            'columbus, oh_cincinnati, oh': 110,
+            'columbus, oh_cleveland, oh': 145,
+            'columbus, oh_indianapolis, in': 175,
+            'columbus, oh_louisville, ky': 200,
+            'columbus, oh_memphis, tn': 600,
+            'columbus, oh_kansas city, mo': 700,
+            'columbus, oh_denver, co': 1200,
+            'columbus, oh_los angeles, ca': 2300,
+            // Chicago routes
+            'chicago, il_detroit, mi': 280,
+            'chicago, il_cleveland, oh': 350,
+            'chicago, il_indianapolis, in': 185,
+            'chicago, il_milwaukee, wi': 90,
+            'chicago, il_minneapolis, mn': 410,
+            'chicago, il_st. louis, mo': 300,
+            'chicago, il_kansas city, mo': 510,
+            'chicago, il_denver, co': 920,
+            'chicago, il_dallas, tx': 925,
+            'chicago, il_atlanta, ga': 715,
+            'chicago, il_new york, ny': 790,
+            // Dallas routes
+            'dallas, tx_houston, tx': 240,
+            'dallas, tx_san antonio, tx': 275,
+            'dallas, tx_phoenix, az': 1065,
+            'dallas, tx_denver, co': 925,
+            'dallas, tx_kansas city, mo': 550,
+            'dallas, tx_memphis, tn': 450,
+            'dallas, tx_atlanta, ga': 925,
+            'dallas, tx_los angeles, ca': 1435,
+            // Atlanta routes
+            'atlanta, ga_charlotte, nc': 245,
+            'atlanta, ga_nashville, tn': 250,
+            'atlanta, ga_birmingham, al': 150,
+            'atlanta, ga_jacksonville, fl': 350,
+            'atlanta, ga_miami, fl': 665,
+            'atlanta, ga_new york, ny': 870,
+            'atlanta, ga_chicago, il': 715,
+            // New York routes
+            'new york, ny_boston, ma': 215,
+            'new york, ny_philadelphia, pa': 95,
+            'new york, ny_washington, dc': 225,
+            'new york, ny_baltimore, md': 190,
+            'new york, ny_charlotte, nc': 630,
+            // Los Angeles routes
+            'los angeles, ca_san francisco, ca': 380,
+            'los angeles, ca_san diego, ca': 120,
+            'los angeles, ca_las vegas, nv': 270,
+            'los angeles, ca_phoenix, az': 375,
+            'los angeles, ca_denver, co': 1020,
+            // Denver routes
+            'denver, co_salt lake city, ut': 520,
+            'denver, co_kansas city, mo': 600,
+            'denver, co_omaha, ne': 540,
+            'denver, co_phoenix, az': 600,
+            // Phoenix routes
+            'phoenix, az_las vegas, nv': 300,
+            'phoenix, az_el paso, tx': 360,
+            'phoenix, az_albuquerque, nm': 420,
+            // Common reverse routes
+            'chicago, il_columbus, oh': 355,
+            'nashville, tn_columbus, oh': 380,
+            'atlanta, ga_columbus, oh': 550,
+            'dallas, tx_columbus, oh': 930,
             'phoenix, az_columbus, oh': 1888,
-            'columbus, oh_phoenix, az': 1888
+            'new york, ny_columbus, oh': 580,
+            'detroit, mi_columbus, oh': 200,
+            'pittsburgh, pa_columbus, oh': 185,
+            'cincinnati, oh_columbus, oh': 110,
+            'cleveland, oh_columbus, oh': 145,
+            'indianapolis, in_columbus, oh': 175,
+            'louisville, ky_columbus, oh': 200
         };
 
-        const key = `${origin.toLowerCase()}_${destination.toLowerCase()}`;
+        // Normalize input (remove extra spaces, lowercase)
+        const normalize = (str) => str.toLowerCase().trim().replace(/\s+/g, ' ');
+        const originNorm = normalize(origin);
+        const destNorm = normalize(destination);
+        const key = `${originNorm}_${destNorm}`;
 
         // Try direct match
         if (distances[key]) return distances[key];
 
         // Try reverse match
-        const reverseKey = `${destination.toLowerCase()}_${origin.toLowerCase()}`;
+        const reverseKey = `${destNorm}_${originNorm}`;
         if (distances[reverseKey]) return distances[reverseKey];
 
-        // Fallback to random if not found
-        return Math.floor(Math.random() * 1000) + 200;
+        // Fallback: Use coordinate-based calculation (Haversine formula)
+        return Utils.calculateDistanceByCoordinates(origin, destination);
+    },
+
+    // Calculate distance using city coordinates (Haversine formula)
+    calculateDistanceByCoordinates: (origin, destination) => {
+        // Major city coordinates (lat, lng)
+        const cityCoords = {
+            'columbus': { lat: 39.9612, lng: -82.9988 },
+            'oh': { lat: 39.9612, lng: -82.9988 },
+            'chicago': { lat: 41.8781, lng: -87.6298 },
+            'il': { lat: 41.8781, lng: -87.6298 },
+            'dallas': { lat: 32.7767, lng: -96.7970 },
+            'tx': { lat: 32.7767, lng: -96.7970 },
+            'atlanta': { lat: 33.7490, lng: -84.3880 },
+            'ga': { lat: 33.7490, lng: -84.3880 },
+            'phoenix': { lat: 33.4484, lng: -112.0740 },
+            'az': { lat: 33.4484, lng: -112.0740 },
+            'new york': { lat: 40.7128, lng: -74.0060 },
+            'ny': { lat: 40.7128, lng: -74.0060 },
+            'detroit': { lat: 42.3314, lng: -83.0458 },
+            'mi': { lat: 42.3314, lng: -83.0458 },
+            'nashville': { lat: 36.1627, lng: -86.7816 },
+            'tn': { lat: 36.1627, lng: -86.7816 },
+            'cleveland': { lat: 41.4993, lng: -81.6944 },
+            'cincinnati': { lat: 39.1031, lng: -84.5120 },
+            'indianapolis': { lat: 39.7684, lng: -86.1581 },
+            'in': { lat: 39.7684, lng: -86.1581 },
+            'pittsburgh': { lat: 40.4406, lng: -79.9959 },
+            'pa': { lat: 40.4406, lng: -79.9959 },
+            'louisville': { lat: 38.2527, lng: -85.7585 },
+            'ky': { lat: 38.2527, lng: -85.7585 },
+            'memphis': { lat: 35.1495, lng: -90.0490 },
+            'kansas city': { lat: 39.0997, lng: -94.5786 },
+            'mo': { lat: 39.0997, lng: -94.5786 },
+            'denver': { lat: 39.7392, lng: -104.9903 },
+            'co': { lat: 39.7392, lng: -104.9903 },
+            'los angeles': { lat: 34.0522, lng: -118.2437 },
+            'ca': { lat: 34.0522, lng: -118.2437 },
+            'houston': { lat: 29.7604, lng: -95.3698 },
+            'san antonio': { lat: 29.4241, lng: -98.4936 },
+            'miami': { lat: 25.7617, lng: -80.1918 },
+            'fl': { lat: 25.7617, lng: -80.1918 },
+            'boston': { lat: 42.3601, lng: -71.0589 },
+            'ma': { lat: 42.3601, lng: -71.0589 },
+            'philadelphia': { lat: 39.9526, lng: -75.1652 },
+            'washington': { lat: 38.9072, lng: -77.0369 },
+            'dc': { lat: 38.9072, lng: -77.0369 },
+            'baltimore': { lat: 39.2904, lng: -76.6122 },
+            'md': { lat: 39.2904, lng: -76.6122 },
+            'charlotte': { lat: 35.2271, lng: -80.8431 },
+            'nc': { lat: 35.2271, lng: -80.8431 },
+            'birmingham': { lat: 33.5207, lng: -86.8025 },
+            'al': { lat: 33.5207, lng: -86.8025 },
+            'jacksonville': { lat: 30.3322, lng: -81.6557 },
+            'san francisco': { lat: 37.7749, lng: -122.4194 },
+            'san diego': { lat: 32.7157, lng: -117.1611 },
+            'las vegas': { lat: 36.1699, lng: -115.1398 },
+            'nv': { lat: 36.1699, lng: -115.1398 },
+            'salt lake city': { lat: 40.7608, lng: -111.8910 },
+            'ut': { lat: 40.7608, lng: -111.8910 },
+            'omaha': { lat: 41.2565, lng: -95.9345 },
+            'ne': { lat: 41.2565, lng: -95.9345 },
+            'el paso': { lat: 31.7619, lng: -106.4850 },
+            'albuquerque': { lat: 35.0844, lng: -106.6504 },
+            'nm': { lat: 35.0844, lng: -106.6504 },
+            'milwaukee': { lat: 43.0389, lng: -87.9065 },
+            'wi': { lat: 43.0389, lng: -87.9065 },
+            'minneapolis': { lat: 44.9778, lng: -93.2650 },
+            'mn': { lat: 44.9778, lng: -93.2650 },
+            'st. louis': { lat: 38.6270, lng: -90.1994 }
+        };
+
+        // Extract city and state from origin/destination
+        const getCoords = (location) => {
+            const parts = location.toLowerCase().split(',').map(s => s.trim());
+            const city = parts[0];
+            const state = parts[1] || '';
+
+            // Try city name first
+            if (cityCoords[city]) return cityCoords[city];
+            // Try state abbreviation
+            if (cityCoords[state]) return cityCoords[state];
+            // Try state name
+            if (cityCoords[state.toLowerCase()]) return cityCoords[state.toLowerCase()];
+
+            // Default to Columbus, OH if not found
+            return { lat: 39.9612, lng: -82.9988 };
+        };
+
+        const originCoords = getCoords(origin);
+        const destCoords = getCoords(destination);
+
+        // Haversine formula to calculate distance between two points
+        const R = 3959; // Earth's radius in miles
+        const dLat = (destCoords.lat - originCoords.lat) * Math.PI / 180;
+        const dLng = (destCoords.lng - originCoords.lng) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(originCoords.lat * Math.PI / 180) * Math.cos(destCoords.lat * Math.PI / 180) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c;
+
+        // Add 10% for road distance (not straight line)
+        return Math.round(distance * 1.1);
     },
 
     // Show notification
@@ -164,9 +344,119 @@ const Utils = {
         const d = new Date(date);
         const day = d.getDay();
         const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-        return new Date(d.setDate(diff));
+        d.setDate(diff);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    },
+
+    // Get ISO week number
+    getWeekNumber: (date) => {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+        const yearStart = new Date(d.getFullYear(), 0, 1);
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     }
 };
+
+// Compliance & Expiration Checking
+function checkExpirations() {
+    const alerts = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const in30Days = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    // Check driver medical card expirations
+    DataManager.drivers.forEach(d => {
+        if (!d.medicalExpirationDate) return;
+        
+        const exp = new Date(d.medicalExpirationDate);
+        exp.setHours(0, 0, 0, 0);
+        
+        if (exp <= in30Days && exp >= today) {
+            const days = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+            const driverName = `${d.firstName || ''} ${d.lastName || ''}`.trim() || d.driverNumber || 'Unknown Driver';
+            alerts.push({
+                type: 'medical',
+                message: `MEDICAL CARD: ${driverName} expires in ${days} day${days !== 1 ? 's' : ''}`,
+                days: days,
+                date: exp
+            });
+        } else if (exp < today) {
+            const daysOverdue = Math.ceil((today - exp) / (1000 * 60 * 60 * 24));
+            const driverName = `${d.firstName || ''} ${d.lastName || ''}`.trim() || d.driverNumber || 'Unknown Driver';
+            alerts.push({
+                type: 'medical',
+                message: `MEDICAL CARD: ${driverName} EXPIRED ${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} ago`,
+                days: -daysOverdue,
+                date: exp
+            });
+        }
+    });
+
+    // Check truck expirations
+    DataManager.trucks.forEach(t => {
+        const truckNumber = t.number || t.truckNumber || 'Unknown Truck';
+        
+        ['registrationExpiry', 'inspectionDueDate', 'cabCardRenewalDate'].forEach(field => {
+            if (!t[field]) return;
+            
+            const exp = new Date(t[field]);
+            exp.setHours(0, 0, 0, 0);
+            
+            if (exp <= in30Days && exp >= today) {
+                const days = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+                const label = field === 'registrationExpiry' ? 'REGISTRATION' :
+                             field === 'inspectionDueDate' ? 'ANNUAL INSPECTION' : 'CAB CARD (IRP)';
+                alerts.push({
+                    type: field,
+                    message: `${label}: Truck ${truckNumber} expires in ${days} day${days !== 1 ? 's' : ''}`,
+                    days: days,
+                    date: exp
+                });
+            } else if (exp < today) {
+                const daysOverdue = Math.ceil((today - exp) / (1000 * 60 * 60 * 24));
+                const label = field === 'registrationExpiry' ? 'REGISTRATION' :
+                             field === 'inspectionDueDate' ? 'ANNUAL INSPECTION' : 'CAB CARD (IRP)';
+                alerts.push({
+                    type: field,
+                    message: `${label}: Truck ${truckNumber} EXPIRED ${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} ago`,
+                    days: -daysOverdue,
+                    date: exp
+                });
+            }
+        });
+    });
+
+    // Sort alerts by urgency (expired first, then by days remaining)
+    alerts.sort((a, b) => {
+        if (a.days < 0 && b.days >= 0) return -1;
+        if (a.days >= 0 && b.days < 0) return 1;
+        return a.days - b.days;
+    });
+
+    if (alerts.length > 0) {
+        // Show notification
+        const expiredCount = alerts.filter(a => a.days < 0).length;
+        const expiringCount = alerts.length - expiredCount;
+        let notificationMsg = '';
+        
+        if (expiredCount > 0 && expiringCount > 0) {
+            notificationMsg = `COMPLIANCE ALERT: ${expiredCount} expired, ${expiringCount} expiring soon!`;
+        } else if (expiredCount > 0) {
+            notificationMsg = `COMPLIANCE ALERT: ${expiredCount} item${expiredCount !== 1 ? 's' : ''} EXPIRED!`;
+        } else {
+            notificationMsg = `COMPLIANCE ALERT: ${expiringCount} item${expiringCount !== 1 ? 's' : ''} expiring soon!`;
+        }
+        
+        Utils.showNotification(notificationMsg, expiredCount > 0 ? 'error' : 'warning');
+        
+        // Render compliance alerts if function exists
+        if (window.renderComplianceAlerts) {
+            window.renderComplianceAlerts(alerts);
+        }
+    }
+}
 
 // LocalStorage Authentication
 const Auth = {
@@ -263,6 +553,8 @@ const DataManager = {
                 console.log(`Loaded ${DataManager.drivers.length} drivers from Firebase`);
                 if (window.renderDrivers) window.renderDrivers();
                 if (window.renderFleet) window.renderFleet();
+                // Check expirations when drivers update
+                if (window.checkExpirations) window.checkExpirations();
             }, error => {
                 console.error('Error loading drivers:', error);
             });
@@ -281,6 +573,8 @@ const DataManager = {
                 DataManager.trucks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.trucks.length} trucks from Firebase`);
                 if (window.renderFleet) window.renderFleet();
+                // Check expirations when trucks update
+                if (window.checkExpirations) window.checkExpirations();
             }, error => {
                 console.error('Error loading trucks:', error);
             });
@@ -701,18 +995,26 @@ const MapsAPI = {
     // Calculate route and distance
     calculateRoute: async (origin, destination, waypoints = []) => {
         try {
-            // Mock implementation - replace with actual Google Maps API
-            const mockDistance = Utils.calculateDistance(origin, destination);
+            // Uses improved Utils.calculateDistance with lookup table and coordinate fallback
+            const distance = Utils.calculateDistance(origin, destination);
+
+            // Estimate duration (assuming average 55 mph for trucking)
+            const hours = Math.round((distance / 55) * 10) / 10;
+            const duration = hours < 24 ? `${hours} hours` : `${Math.round(hours / 24 * 10) / 10} days`;
+
+            // Simple state breakdown estimation (can be improved with actual route data)
+            const stateBreakdown = {
+                'OH': Math.floor(distance * 0.2),
+                'IN': Math.floor(distance * 0.15),
+                'IL': Math.floor(distance * 0.25),
+                'Other': Math.floor(distance * 0.4)
+            };
 
             return {
-                distance: mockDistance,
-                duration: Math.floor(mockDistance / 60) + ' hours', // Mock duration
+                distance: distance,
+                duration: duration,
                 route: `${origin} → ${destination}`,
-                stateBreakdown: {
-                    'OH': Math.floor(mockDistance * 0.2),
-                    'IN': Math.floor(mockDistance * 0.3),
-                    'IL': Math.floor(mockDistance * 0.5)
-                }
+                stateBreakdown: stateBreakdown
             };
         } catch (error) {
             console.error('Error calculating route:', error);
@@ -742,24 +1044,235 @@ const OCRService = {
     // Process document and extract text
     processDocument: async (file) => {
         try {
-            // Mock implementation - replace with actual Google Vision API
-            const mockResults = {
-                text: 'Mock extracted text from document',
-                confidence: 0.95,
-                fields: {
-                    loadNumber: 'RC-2025-001',
-                    shipper: 'ABC Manufacturing Corp',
-                    rate: 2500.00,
-                    pickupDate: '2025-11-15',
-                    deliveryDate: '2025-11-16'
-                }
-            };
+            // For now, we'll use Tesseract.js for client-side OCR
+            // In production, you can replace this with Google Vision API or AWS Textract
+            
+            let extractedText = '';
+            
+            // Check if Tesseract is available (you'll need to include tesseract.js library)
+            if (typeof Tesseract !== 'undefined') {
+                const { data: { text } } = await Tesseract.recognize(file);
+                extractedText = text;
+            } else {
+                // Fallback: Try to read text from file if it's a text file
+                // For images/PDFs, we'll use a mock extraction with common patterns
+                extractedText = await this.readFileAsText(file);
+            }
 
-            return mockResults;
+            // Parse the extracted text to find load information
+            const parsedData = this.parseRateConfirmation(extractedText);
+
+            return {
+                text: extractedText,
+                confidence: 0.85,
+                fields: parsedData
+            };
         } catch (error) {
             console.error('Error processing document:', error);
-            throw error;
+            // Return empty fields if OCR fails
+            return {
+                text: '',
+                confidence: 0,
+                fields: {}
+            };
         }
+    },
+
+    // Read file as text (for text files)
+    readFileAsText: (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsText(file);
+        });
+    },
+
+    // Parse rate confirmation text to extract structured data
+    parseRateConfirmation: (text) => {
+        const data = {};
+        const upperText = text.toUpperCase();
+
+        // Extract Load Number (common patterns: LOAD #, PRO #, REF #, etc.)
+        const loadPatterns = [
+            /(?:LOAD|PRO|REF|LOAD\s*#|PRO\s*#|REF\s*#)[\s:]*([A-Z0-9\-]+)/i,
+            /LOAD\s*NUMBER[\s:]*([A-Z0-9\-]+)/i,
+            /(?:LOAD|PRO)\s*([A-Z0-9\-]{6,})/i
+        ];
+        for (const pattern of loadPatterns) {
+            const match = text.match(pattern);
+            if (match && match[1]) {
+                data.loadNumber = match[1].trim();
+                break;
+            }
+        }
+
+        // Extract Rate (look for $ amounts, "RATE", "TOTAL", etc.)
+        const ratePatterns = [
+            /(?:RATE|TOTAL|AMOUNT|PAY)[\s:]*\$?\s*([\d,]+\.?\d*)/i,
+            /\$\s*([\d,]+\.?\d*)\s*(?:RATE|TOTAL|AMOUNT)/i,
+            /(?:TOTAL\s*RATE|RATE\s*TOTAL)[\s:]*\$?\s*([\d,]+\.?\d*)/i
+        ];
+        for (const pattern of ratePatterns) {
+            const match = text.match(pattern);
+            if (match && match[1]) {
+                data.rate = parseFloat(match[1].replace(/,/g, ''));
+                break;
+            }
+        }
+
+        // Extract Miles
+        const milesPatterns = [
+            /(?:MILES|MILEAGE|DISTANCE)[\s:]*([\d,]+)/i,
+            /([\d,]+)\s*(?:MILES|MI)/i
+        ];
+        for (const pattern of milesPatterns) {
+            const match = text.match(pattern);
+            if (match && match[1]) {
+                data.miles = parseInt(match[1].replace(/,/g, ''));
+                break;
+            }
+        }
+
+        // Extract Rate Per Mile
+        if (data.rate && data.miles) {
+            data.ratePerMile = (data.rate / data.miles).toFixed(2);
+        } else {
+            const rpmPattern = /(?:RATE\s*PER\s*MILE|PER\s*MILE|RPM)[\s:]*\$?\s*([\d,]+\.?\d*)/i;
+            const match = text.match(rpmPattern);
+            if (match && match[1]) {
+                data.ratePerMile = parseFloat(match[1].replace(/,/g, ''));
+            }
+        }
+
+        // Extract Shipper/Consignor (common patterns)
+        const shipperPatterns = [
+            /(?:SHIPPER|CONSIGNOR|FROM)[\s:]*([A-Z][A-Z\s&,\.]+)/i,
+            /(?:SHIP\s*FROM|PICKUP\s*FROM)[\s:]*([A-Z][A-Z\s&,\.]+)/i
+        ];
+        for (const pattern of shipperPatterns) {
+            const match = text.match(pattern);
+            if (match && match[1]) {
+                data.shipper = match[1].trim();
+                break;
+            }
+        }
+
+        // Extract Consignee (common patterns)
+        const consigneePatterns = [
+            /(?:CONSIGNEE|DELIVER\s*TO|TO)[\s:]*([A-Z][A-Z\s&,\.]+)/i,
+            /(?:SHIP\s*TO|DELIVERY\s*TO)[\s:]*([A-Z][A-Z\s&,\.]+)/i
+        ];
+        for (const pattern of consigneePatterns) {
+            const match = text.match(pattern);
+            if (match && match[1]) {
+                data.consignee = match[1].trim();
+                break;
+            }
+        }
+
+        // Extract Pickup Location (City, State)
+        const pickupPatterns = [
+            /(?:PICKUP|ORIGIN|FROM)[\s:]*([A-Z][A-Z\s]+),\s*([A-Z]{2})/i,
+            /PICKUP[\s:]*([A-Z][A-Z\s]+),\s*([A-Z]{2})/i
+        ];
+        for (const pattern of pickupPatterns) {
+            const match = text.match(pattern);
+            if (match && match[1] && match[2]) {
+                data.pickupCity = match[1].trim();
+                data.pickupState = match[2].trim();
+                break;
+            }
+        }
+
+        // Extract Delivery Location (City, State)
+        const deliveryPatterns = [
+            /(?:DELIVERY|DESTINATION|TO)[\s:]*([A-Z][A-Z\s]+),\s*([A-Z]{2})/i,
+            /DELIVERY[\s:]*([A-Z][A-Z\s]+),\s*([A-Z]{2})/i
+        ];
+        for (const pattern of deliveryPatterns) {
+            const match = text.match(pattern);
+            if (match && match[1] && match[2]) {
+                data.deliveryCity = match[1].trim();
+                data.deliveryState = match[2].trim();
+                break;
+            }
+        }
+
+        // Extract Dates (various formats)
+        const datePatterns = [
+            /(?:PICKUP|P\/U)\s*DATE[\s:]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+            /(?:DELIVERY|DEL)\s*DATE[\s:]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
+            /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/gi
+        ];
+        
+        const dates = [];
+        for (const pattern of datePatterns) {
+            try {
+                // Use the pattern directly if it's already a RegExp, otherwise create one
+                const regex = pattern instanceof RegExp ? pattern : new RegExp(pattern, 'gi');
+                const matches = text.matchAll(regex);
+                for (const match of matches) {
+                    if (match && match[1]) {
+                        dates.push(match[1]);
+                    }
+                }
+            } catch (err) {
+                console.warn('Error matching date pattern:', err);
+                // Fallback: use simple match
+                const simpleMatch = text.match(pattern);
+                if (simpleMatch && simpleMatch[1]) {
+                    dates.push(simpleMatch[1]);
+                }
+            }
+        }
+        
+        if (dates.length > 0) {
+            data.pickupDate = this.parseDate(dates[0]);
+            if (dates.length > 1) {
+                data.deliveryDate = this.parseDate(dates[1]);
+            }
+        }
+
+        // Extract ZIP codes
+        const zipPattern = /\b(\d{5}(?:-\d{4})?)\b/g;
+        const zips = text.match(zipPattern);
+        if (zips && zips.length >= 2) {
+            data.pickupZip = zips[0];
+            data.deliveryZip = zips[1];
+        }
+
+        return data;
+    },
+
+    // Parse date string to ISO format
+    parseDate: (dateStr) => {
+        if (!dateStr) return '';
+        
+        // Handle various date formats
+        const formats = [
+            /(\d{1,2})\/(\d{1,2})\/(\d{2,4})/,  // MM/DD/YYYY or M/D/YY
+            /(\d{1,2})-(\d{1,2})-(\d{2,4})/     // MM-DD-YYYY
+        ];
+
+        for (const format of formats) {
+            const match = dateStr.match(format);
+            if (match) {
+                let month = parseInt(match[1]);
+                let day = parseInt(match[2]);
+                let year = parseInt(match[3]);
+                
+                // Handle 2-digit years
+                if (year < 100) {
+                    year += 2000;
+                }
+                
+                // Format as YYYY-MM-DD
+                return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            }
+        }
+        
+        return dateStr;
     },
 
     // Upload file to storage
@@ -1208,6 +1721,7 @@ const App = {
 
                 e.preventDefault(); // Stop page reload
 
+                // Validate form (only checks fields with 'required' attribute)
                 const isValid = App.validateForm(form);
                 if (!isValid) {
                     console.log('[Form] Validation failed for', form.id);
@@ -1224,15 +1738,20 @@ const App = {
                         await handler(e);
                     } catch (err) {
                         console.error('[Form Handler Error]', err);
-                        Utils.showNotification('Save failed. Check console.', 'error');
+                        Utils.showNotification('Save failed: ' + (err.message || 'Unknown error'), 'error');
                     }
                 } else {
                     console.warn(`[Form] No handler found: ${handlerName} — did you forget to define it?`);
+                    // Don't show error notification for forms that might not need handlers
+                    if (form.id && !form.id.includes('search') && !form.id.includes('filter')) {
+                        console.warn(`[Form] Form ${form.id} submitted but no handler found. Form may not work correctly.`);
+                    }
                 }
             } catch (globalErr) {
                 console.error('Critical error in form submit listener:', globalErr);
+                Utils.showNotification('Form submission error. Please check console.', 'error');
             }
-        });
+        }, true); // Use capture phase to ensure we catch it first
 
         // Auto-save (unchanged)
         let saveTimeout;
@@ -1250,32 +1769,49 @@ const App = {
 
     // Validate form
     validateForm: (form) => {
+        if (!form) return true; // Skip validation if form doesn't exist
+        
         const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+        if (inputs.length === 0) return true; // No required fields, validation passes
+        
         let isValid = true;
+        const invalidFields = [];
 
         inputs.forEach(input => {
-            if (!input.value.trim()) {
+            // Skip disabled or hidden fields
+            if (input.disabled || input.type === 'hidden') return;
+            
+            const value = input.value ? input.value.trim() : '';
+            
+            if (!value) {
                 input.classList.add('border-red-500');
                 isValid = false;
+                const label = form.querySelector(`label[for="${input.id}"]`)?.textContent || input.name || input.id;
+                invalidFields.push(label);
             } else {
                 input.classList.remove('border-red-500');
             }
 
             // Email validation
-            if (input.type === 'email' && input.value && !Utils.validateEmail(input.value)) {
+            if (input.type === 'email' && value && !Utils.validateEmail(value)) {
                 input.classList.add('border-red-500');
                 isValid = false;
+                invalidFields.push(input.name || input.id + ' (invalid email)');
             }
 
             // Phone validation
-            if (input.type === 'tel' && input.value && !Utils.validatePhone(input.value)) {
+            if (input.type === 'tel' && value && !Utils.validatePhone(value)) {
                 input.classList.add('border-red-500');
                 isValid = false;
+                invalidFields.push(input.name || input.id + ' (invalid phone)');
             }
         });
 
         if (!isValid) {
-            Utils.showNotification('Please fill in all required fields correctly', 'error');
+            const message = invalidFields.length > 0 
+                ? `Please fill in: ${invalidFields.slice(0, 3).join(', ')}${invalidFields.length > 3 ? '...' : ''}`
+                : 'Please fill in all required fields correctly';
+            Utils.showNotification(message, 'error');
         }
 
         return isValid;
@@ -1526,13 +2062,28 @@ function loadDriverUnpaidLoads() {
                 console.log(`Per Mile: ${miles} miles × $${rate} = $${payAmount}`);
             }
 
-            // Add detention pay to gross pay
-            const detentionPay = parseFloat(load.detentionPay || 0);
+            // Add detention pay to gross pay (check multiple possible locations)
+            const detentionPay = parseFloat(
+                load.financials?.detentionPay || 
+                load.rate?.detentionPay || 
+                load.detentionPay || 
+                0
+            );
             const grossPay = payAmount + detentionPay;
 
-            // Track deductions (these will be subtracted in the modal)
-            const advanceAmount = parseFloat(load.advanceAmount || 0);
-            const lumperFees = parseFloat(load.lumperFees || 0);
+            // Track deductions (check multiple possible locations)
+            const advanceAmount = parseFloat(
+                load.financials?.advanceAmount || 
+                load.rate?.advance || 
+                load.advanceAmount || 
+                0
+            );
+            const lumperFees = parseFloat(
+                load.financials?.lumperFees || 
+                load.rate?.lumperFees || 
+                load.lumperFees || 
+                0
+            );
 
             console.log(`Detention Pay: $${detentionPay}`);
             console.log(`Advance Amount: $${advanceAmount}`);
@@ -1584,11 +2135,35 @@ function calculateSettlementTotal() {
 
     // Manual deductions (fuel, insurance, other)
     const fuel = parseFloat(document.getElementById('fuelDeduction')?.value) || 0;
-    const insurance = parseFloat(document.getElementById('insuranceDeduction')?.value) || 0;
+    let insurance = parseFloat(document.getElementById('insuranceDeduction')?.value) || 0;
     const other = parseFloat(document.getElementById('otherDeduction')?.value) || 0;
 
-    // Total deductions = load deductions + manual deductions
-    const totalDeductions = advancesTotal + lumperTotal + fuel + insurance + other;
+    // Calculate tax deductions based on driver type
+    const driverId = document.getElementById('driverSelect')?.value;
+    const driver = driverId ? DataManager.drivers.find(d => d.id === driverId) : null;
+    const isOwnerOperator = driver?.payment?.type === 'percentage' || driver?.payment?.type === 'owner_operator';
+    
+    // Auto-populate insurance if not set (only for company drivers)
+    if (!insurance && !isOwnerOperator && driver) {
+        insurance = 45.00; // Default insurance for company drivers
+        const insuranceField = document.getElementById('insuranceDeduction');
+        if (insuranceField && !insuranceField.value) {
+            insuranceField.value = insurance.toFixed(2);
+        }
+    }
+
+    // Tax calculations (only for company drivers, not owner operators)
+    const taxes = {
+        federal: isOwnerOperator ? 0 : grossPay * 0.075, // 7.5% federal tax
+        state: isOwnerOperator ? 0 : grossPay * 0.02,     // 2% state tax
+        socialSecurity: isOwnerOperator ? 0 : grossPay * 0.062, // 6.2% social security
+        medicare: isOwnerOperator ? 0 : grossPay * 0.0145  // 1.45% medicare
+    };
+    
+    const totalTaxes = Object.values(taxes).reduce((sum, tax) => sum + tax, 0);
+
+    // Total deductions = load deductions + manual deductions + taxes
+    const totalDeductions = advancesTotal + lumperTotal + fuel + insurance + other + totalTaxes;
     const netPay = grossPay - totalDeductions;
 
     // Update breakdown fields (if they exist - for settlements.html modal)
@@ -1660,6 +2235,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window.loadDriverUnpaidLoads = loadDriverUnpaidLoads;
 window.calculateSettlementTotal = calculateSettlementTotal;
 window.toggleAllLoads = toggleAllLoads;
+window.checkExpirations = checkExpirations;
 window.openCreateSettlementModal = () => {
     document.getElementById('createSettlementModal')?.classList.add('show');
     setTimeout(() => loadDriverUnpaidLoads(), 100); // auto-load on open

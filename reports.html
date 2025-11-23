@@ -271,6 +271,29 @@
                     </div>
                 </div>
 
+                <!-- Profit Breakdown -->
+                <div class="bg-white rounded-lg p-6 card-shadow mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Profit Breakdown</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center py-2 border-b">
+                            <span class="text-gray-700 font-medium">Total Revenue</span>
+                            <span class="text-green-600 font-bold text-lg" id="breakdownRevenue">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b">
+                            <span class="text-gray-700">Total Expenses</span>
+                            <span class="text-red-600 font-semibold" id="breakdownExpenses">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b">
+                            <span class="text-gray-700">Driver Pay</span>
+                            <span class="text-red-600 font-semibold" id="breakdownDriverPay">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 bg-gray-50 rounded-lg px-4 mt-4">
+                            <span class="text-gray-900 font-bold text-lg">Net Profit</span>
+                            <span class="font-bold text-xl" id="breakdownNetProfit">$0</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white rounded-lg p-6 card-shadow">
@@ -445,40 +468,114 @@
             // Calculate real data from DataManager
             calculateRealData: () => {
                 const invoices = DataManager.invoices || [];
-                const loads = DataManager.loads || [];
-                const expenses = DataManager.expenses || [];
+                let loads = DataManager.loads || [];
+                let expenses = DataManager.expenses || [];
                 const drivers = DataManager.drivers || [];
                 const customers = DataManager.customers || [];
-                const settlements = DataManager.settlements || [];
+                let settlements = DataManager.settlements || [];
 
-                // 1. Revenue (Sum of all DELIVERED/COMPLETED loads, not invoices)
-                const completedLoads = loads.filter(l => l.status === 'delivered' || l.status === 'completed');
-                const totalRevenue = completedLoads.reduce((sum, l) => sum + (parseFloat(l.rate) || 0), 0);
+                console.log('[Reports] Calculating data:', {
+                    loads: loads.length,
+                    expenses: expenses.length,
+                    settlements: settlements.length,
+                    drivers: drivers.length,
+                    customers: customers.length
+                });
 
-                // 2. Miles (Sum of all completed/delivered loads)
-                const totalMiles = completedLoads.reduce((sum, l) => sum + (parseFloat(l.miles) || 0), 0);
+                // Filter by selected period
+                const period = document.getElementById('reportPeriod')?.value || 'month';
+                const now = new Date();
+                let startDate;
 
-                // 3. Driver Pay (Sum of net pay from all settlements)
+                switch (period) {
+                    case 'week':
+                        startDate = new Date(now);
+                        startDate.setDate(now.getDate() - 7);
+                        break;
+                    case 'month':
+                        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                        break;
+                    case 'quarter':
+                        const quarter = Math.floor(now.getMonth() / 3);
+                        startDate = new Date(now.getFullYear(), quarter * 3, 1);
+                        break;
+                    case 'year':
+                        startDate = new Date(now.getFullYear(), 0, 1);
+                        break;
+                    default:
+                        startDate = null;
+                }
+
+                // Filter loads by period (use appropriate date based on status)
+                if (startDate) {
+                    loads = loads.filter(load => {
+                        const status = (load.status || '').toLowerCase().replace(' ', '_');
+                        // For delivered loads, use delivery date; for others use pickup or creation date
+                        let loadDate;
+                        if (status === 'delivered' || status === 'completed') {
+                            loadDate = new Date(load.deliveredAt || load.delivery?.date || load.createdAt);
+                        } else {
+                            loadDate = new Date(load.pickedUpAt || load.pickup?.date || load.createdAt);
+                        }
+                        return loadDate >= startDate && loadDate <= now;
+                    });
+                }
+
+                // Filter expenses by period
+                if (startDate) {
+                    expenses = expenses.filter(exp => {
+                        const expDate = new Date(exp.date || exp.createdAt);
+                        return expDate >= startDate && expDate <= now;
+                    });
+                }
+
+                // Filter settlements by period
+                if (startDate) {
+                    settlements = settlements.filter(st => {
+                        const stDate = new Date(st.period?.startDate || st.createdAt);
+                        return stDate >= startDate && stDate <= now;
+                    });
+                }
+
+                // 1. Revenue: Sum of all load prices from booked, in_transit, and delivered loads
+                const revenueLoads = loads.filter(l => {
+                    const status = (l.status || '').toLowerCase().replace(' ', '_');
+                    return status === 'booked' || status === 'in_transit' || status === 'delivered' || 
+                           status === 'completed' || status === 'dispatched';
+                });
+                const totalRevenue = revenueLoads.reduce((sum, l) => sum + (parseFloat(l.rate?.total || l.rate || 0) || 0), 0);
+
+                // 2. Total Miles: Sum of all miles from booked, in_transit, and delivered loads
+                const totalMiles = revenueLoads.reduce((sum, l) => sum + (parseFloat(l.mileage?.total || l.miles || 0) || 0), 0);
+
+                // 3. Loads Completed: Number of completed/delivered loads only
+                const completedLoads = loads.filter(l => {
+                    const status = (l.status || '').toLowerCase().replace(' ', '_');
+                    return status === 'delivered' || status === 'completed';
+                });
+                const loadsCompleted = completedLoads.length;
+
+                // 4. Driver Pay (Sum of net pay from all settlements)
                 const totalDriverPay = settlements.reduce((sum, st) => sum + (parseFloat(st.netPay) || 0), 0);
 
-                // 4. Expenses (Sum of all tracked expenses)
+                // 5. Expenses (Sum of all tracked expenses)
                 const totalExpenses = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
 
-                // 5. Net Profit = Revenue - Driver Pay - Expenses
+                // 6. Net Profit = Revenue - Driver Pay - Expenses
                 const netProfit = totalRevenue - totalDriverPay - totalExpenses;
 
-                // 6. Profit Margin = (Net Profit / Revenue) × 100
+                // 7. Profit Margin = (Net Profit / Revenue) × 100
                 const profitMargin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : 0;
 
-                // 7. Monthly Revenue (Group completed loads by month)
+                // 8. Monthly Revenue (Group revenue loads by month - booked, in_transit, delivered)
                 const monthlyRevenue = Array(12).fill(0);
                 const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-                completedLoads.forEach(load => {
-                    const date = new Date(load.deliveryDate || load.createdAt);
+                revenueLoads.forEach(load => {
+                    const date = new Date(load.deliveredAt || load.delivery?.date || load.pickedUpAt || load.createdAt);
                     const month = date.getMonth(); // 0-11
                     if (!isNaN(month)) {
-                        monthlyRevenue[month] += (parseFloat(load.rate) || 0);
+                        monthlyRevenue[month] += (parseFloat(load.rate?.total || load.rate || 0) || 0);
                     }
                 });
 
@@ -498,15 +595,15 @@
 
                 // 7. Driver Performance
                 const driverStats = drivers.map(d => {
-                    const driverLoads = completedLoads.filter(l => l.driverId === d.id);
-                    const miles = driverLoads.reduce((sum, l) => sum + (parseFloat(l.miles) || 0), 0);
-                    const revenue = driverLoads.reduce((sum, l) => sum + (parseFloat(l.rate) || 0), 0);
+                    const driverLoads = completedLoads.filter(l => String(l.driverId) === String(d.id));
+                    const miles = driverLoads.reduce((sum, l) => sum + (parseFloat(l.mileage?.total || l.miles || 0) || 0), 0);
+                    const revenue = driverLoads.reduce((sum, l) => sum + (parseFloat(l.rate?.total || l.rate || 0) || 0), 0);
                     const loadCount = driverLoads.length;
                     // Simple performance score logic
                     const performance = loadCount > 0 ? Math.min(100, 80 + (loadCount * 2)) : 80;
 
                     return {
-                        name: `${d.firstName} ${d.lastName}`,
+                        name: `${d.firstName || d.personalInfo?.firstName || ''} ${d.lastName || d.personalInfo?.lastName || ''}`,
                         miles,
                         revenue,
                         loads: loadCount,
@@ -516,42 +613,62 @@
 
                 // 8. Customer Analysis
                 const customerStats = customers.map(c => {
-                    const custLoads = completedLoads.filter(l => l.customerId === c.id);
-                    const revenue = custLoads.reduce((sum, l) => sum + (parseFloat(l.rate) || 0), 0);
+                    const custLoads = completedLoads.filter(l => String(l.customerId) === String(c.id));
+                    const revenue = custLoads.reduce((sum, l) => sum + (parseFloat(l.rate?.total || l.rate || 0) || 0), 0);
                     const loadCount = custLoads.length;
-                    const totalMiles = custLoads.reduce((sum, l) => sum + (parseFloat(l.miles) || 0), 0);
+                    const totalMiles = custLoads.reduce((sum, l) => sum + (parseFloat(l.mileage?.total || l.miles || 0) || 0), 0);
                     const avgRate = totalMiles > 0 ? (revenue / totalMiles).toFixed(2) : '0.00';
 
                     return {
-                        name: c.company.name,
+                        name: c.company?.name || c.name || 'Unknown',
                         revenue,
                         loads: loadCount,
                         avgRate,
-                        terms: 'Net 30' // Default
+                        terms: c.financial?.paymentTerms || 'Net 30'
                     };
                 }).sort((a, b) => b.revenue - a.revenue);
 
-                // 9. Expense Breakdown (Mock categories for now based on total)
-                // In a real app, we'd group expenses by type
+                // 9. Expense Breakdown (Group by actual expense types)
+                const expenseByType = {};
+                expenses.forEach(exp => {
+                    const type = exp.type || 'other';
+                    const amount = parseFloat(exp.amount) || 0;
+                    expenseByType[type] = (expenseByType[type] || 0) + amount;
+                });
+
+                // Map expense types to display labels
+                const typeLabels = {
+                    'fuel': 'Fuel',
+                    'maintenance': 'Maintenance',
+                    'insurance': 'Insurance',
+                    'toll': 'Tolls',
+                    'lumper': 'Lumper Fees',
+                    'other': 'Other'
+                };
+
+                const expenseLabels = [];
+                const expenseValues = [];
+                Object.entries(expenseByType).forEach(([type, amount]) => {
+                    expenseLabels.push(typeLabels[type] || type.charAt(0).toUpperCase() + type.slice(1));
+                    expenseValues.push(amount);
+                });
+
+                // If no expenses, show placeholder
                 const expenseBreakdown = {
-                    labels: ['Fuel', 'Driver Pay', 'Insurance', 'Maintenance', 'Other'],
-                    values: [
-                        totalExpenses * 0.4,
-                        totalExpenses * 0.3,
-                        totalExpenses * 0.1,
-                        totalExpenses * 0.1,
-                        totalExpenses * 0.1
-                    ]
+                    labels: expenseLabels.length > 0 ? expenseLabels : ['No Expenses'],
+                    values: expenseValues.length > 0 ? expenseValues : [0]
                 };
 
                 ReportManager.data = {
                     revenue: totalRevenue,
                     miles: totalMiles,
-                    loads: completedLoads.length,
+                    loads: loadsCompleted,
                     driverPay: totalDriverPay,
                     expenses: totalExpenses,
                     netProfit: netProfit,
                     profitMargin,
+                    revenueLoads: revenueLoads, // Store for revenue table calculations
+                    completedLoads: completedLoads, // Store for driver/customer analysis
                     monthlyRevenue: {
                         labels: monthLabels,
                         values: monthlyRevenue
@@ -621,6 +738,23 @@
                 document.getElementById('netProfit').textContent = Utils.formatCurrency(ReportManager.data.netProfit);
                 document.getElementById('profitMargin').textContent = ReportManager.data.profitMargin + '%';
 
+                // Update profit breakdown
+                const breakdownRevenue = document.getElementById('breakdownRevenue');
+                const breakdownExpenses = document.getElementById('breakdownExpenses');
+                const breakdownDriverPay = document.getElementById('breakdownDriverPay');
+                const breakdownNetProfit = document.getElementById('breakdownNetProfit');
+
+                if (breakdownRevenue) breakdownRevenue.textContent = Utils.formatCurrency(ReportManager.data.revenue);
+                if (breakdownExpenses) breakdownExpenses.textContent = Utils.formatCurrency(ReportManager.data.expenses);
+                if (breakdownDriverPay) breakdownDriverPay.textContent = Utils.formatCurrency(ReportManager.data.driverPay);
+                if (breakdownNetProfit) {
+                    breakdownNetProfit.textContent = Utils.formatCurrency(ReportManager.data.netProfit);
+                    // Color code profit (green if positive, red if negative)
+                    breakdownNetProfit.className = ReportManager.data.netProfit >= 0 
+                        ? 'font-bold text-xl text-green-600' 
+                        : 'font-bold text-xl text-red-600';
+                }
+
                 // Revenue trend chart
                 const revenueTrace = {
                     x: ReportManager.data.monthlyRevenue.labels,
@@ -689,24 +823,42 @@
                     margin: { t: 20, r: 20, b: 80, l: 60 }
                 }, { responsive: true });
 
-                // Revenue table
+                // Revenue table - calculate actual monthly data from revenue loads (booked, in_transit, delivered)
                 const tbody = document.getElementById('revenueTableBody');
                 tbody.innerHTML = '';
 
+                const currentYear = new Date().getFullYear();
+                const monthlyData = {};
+
+                // Use revenueLoads (booked, in_transit, delivered) for revenue table
+                const revenueLoads = ReportManager.data.revenueLoads || [];
+                revenueLoads.forEach(load => {
+                    const date = new Date(load.deliveredAt || load.delivery?.date || load.pickedUpAt || load.createdAt);
+                    const month = date.getMonth();
+                    const year = date.getFullYear();
+                    
+                    if (year === currentYear && !isNaN(month)) {
+                        if (!monthlyData[month]) {
+                            monthlyData[month] = { revenue: 0, loads: 0, miles: 0 };
+                        }
+                        monthlyData[month].revenue += parseFloat(load.rate?.total || load.rate || 0) || 0;
+                        monthlyData[month].loads += 1;
+                        monthlyData[month].miles += parseFloat(load.mileage?.total || load.miles || 0) || 0;
+                    }
+                });
+
                 ReportManager.data.monthlyRevenue.labels.forEach((month, index) => {
-                    const revenue = ReportManager.data.monthlyRevenue.values[index];
-                    if (revenue > 0) {
-                        const loads = ReportManager.data.loads; // Simplified for monthly
-                        const miles = ReportManager.data.miles; // Simplified
-                        const ratePerMile = miles > 0 ? (revenue / miles).toFixed(2) : '0.00';
+                    const data = monthlyData[index] || { revenue: 0, loads: 0, miles: 0 };
+                    if (data.revenue > 0 || data.loads > 0) {
+                        const ratePerMile = data.miles > 0 ? (data.revenue / data.miles).toFixed(2) : '0.00';
 
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${month} ${new Date().getFullYear()}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Utils.formatCurrency(revenue)}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${month} ${currentYear}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Utils.formatCurrency(data.revenue)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${data.loads}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${data.miles.toLocaleString()}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${ratePerMile}</td>
                         `;
                         tbody.appendChild(row);
                     }
@@ -730,10 +882,19 @@
                     margin: { t: 20, r: 20, b: 20, l: 20 }
                 }, { responsive: true });
 
-                // Expense trend chart (Simplified)
+                // Expense trend chart (Calculate actual monthly expenses)
+                const monthlyExpenses = Array(12).fill(0);
+                expenses.forEach(exp => {
+                    const date = new Date(exp.date || exp.createdAt);
+                    const month = date.getMonth();
+                    if (!isNaN(month)) {
+                        monthlyExpenses[month] += parseFloat(exp.amount) || 0;
+                    }
+                });
+
                 const trendTrace = {
                     x: ReportManager.data.monthlyRevenue.labels,
-                    y: ReportManager.data.monthlyRevenue.values.map(v => v * 0.6), // Mock expense trend as 60% of revenue
+                    y: monthlyExpenses,
                     type: 'scatter',
                     mode: 'lines+markers',
                     name: 'Expenses',
@@ -834,8 +995,53 @@
             // Setup event listeners
             setupEventListeners: () => {
                 document.getElementById('reportPeriod').addEventListener('change', (e) => {
+                    // Recalculate data based on selected period
+                    ReportManager.calculateRealData();
+                    ReportManager.loadTabContent(ReportManager.currentTab);
                     Utils.showNotification(`Reports updated for ${e.target.value}`, 'info');
                 });
+            }
+        };
+
+        // Auto-refresh reports when data changes (connected to DataManager listeners)
+        window.renderLoads = () => {
+            if (ReportManager.currentTab) {
+                console.log('[Reports] Refreshing reports due to loads change');
+                ReportManager.calculateRealData();
+                ReportManager.loadTabContent(ReportManager.currentTab);
+            }
+        };
+
+        window.renderExpenses = () => {
+            if (ReportManager.currentTab) {
+                console.log('[Reports] Refreshing reports due to expenses change');
+                ReportManager.calculateRealData();
+                ReportManager.loadTabContent(ReportManager.currentTab);
+            }
+        };
+
+        window.renderSettlements = () => {
+            if (ReportManager.currentTab) {
+                console.log('[Reports] Refreshing reports due to settlements change');
+                ReportManager.calculateRealData();
+                ReportManager.loadTabContent(ReportManager.currentTab);
+            }
+        };
+
+        window.renderDrivers = () => {
+            if (ReportManager.currentTab) {
+                console.log('[Reports] Refreshing reports due to drivers change');
+                ReportManager.calculateRealData();
+                ReportManager.loadTabContent(ReportManager.currentTab);
+            }
+        };
+
+        window.updateDashboard = () => {
+            // Dashboard updates can also trigger report refresh if needed
+            if (ReportManager.currentTab) {
+                console.log('[Reports] Refreshing reports due to dashboard update');
+                ReportManager.calculateRealData();
+                ReportManager.loadTabContent(ReportManager.currentTab);
             }
         };
 

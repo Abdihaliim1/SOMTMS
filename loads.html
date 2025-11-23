@@ -157,9 +157,6 @@
                     <select id="driverFilter"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">All Drivers</option>
-                        <option value="driver1">Mike Johnson</option>
-                        <option value="driver2">Sarah Davis</option>
-                        <option value="driver3">Tom Wilson</option>
                     </select>
                 </div>
                 <div>
@@ -167,9 +164,6 @@
                     <select id="customerFilter"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">All Customers</option>
-                        <option value="customer1">ABC Manufacturing</option>
-                        <option value="customer2">XYZ Logistics</option>
-                        <option value="customer3">Global Transport</option>
                     </select>
                 </div>
                 <div>
@@ -216,177 +210,7 @@
                         </tr>
                     </thead>
                     <tbody id="loadsTableBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Sample loads data -->
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">Somali Truck-2025-001</div>
-                                <div class="text-sm text-gray-500">Created: 11/15/2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Columbus, OH</div>
-                                <div class="text-sm text-gray-500">→ Chicago, IL</div>
-                                <div class="text-xs text-gray-400">1,000 miles</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">ABC Manufacturing</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Mike Johnson</div>
-                                <div class="text-xs text-gray-500">TRK-001</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$2,500</div>
-                                <div class="text-xs text-gray-500">$2.50/mile</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-in-transit">
-                                    In Transit
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="editLoad('Somali Truck-2025-001')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="viewLoad('Somali Truck-2025-001')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="deleteLoad('Somali Truck-2025-001')"
-                                    class="text-red-600 hover:text-red-900">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">Somali Truck-2025-002</div>
-                                <div class="text-sm text-gray-500">Created: 11/14/2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Columbus, OH</div>
-                                <div class="text-sm text-gray-500">→ Nashville, TN</div>
-                                <div class="text-xs text-gray-400">850 miles</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">XYZ Logistics</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Sarah Davis</div>
-                                <div class="text-xs text-gray-500">TRK-002</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$3,200</div>
-                                <div class="text-xs text-gray-500">$3.76/mile</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-delivered">
-                                    Delivered
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="editLoad('Somali Truck-2025-002')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="viewLoad('Somali Truck-2025-002')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="deleteLoad('Somali Truck-2025-002')"
-                                    class="text-red-600 hover:text-red-900">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">Somali Truck-2025-003</div>
-                                <div class="text-sm text-gray-500">Created: 11/13/2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Columbus, OH</div>
-                                <div class="text-sm text-gray-500">→ Atlanta, GA</div>
-                                <div class="text-xs text-gray-400">1,200 miles</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Global Transport</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Tom Wilson</div>
-                                <div class="text-xs text-gray-500">TRK-003</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$2,800</div>
-                                <div class="text-xs text-gray-500">$2.33/mile</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-dispatched">
-                                    Dispatched
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="editLoad('Somali Truck-2025-003')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="viewLoad('Somali Truck-2025-003')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="deleteLoad('Somali Truck-2025-003')"
-                                    class="text-red-600 hover:text-red-900">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">Somali Truck-2025-004</div>
-                                <div class="text-sm text-gray-500">Created: 11/12/2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">Columbus, OH</div>
-                                <div class="text-sm text-gray-500">→ Dallas, TX</div>
-                                <div class="text-xs text-gray-400">1,450 miles</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">ABC Manufacturing</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-500">Unassigned</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$4,100</div>
-                                <div class="text-xs text-gray-500">$2.83/mile</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white status-available">
-                                    Available
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="editLoad('Somali Truck-2025-004')"
-                                    class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="viewLoad('Somali Truck-2025-004')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="deleteLoad('Somali Truck-2025-004')"
-                                    class="text-red-600 hover:text-red-900">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
+                        <!-- Loads data will be populated from Firebase -->
                     </tbody>
                 </table>
             </div>
@@ -437,6 +261,31 @@
 
             <div class="p-6">
                 <form id="loadForm" class="space-y-6">
+                    <!-- Rate Confirmation Upload -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="text-sm font-semibold text-blue-900 flex items-center">
+                                <i class="fas fa-file-upload mr-2"></i>
+                                Upload Rate Confirmation (Optional)
+                            </h4>
+                            <button type="button" onclick="clearConfirmationUpload()" class="text-xs text-blue-600 hover:text-blue-800 hidden" id="clearUploadBtn">
+                                <i class="fas fa-times mr-1"></i>Clear
+                            </button>
+                        </div>
+                        <p class="text-xs text-blue-700 mb-3">Upload a rate confirmation document (PDF or image) to automatically populate load information</p>
+                        <div class="flex items-center space-x-4">
+                            <label for="confirmationUpload" class="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                <i class="fas fa-upload mr-2"></i>Choose File
+                            </label>
+                            <input type="file" id="confirmationUpload" accept=".pdf,.png,.jpg,.jpeg" class="hidden" onchange="handleConfirmationUpload(event)">
+                            <span id="uploadFileName" class="text-sm text-gray-600"></span>
+                            <div id="uploadProgress" class="hidden flex items-center text-sm text-blue-600">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>
+                                <span>Processing...</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Load Information -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -464,9 +313,6 @@
                         <select id="customer"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">Select Customer</option>
-                            <option value="customer1">ABC Manufacturing</option>
-                            <option value="customer2">XYZ Logistics</option>
-                            <option value="customer3">Global Transport</option>
                         </select>
                     </div>
 
@@ -697,10 +543,7 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Driver</label>
                                 <select id="driver"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option value="">Select Driver</option>
-                                    <option value="driver1">Mike Johnson</option>
-                                    <option value="driver2">Sarah Davis</option>
-                                    <option value="driver3">Tom Wilson</option>
+                                    <option value="">Unassigned</option>
                                 </select>
                             </div>
                             <div>
@@ -708,9 +551,6 @@
                                 <select id="truck"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                     <option value="">Select Truck</option>
-                                    <option value="truck1">TRK-001 (Freightliner)</option>
-                                    <option value="truck2">TRK-002 (Peterbilt)</option>
-                                    <option value="truck3">TRK-003 (Kenworth)</option>
                                 </select>
                             </div>
                         </div>
@@ -775,6 +615,23 @@
             Auth.init();
             await DataManager.init();
 
+            // Check for filter from dashboard navigation
+            const savedFilter = localStorage.getItem('loadsFilter');
+            if (savedFilter) {
+                try {
+                    const filter = JSON.parse(savedFilter);
+                    // Apply date filter if present
+                    if (filter.dateFrom && filter.dateTo) {
+                        // Show a notification that filter is applied
+                        Utils.showNotification('Showing loads from this month', 'info');
+                    }
+                    // Clear the filter after applying
+                    localStorage.removeItem('loadsFilter');
+                } catch (e) {
+                    console.error('Error parsing loads filter:', e);
+                }
+            }
+
             renderLoads();
             populateSelects();
 
@@ -827,6 +684,20 @@
             const customerFilter = document.getElementById('customerFilter').value;
             const search = document.getElementById('searchInput').value.toLowerCase();
 
+            // Check for date filter from dashboard (this month's loads)
+            const savedFilter = localStorage.getItem('loadsFilter');
+            let dateFrom = null;
+            let dateTo = null;
+            if (savedFilter) {
+                try {
+                    const filter = JSON.parse(savedFilter);
+                    if (filter.dateFrom) dateFrom = new Date(filter.dateFrom);
+                    if (filter.dateTo) dateTo = new Date(filter.dateTo);
+                } catch (e) {
+                    console.error('Error parsing date filter:', e);
+                }
+            }
+
             const filtered = DataManager.loads.filter(load => {
                 const matchesStatus = !statusFilter || load.status === statusFilter;
                 const matchesDriver = !driverFilter || load.driverId === driverFilter;
@@ -836,7 +707,14 @@
                     (load.pickup?.city?.toLowerCase().includes(search)) ||
                     (load.delivery?.city?.toLowerCase().includes(search));
 
-                return matchesStatus && matchesDriver && matchesCustomer && matchesSearch;
+                // Apply date filter if present (for "Revenue This Month" navigation)
+                let matchesDate = true;
+                if (dateFrom && dateTo) {
+                    const loadDate = new Date(load.delivery?.date || load.deliveredAt || load.createdAt);
+                    matchesDate = loadDate >= dateFrom && loadDate <= dateTo;
+                }
+
+                return matchesStatus && matchesDriver && matchesCustomer && matchesSearch && matchesDate;
             });
 
             filtered.forEach(load => {
@@ -890,22 +768,50 @@
             });
         }
 
+        // Helper function for clearing upload
+        function clearConfirmationUpload() {
+            const uploadInput = document.getElementById('confirmationUpload');
+            const fileName = document.getElementById('uploadFileName');
+            const clearBtn = document.getElementById('clearUploadBtn');
+            if (uploadInput) uploadInput.value = '';
+            if (fileName) fileName.textContent = '';
+            if (clearBtn) clearBtn.classList.add('hidden');
+        }
+
         // Modal Functions
         function openCreateLoadModal() {
-            currentLoadId = null;
-            document.getElementById('modalTitle').textContent = 'Create New Load';
-            document.getElementById('loadForm').reset();
-            document.getElementById('loadNumber').value = 'LD-' + (1000 + DataManager.loads.length + 1);
-            document.getElementById('loadModal').classList.add('show');
+            try {
+                currentLoadId = null;
+                const modalTitle = document.getElementById('modalTitle');
+                const loadForm = document.getElementById('loadForm');
+                const loadNumber = document.getElementById('loadNumber');
+                const loadModal = document.getElementById('loadModal');
+                
+                if (!modalTitle || !loadForm || !loadNumber || !loadModal) {
+                    console.error('Required elements not found for load modal');
+                    return;
+                }
+                
+                modalTitle.textContent = 'Create New Load';
+                loadForm.reset();
+                clearConfirmationUpload();
+                loadNumber.value = 'LD-' + (1000 + (DataManager.loads?.length || 0) + 1);
+                loadModal.classList.add('show');
+            } catch (error) {
+                console.error('Error opening load modal:', error);
+                Utils.showNotification('Error opening load form. Please refresh the page.', 'error');
+            }
         }
 
         function closeModal() {
+            clearConfirmationUpload();
             document.getElementById('loadModal').classList.remove('show');
         }
 
         // Expose functions to global scope for onclick handlers
         window.openCreateLoadModal = openCreateLoadModal;
         window.closeModal = closeModal;
+        window.clearConfirmationUpload = clearConfirmationUpload;
 
         function editLoad(loadId) {
             const load = DataManager.getLoad(loadId);
@@ -974,13 +880,13 @@ Miles: ${load.mileage?.total || 0}
         }
 
         async function calculateMileage() {
-            const pickupCity = document.getElementById('pickupCity').value;
-            const pickupState = document.getElementById('pickupState').value;
-            const deliveryCity = document.getElementById('deliveryCity').value;
-            const deliveryState = document.getElementById('deliveryState').value;
+            const pickupCity = document.getElementById('pickupCity').value.trim();
+            const pickupState = document.getElementById('pickupState').value.trim();
+            const deliveryCity = document.getElementById('deliveryCity').value.trim();
+            const deliveryState = document.getElementById('deliveryState').value.trim();
 
             if (!pickupCity || !pickupState || !deliveryCity || !deliveryState) {
-                Utils.showNotification('Please enter pickup and delivery cities first', 'warning');
+                Utils.showNotification('Please enter pickup and delivery cities and states first', 'warning');
                 return;
             }
 
@@ -988,42 +894,48 @@ Miles: ${load.mileage?.total || 0}
             const destination = `${deliveryCity}, ${deliveryState}`;
 
             try {
-                if (typeof MapsAPI === 'undefined' || !MapsAPI.calculateRoute) {
-                    console.warn('MapsAPI not available, using fallback or skipping.');
-                    Utils.showNotification('Maps service unavailable', 'warning');
-                    return;
+                Utils.showNotification('Calculating mileage...', 'info');
+
+                // Use Utils.calculateDistance which has lookup table and coordinate fallback
+                let distance;
+                if (typeof Utils !== 'undefined' && Utils.calculateDistance) {
+                    distance = Utils.calculateDistance(origin, destination);
+                } else if (typeof MapsAPI !== 'undefined' && MapsAPI.calculateRoute) {
+                    // Fallback to MapsAPI if Utils not available
+                const result = await MapsAPI.calculateRoute(origin, destination);
+                    distance = result?.distance;
+                } else {
+                    throw new Error('Distance calculation not available');
                 }
 
-                Utils.showNotification('Calculating mileage...', 'info');
-                const result = await MapsAPI.calculateRoute(origin, destination);
-
-                if (result && result.distance) {
-                    document.getElementById('totalMiles').value = result.distance;
+                if (distance && distance > 0) {
+                    document.getElementById('totalMiles').value = distance;
 
                     // Auto-calculate rate per mile if total rate is already entered
                     const totalRate = parseFloat(document.getElementById('totalRate').value);
-                    if (totalRate) {
-                        const ratePerMile = (totalRate / result.distance).toFixed(2);
+                    if (totalRate && totalRate > 0) {
+                        const ratePerMile = (totalRate / distance).toFixed(2);
                         document.getElementById('ratePerMile').value = ratePerMile;
                     }
 
-                    Utils.showNotification(`Calculated ${result.distance} miles`, 'success');
+                    Utils.showNotification(`Calculated ${distance} miles`, 'success');
                 } else {
-                    throw new Error('Invalid result from MapsAPI');
+                    throw new Error('Invalid distance calculated');
                 }
             } catch (err) {
-                Utils.showNotification('Failed to calculate mileage', 'error');
                 console.error('Mileage calculation error:', err);
+                Utils.showNotification('Failed to calculate mileage. Please enter miles manually.', 'error');
             }
         }
 
-        // Form Submit Handler
-        document.getElementById('loadForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.submitter;
-            const original = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = 'Saving...';
+        // Form Submit Handler - Using universal handler pattern
+        window.loadForm_handler = async function (e) {
+            const btn = e.submitter || document.querySelector('#loadForm button[type="submit"]');
+            const original = btn ? btn.textContent : 'Save';
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Saving...';
+            }
 
             try {
                 const loadData = {
@@ -1148,13 +1060,125 @@ Miles: ${load.mileage?.total || 0}
                 renderLoads();
                 Utils.showNotification('Load saved successfully!', 'success');
             } catch (err) {
-                Utils.showNotification('Error saving load', 'error');
+                Utils.showNotification('Error saving load: ' + (err.message || 'Unknown error'), 'error');
                 console.error(err);
+                throw err; // Re-throw so universal handler can catch it
             } finally {
-                btn.disabled = false;
-                btn.textContent = original;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = original;
+                }
             }
-        });
+        };
+
+        // Rate Confirmation Upload Handler
+        async function handleConfirmationUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileName = file.name;
+            document.getElementById('uploadFileName').textContent = fileName;
+            document.getElementById('uploadProgress').classList.remove('hidden');
+            document.getElementById('clearUploadBtn').classList.remove('hidden');
+
+            try {
+                // Process the document with OCR
+                const result = await OCRService.processDocument(file);
+                
+                if (result && result.fields) {
+                    const fields = result.fields;
+                    
+                    // Populate form fields with extracted data
+                    if (fields.loadNumber) {
+                        document.getElementById('loadNumber').value = fields.loadNumber;
+                    }
+                    
+                    if (fields.rate) {
+                        document.getElementById('totalRate').value = fields.rate;
+                    }
+                    
+                    if (fields.miles) {
+                        document.getElementById('totalMiles').value = fields.miles;
+                    }
+                    
+                    if (fields.ratePerMile) {
+                        document.getElementById('ratePerMile').value = fields.ratePerMile;
+                    } else if (fields.rate && fields.miles) {
+                        // Calculate rate per mile if not found
+                        const rpm = (fields.rate / fields.miles).toFixed(2);
+                        document.getElementById('ratePerMile').value = rpm;
+                    }
+                    
+                    if (fields.pickupCity) {
+                        document.getElementById('pickupCity').value = fields.pickupCity;
+                    }
+                    
+                    if (fields.pickupState) {
+                        document.getElementById('pickupState').value = fields.pickupState;
+                    }
+                    
+                    if (fields.pickupZip) {
+                        document.getElementById('pickupZip').value = fields.pickupZip;
+                    }
+                    
+                    if (fields.deliveryCity) {
+                        document.getElementById('deliveryCity').value = fields.deliveryCity;
+                    }
+                    
+                    if (fields.deliveryState) {
+                        document.getElementById('deliveryState').value = fields.deliveryState;
+                    }
+                    
+                    if (fields.deliveryZip) {
+                        document.getElementById('deliveryZip').value = fields.deliveryZip;
+                    }
+                    
+                    if (fields.pickupDate) {
+                        // Convert date to datetime-local format
+                        const pickupDate = new Date(fields.pickupDate);
+                        const localDate = new Date(pickupDate.getTime() - pickupDate.getTimezoneOffset() * 60000);
+                        document.getElementById('pickupDate').value = localDate.toISOString().slice(0, 16);
+                    }
+                    
+                    if (fields.deliveryDate) {
+                        // Convert date to datetime-local format
+                        const deliveryDate = new Date(fields.deliveryDate);
+                        const localDate = new Date(deliveryDate.getTime() - deliveryDate.getTimezoneOffset() * 60000);
+                        document.getElementById('deliveryDate').value = localDate.toISOString().slice(0, 16);
+                    }
+                    
+                    // Try to match customer by shipper name
+                    if (fields.shipper) {
+                        const customerSelect = document.getElementById('customer');
+                        const shipperName = fields.shipper.toLowerCase();
+                        
+                        // Try to find matching customer
+                        for (let i = 0; i < customerSelect.options.length; i++) {
+                            const option = customerSelect.options[i];
+                            if (option.text.toLowerCase().includes(shipperName) || 
+                                shipperName.includes(option.text.toLowerCase())) {
+                                customerSelect.value = option.value;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Show success notification
+                    Utils.showNotification(`Successfully extracted data from ${fileName}! Please review and complete any missing fields.`, 'success');
+                    
+                    // Scroll to top of form to show populated fields
+                    document.querySelector('#loadModal .modal-content').scrollTop = 0;
+                } else {
+                    Utils.showNotification('Could not extract data from document. Please enter information manually.', 'warning');
+                }
+            } catch (error) {
+                console.error('Error processing confirmation:', error);
+                Utils.showNotification('Error processing document. Please enter information manually.', 'error');
+            } finally {
+                document.getElementById('uploadProgress').classList.add('hidden');
+            }
+        }
+
 
         // Filters
         ['statusFilter', 'driverFilter', 'customerFilter', 'searchInput'].forEach(id => {

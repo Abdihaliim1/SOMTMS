@@ -16,7 +16,7 @@ const CONFIG = {
     },
     api: {
         googleMapsKey: 'YOUR_GOOGLE_MAPS_API_KEY',
-        googleVisionKey: 'AIzaSyDqPRd6ol1hIdPH5bm0ujmuJ8V6W0yPpSA'
+        // Document processing API will be added here
     },
     firebase: {
         apiKey: "AIzaSyBBCw37DQMfSduVD9AN3wxQCemLpZpdQr8",
@@ -487,51 +487,9 @@ const Utils = {
         weekEnd.setDate(weekStart.getDate() + 6);
         weekEnd.setHours(23, 59, 59, 999);
         return weekEnd;
-    },
-
-    // Process rate confirmation using Google Vision OCR
-    processRateConfirmation: async (file) => {
-        const reader = new FileReader();
-
-        return new Promise((resolve, reject) => {
-            reader.onload = async function (e) {
-                try {
-                    const base64Image = e.target.result.split(',')[1];
-
-                    const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${CONFIG.api.googleVisionKey}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            requests: [{
-                                image: { content: base64Image },
-                                features: [{ type: 'DOCUMENT_TEXT_DETECTION' }]
-                            }]
-                        })
-                    });
-
-                    const result = await response.json();
-
-                    if (result.responses && result.responses[0]) {
-                        const text = result.responses[0].fullTextAnnotation?.text || '';
-                        resolve(text);
-                    } else {
-                        reject(new Error('No text detected in image'));
-                    }
-                } catch (error) {
-                    console.error('OCR Error:', error);
-                    reject(error);
-                }
-            };
-
-            reader.onerror = function (error) {
-                reject(error);
-            };
-
-            reader.readAsDataURL(file);
-        });
     }
+
+    // Document processing function will be added here
 };
 
 // Compliance & Expiration Checking

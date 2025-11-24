@@ -16,7 +16,12 @@ const CONFIG = {
     },
     api: {
         googleMapsKey: 'YOUR_GOOGLE_MAPS_API_KEY',
-        // Document processing API will be added here
+        googleVisionKey: 'AIzaSyDqPRd6ol1hIdPH5bm0ujmuJ8V6W0yPpSA',
+        documentAI: {
+            projectId: '38991892094',
+            location: 'us',
+            processorId: '4b1ab3a467aa0beb'
+        }
     },
     firebase: {
         apiKey: "AIzaSyBBCw37DQMfSduVD9AN3wxQCemLpZpdQr8",
@@ -487,6 +492,58 @@ const Utils = {
         weekEnd.setDate(weekStart.getDate() + 6);
         weekEnd.setHours(23, 59, 59, 999);
         return weekEnd;
+    },
+
+    // Process PDF rate confirmations using Google Document AI
+    processPDFRateConfirmation: async (file) => {
+        const reader = new FileReader();
+
+        return new Promise((resolve, reject) => {
+            reader.onload = async function (e) {
+                try {
+                    const base64PDF = e.target.result.split(',')[1];
+
+                    const endpoint = `https://us-documentai.googleapis.com/v1/projects/${CONFIG.api.documentAI.projectId}/locations/${CONFIG.api.documentAI.location}/processors/${CONFIG.api.documentAI.processorId}:process`;
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${CONFIG.api.googleVisionKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            rawDocument: {
+                                content: base64PDF,
+                                mimeType: 'application/pdf'
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Document AI API error: ${response.status} - ${errorText}`);
+                    }
+
+                    const result = await response.json();
+                    const text = result.document?.text || '';
+
+                    if (!text) {
+                        throw new Error('No text extracted from PDF');
+                    }
+
+                    resolve(text);
+                } catch (error) {
+                    console.error('PDF Processing Error:', error);
+                    reject(error);
+                }
+            };
+
+            reader.onerror = function (error) {
+                reject(error);
+            };
+
+            reader.readAsDataURL(file);
+        });
     }
 
     // Document processing function will be added here

@@ -17,6 +17,9 @@ const CONFIG = {
     api: {
         googleMapsKey: 'YOUR_GOOGLE_MAPS_API_KEY',
         googleVisionKey: 'AIzaSyDqPRd6ol1hIdPH5bm0ujmuJ8V6W0yPpSA',
+        // PASTE YOUR OAUTH TOKEN HERE
+        // Run 'gcloud auth print-access-token' in terminal to get one
+        accessToken: 'PASTE_YOUR_ACCESS_TOKEN_HERE',
         documentAI: {
             projectId: '38991892094',
             location: 'us',
@@ -501,6 +504,11 @@ const Utils = {
         return new Promise((resolve, reject) => {
             reader.onload = async function (e) {
                 try {
+                    // Check if access token is configured
+                    if (!CONFIG.api.accessToken || CONFIG.api.accessToken === 'PASTE_YOUR_ACCESS_TOKEN_HERE') {
+                        throw new Error('Missing OAuth Access Token. Please update CONFIG.api.accessToken in main.js');
+                    }
+
                     const base64PDF = e.target.result.split(',')[1];
 
                     const endpoint = `https://us-documentai.googleapis.com/v1/projects/${CONFIG.api.documentAI.projectId}/locations/${CONFIG.api.documentAI.location}/processors/${CONFIG.api.documentAI.processorId}:process`;
@@ -508,7 +516,7 @@ const Utils = {
                     const response = await fetch(endpoint, {
                         method: 'POST',
                         headers: {
-                            'Authorization': `Bearer ${CONFIG.api.googleVisionKey}`,
+                            'Authorization': `Bearer ${CONFIG.api.accessToken}`,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({

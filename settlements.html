@@ -16,15 +16,15 @@
         }
 
         .bg-navy {
-            background-color: #1e3a8a;
+            background-color: #1f2937;
         }
 
         .text-navy {
-            color: #1e3a8a;
+            color: #1f2937;
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background-color: #1f2937;
         }
 
         .card-shadow {
@@ -52,7 +52,7 @@
         }
 
         .nav-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .modal {
@@ -91,8 +91,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-4">
-                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="company-logo" style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1e3a8a;">ATS</div>
+                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="company-logo"
+                        style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1f2937;">
+                        ATS</div>
                     <div>
                         <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
                         <p class="text-sm opacity-90">Transportation Management System</p>
@@ -352,15 +355,15 @@
                     </div>
                     <div class="bg-gray-50 rounded-lg p-4">
                         <h5 class="font-semibold text-gray-900 mb-2">Settlement Period</h5>
-                        <p class="text-sm text-gray-600">Week 42, 2025</p>
-                        <p class="text-sm text-gray-600">Oct 14 - Oct 20, 2025</p>
-                        <p class="text-sm text-gray-600">Generated: Oct 21, 2025</p>
+                        <p class="text-sm text-gray-600" id="modalPeriodWeek">-</p>
+                        <p class="text-sm text-gray-600" id="modalPeriodDate">-</p>
+                        <p class="text-sm text-gray-600" id="modalGeneratedDate">-</p>
                     </div>
                     <div class="bg-gray-50 rounded-lg p-4">
                         <h5 class="font-semibold text-gray-900 mb-2">Payment Summary</h5>
-                        <p class="text-sm text-gray-600">Gross Pay: $1,925.00</p>
-                        <p class="text-sm text-gray-600">Deductions: $1,359.89</p>
-                        <p class="text-sm font-bold text-gray-900">Net Pay: $565.11</p>
+                        <p class="text-sm text-gray-600" id="modalGrossPay">Gross Pay: $0.00</p>
+                        <p class="text-sm text-gray-600" id="modalDeductions">Deductions: $0.00</p>
+                        <p class="text-sm font-bold text-gray-900" id="modalNetPay">Net Pay: $0.00</p>
                     </div>
                 </div>
 
@@ -378,28 +381,8 @@
                                             Amount</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-900">Base Pay (2,500 miles × $0.65)</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$1,625.00</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-900">Fuel Surcharge</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$125.00</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-900">Detention Pay (2 hrs)</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$75.00</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-900">Safety Bonus</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$100.00</td>
-                                    </tr>
-                                    <tr class="bg-gray-50">
-                                        <td class="px-4 py-2 text-sm font-semibold text-gray-900">Total Gross Pay</td>
-                                        <td class="px-4 py-2 text-sm font-semibold text-gray-900 text-right">$1,925.00
-                                        </td>
-                                    </tr>
+                                <tbody class="bg-white divide-y divide-gray-200" id="modalEarningsBody">
+                                    <!-- Populated by JS -->
                                 </tbody>
                             </table>
                         </div>
@@ -413,40 +396,8 @@
                                             Amount</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-900">Fuel Advance</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$800.00</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-900">Cash Advance</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$200.00</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-900">Insurance</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$45.00</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-900">Federal Tax</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$144.38</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-900">State Tax</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$38.25</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-900">Social Security</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$119.35</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2 text-sm text-gray-900">Medicare</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">$27.91</td>
-                                    </tr>
-                                    <tr class="bg-gray-50">
-                                        <td class="px-4 py-2 text-sm font-semibold text-gray-900">Total Deductions</td>
-                                        <td class="px-4 py-2 text-sm font-semibold text-gray-900 text-right">$1,359.89
-                                        </td>
-                                    </tr>
+                                <tbody class="bg-white divide-y divide-gray-200" id="modalDeductionsBody">
+                                    <!-- Populated by JS -->
                                 </tbody>
                             </table>
                         </div>
@@ -461,12 +412,16 @@
                             <tr>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Load #</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
-                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Miles</th>
-                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Rate</th>
-                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Gross</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Commission
+                                </th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Expenses
+                                </th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Net Pay
+                                </th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="bg-white divide-y divide-gray-200" id="modalLoadsBody">
                             <!-- Loads will be populated dynamically when driver is selected -->
                         </tbody>
                     </table>
@@ -478,13 +433,25 @@
                         class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                         Close
                     </button>
-                    <button onclick="downloadSettlement()"
+                    <button id="modalDownloadBtn" onclick="downloadSettlement()"
                         class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         <i class="fas fa-download mr-2"></i>Download PDF
                     </button>
-                    <button onclick="printSettlement()"
+                    <button id="modalPrintBtn" onclick="printSettlement()"
                         class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                         <i class="fas fa-print mr-2"></i>Print
+                    </button>
+                    <button id="modalMarkPaidBtn" onclick="markSettlementAsPaid()"
+                        class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors hidden">
+                        <i class="fas fa-check-circle mr-2"></i>Mark as Paid
+                    </button>
+                    <button id="modalMarkProcessedBtn" onclick="markSettlementAsProcessed()"
+                        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors hidden">
+                        <i class="fas fa-check mr-2"></i>Mark as Processed
+                    </button>
+                    <button id="modalSendEmailBtn" onclick="sendSettlementEmail()"
+                        class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-envelope mr-2"></i>Send Email
                     </button>
                 </div>
             </div>
@@ -578,20 +545,35 @@
 
                             <!-- Driver Expenses -->
                             <div class="mb-6 pb-4 border-b border-gray-200">
-                                <h4 class="text-sm font-bold text-gray-700 uppercase mb-3">Driver Expenses (Auto-matched to Loads)</h4>
+                                <h4 class="text-sm font-bold text-gray-700 uppercase mb-3">Driver Expenses (Owner
+                                    Operators Only)</h4>
+                                <p class="text-xs text-gray-500 mb-2">Company drivers do not have expense deductions.
+                                    Only advances and lumper fees apply.</p>
                                 <div class="overflow-x-auto border rounded-lg mb-3 max-h-48 overflow-y-auto">
                                     <table class="min-w-full divide-y divide-gray-200">
                                         <thead class="bg-gray-50 sticky top-0">
                                             <tr>
-                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                                    <input type="checkbox" id="toggleAllExpenses" class="w-4 h-4 text-blue-600 rounded" 
+                                                <th
+                                                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    <input type="checkbox" id="toggleAllExpenses"
+                                                        class="w-4 h-4 text-blue-600 rounded"
                                                         onchange="toggleAllExpenses(this)">
                                                 </th>
-                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Linked Load</th>
-                                                <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                                <th
+                                                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Date</th>
+                                                <th
+                                                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Type</th>
+                                                <th
+                                                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Description</th>
+                                                <th
+                                                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Linked Load</th>
+                                                <th
+                                                    class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
+                                                    Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody id="driverExpensesBody" class="bg-white divide-y divide-gray-200">
@@ -626,7 +608,8 @@
                                         <label class="block text-xs font-medium text-gray-500 mb-1">Insurance</label>
                                         <div class="relative">
                                             <span class="absolute left-3 top-2 text-gray-500">$</span>
-                                            <input type="number" id="insuranceDeduction" value="" step="0.01" placeholder="Auto-calculated"
+                                            <input type="number" id="insuranceDeduction" value="" step="0.01"
+                                                placeholder="Auto-calculated"
                                                 class="w-full pl-6 pr-3 py-2 border rounded-md focus:ring-blue-500"
                                                 oninput="calculateSettlementTotal()">
                                         </div>
@@ -686,7 +669,8 @@
     <footer class="mt-12 py-8 border-t border-gray-200">
         <div class="text-center">
             <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
-            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT 3169186</p>
+            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT
+                3169186</p>
         </div>
     </footer>
 
@@ -696,6 +680,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <script src="main.js"></script>
+    <script src="populate-mock-data.js"></script>
     <script>
         // === FORCE GLOBAL EXPORTS FIRST — THIS FIXES EVERYTHING ===
         // Expose functions immediately so onclick handlers can find them
@@ -757,13 +742,13 @@
                             }
                             calculateSettlementTotal(); // Recalculate with new insurance
                         }
-                        
+
                         // Update driver info display
                         if (driver) {
                             const driverNameEl = document.getElementById('selectedDriverName');
                             const paymentTypeEl = document.getElementById('selectedDriverPaymentType');
                             const rateEl = document.getElementById('selectedDriverRate');
-                            
+
                             if (driverNameEl) {
                                 driverNameEl.textContent = `${driver.firstName} ${driver.lastName} (${driver.driverNumber || 'No ID'})`;
                             }
@@ -773,7 +758,11 @@
                             }
                             if (rateEl) {
                                 if (driver.payment?.type === 'percentage') {
-                                    rateEl.textContent = `Rate: ${driver.payment.percentage || driver.payment.rate || 75}%`;
+                                    // Display payPercentage as percentage (multiply by 100 if stored as decimal)
+                                    const displayPercentage = driver.payPercentage
+                                        ? (driver.payPercentage > 1 ? driver.payPercentage : driver.payPercentage * 100).toFixed(0)
+                                        : '75';
+                                    rateEl.textContent = `Rate: ${displayPercentage}%`;
                                 } else {
                                     rateEl.textContent = `Rate: ${Utils.formatCurrency(driver.payment?.perMileRate || 0.65)}/mile`;
                                 }
@@ -945,7 +934,7 @@
             // Get selected expenses
             const checkedExpenses = document.querySelectorAll('.expense-checkbox:checked');
             const expenseIds = Array.from(checkedExpenses).map(cb => cb.value);
-            
+
             // Calculate expenses total
             let expensesTotal = 0;
             checkedExpenses.forEach(cb => {
@@ -971,32 +960,137 @@
 
             const grossPay = basePay + detentionTotal;
 
-            // Manual deductions
-            const fuel = parseFloat(document.getElementById('fuelDeduction').value) || 0;
-            const insurance = parseFloat(document.getElementById('insuranceDeduction').value) || 0;
-            const other = parseFloat(document.getElementById('otherDeduction').value) || 0;
-
-            // Calculate tax deductions based on driver type
+            // Get driver info
             const driver = DataManager.drivers.find(d => d.id === driverId);
-            const isOwnerOperator = driver?.payment?.type === 'percentage' || driver?.payment?.type === 'owner_operator';
-            
-            // Tax calculations (only for company drivers, not owner operators)
-            const taxes = {
-                federal: isOwnerOperator ? 0 : grossPay * 0.075, // 7.5% federal tax
-                state: isOwnerOperator ? 0 : grossPay * 0.02,     // 2% state tax
-                socialSecurity: isOwnerOperator ? 0 : grossPay * 0.062, // 6.2% social security
-                medicare: isOwnerOperator ? 0 : grossPay * 0.0145  // 1.45% medicare
-            };
-            
-            const totalTaxes = Object.values(taxes).reduce((sum, tax) => sum + tax, 0);
-            
-            // Auto-calculate insurance if not manually entered (only for company drivers)
-            let insuranceDeduction = insurance;
-            if (!insurance && !isOwnerOperator) {
-                insuranceDeduction = 45.00; // Default insurance deduction for company drivers
+            const driverType = driver?.driverType;
+            const isOwnerOperator = driverType === 'owner_operator';
+            const isCompanyDriver = driverType === 'company';
+            const isOwner = driverType === 'owner';
+            const deductionPrefs = driver?.deductionPreferences || {};
+
+            // Calculate deductions based on driver type
+            let fuelDeduction = 0;
+            let insuranceDeduction = 0;
+            let maintenanceDeduction = 0;
+            let otherExpenseDeduction = 0;
+            let calculatedExpensesTotal = 0;
+
+            // For Owner Operators: Calculate deductions based on preferences
+            if (isOwnerOperator && deductionPrefs) {
+                const selectedLoads = loadIds.map(id => DataManager.loads.find(l => l.id === id)).filter(Boolean);
+
+                // Calculate fuel deduction (from expenses - only if paid_by == "company")
+                if (deductionPrefs.fuel) {
+                    checkedExpenses.forEach(cb => {
+                        const expenseId = cb.value;
+                        const expense = DataManager.expenses.find(e => e.id === expenseId);
+                        if (expense) {
+                            const paidBy = expense.paidBy || 'company'; // Default to company
+                            // Only deduct if paid by company
+                            if (paidBy === 'company') {
+                                const expenseType = (expense.type || '').toLowerCase();
+                                if (expenseType.includes('fuel')) {
+                                    fuelDeduction += parseFloat(cb.dataset.amount || 0);
+                                    calculatedExpensesTotal += parseFloat(cb.dataset.amount || 0);
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Calculate maintenance deduction (from expenses - only if paid_by == "company")
+                if (deductionPrefs.maintenance) {
+                    checkedExpenses.forEach(cb => {
+                        const expenseId = cb.value;
+                        const expense = DataManager.expenses.find(e => e.id === expenseId);
+                        if (expense) {
+                            const paidBy = expense.paidBy || 'company'; // Default to company
+                            // Only deduct if paid by company
+                            if (paidBy === 'company') {
+                                const expenseType = (expense.type || '').toLowerCase();
+                                if (expenseType.includes('maintenance') || expenseType.includes('repair')) {
+                                    maintenanceDeduction += parseFloat(cb.dataset.amount || 0);
+                                    calculatedExpensesTotal += parseFloat(cb.dataset.amount || 0);
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Calculate insurance deduction (per load)
+                if (deductionPrefs.insurance) {
+                    // Get monthly insurance amount
+                    const monthlyInsurance = parseFloat(document.getElementById('insuranceDeduction')?.value) ||
+                        parseFloat(driver?.payment?.monthlyInsurance) ||
+                        800; // Default $800/month
+
+                    // Calculate insurance per load: monthly insurance ÷ number of loads
+                    const loadsInPeriod = selectedLoads.length || 1;
+                    insuranceDeduction = monthlyInsurance / loadsInPeriod;
+                    calculatedExpensesTotal += insuranceDeduction;
+                }
+
+                // Calculate other expenses deduction (only if paid_by == "company")
+                if (deductionPrefs.other) {
+                    checkedExpenses.forEach(cb => {
+                        const expenseId = cb.value;
+                        const expense = DataManager.expenses.find(e => e.id === expenseId);
+                        if (expense) {
+                            const paidBy = expense.paidBy || 'company'; // Default to company
+                            // Only deduct if paid by company
+                            if (paidBy === 'company') {
+                                const expenseType = (expense.type || '').toLowerCase();
+                                // Other = not fuel, insurance, or maintenance
+                                if (!expenseType.includes('fuel') && !expenseType.includes('insurance') &&
+                                    !expenseType.includes('maintenance') && !expenseType.includes('repair')) {
+                                    otherExpenseDeduction += parseFloat(cb.dataset.amount || 0);
+                                    calculatedExpensesTotal += parseFloat(cb.dataset.amount || 0);
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Use calculated expenses total instead of manual entry
+                expensesTotal = calculatedExpensesTotal;
+            } else {
+                // For Company Drivers: No expense deductions (company pays everything)
+                expensesTotal = 0;
+                fuelDeduction = 0;
+                insuranceDeduction = 0;
+                maintenanceDeduction = 0;
+                otherExpenseDeduction = 0;
             }
 
-            const totalDeductions = advancesTotal + lumperTotal + expensesTotal + fuel + insuranceDeduction + other + totalTaxes;
+            // ADD MANUAL DEDUCTIONS
+            // These are added ON TOP of any calculated deductions
+            const manualFuel = parseFloat(document.getElementById('fuelDeduction').value) || 0;
+            const manualInsurance = parseFloat(document.getElementById('insuranceDeduction').value) || 0;
+            const manualOther = parseFloat(document.getElementById('otherDeduction').value) || 0;
+
+            fuelDeduction += manualFuel;
+            insuranceDeduction += manualInsurance;
+            otherExpenseDeduction += manualOther;
+
+            // Add manual deductions to total expenses
+            expensesTotal += manualFuel + manualInsurance + manualOther;
+
+            // Tax calculations
+            // Company Drivers and Owner (Driver): Full tax deductions
+            // Owner Operators: No tax deductions (they're independent contractors)
+            const taxes = {
+                federal: 0, // 1099 Contractor - No withholding
+                state: 0,     // 1099 Contractor - No withholding
+                socialSecurity: 0, // 1099 Contractor - No withholding
+                medicare: 0  // 1099 Contractor - No withholding
+            };
+
+            const totalTaxes = Object.values(taxes).reduce((sum, tax) => sum + tax, 0);
+
+            // Total deductions
+            // Company Drivers: Only advances, lumper, and taxes (no expenses)
+            // Owner Operators: Advances, lumper, expenses (based on preferences), no taxes
+            const totalDeductions = advancesTotal + lumperTotal + expensesTotal + totalTaxes;
             const netPay = grossPay - totalDeductions;
 
             // Calculate settlement period (week start and end dates)
@@ -1024,9 +1118,10 @@
                     advances: advancesTotal,
                     lumperFees: lumperTotal,
                     expenses: expensesTotal, // Include expenses in deductions
-                    fuel: fuel,
+                    fuel: fuelDeduction,
                     insurance: insuranceDeduction,
-                    other: other,
+                    maintenance: maintenanceDeduction,
+                    other: otherExpenseDeduction,
                     taxes: taxes
                 },
                 totalDeductions,
@@ -1052,6 +1147,13 @@
                 if (window.loadDriverExpenses) loadDriverExpenses();
                 renderSettlements();
                 updateSettlementStats();
+
+                // Prompt to send email notification
+                setTimeout(() => {
+                    if (confirm('Settlement created successfully! Send email notification to driver?')) {
+                        sendSettlementEmail(id);
+                    }
+                }, 500);
             } catch (e) {
                 Utils.showNotification('Error: ' + e.message, 'error');
             }
@@ -1068,7 +1170,7 @@
             const printWindow = window.open('', '_blank');
             const formatCurrency = (amt) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amt || 0);
             const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            
+
             // Format period display
             let periodDisplay = settlement.period?.display;
             if (!periodDisplay && settlement.period?.startDate && settlement.period?.endDate) {
@@ -1077,29 +1179,47 @@
                 periodDisplay = settlement.period || 'N/A';
             }
 
-            // Helper to calculate driver pay correctly
-            const calculateDriverPay = (load) => {
-                if (!driver) return 0;
+            // Helper to calculate driver pay correctly and return details
+            const calculateDriverPayDetails = (load) => {
+                if (!driver) return { pay: 0, calculation: 'N/A', rate: 0, percentage: 0 };
                 const totalRate = parseFloat(load.rate?.total) || 0;
                 const miles = parseFloat(load.mileage?.total) || 0;
 
                 if (driver.payment?.type === 'percentage' && totalRate > 0) {
-                    const rawValue = driver.payment.percentage;
-                    let percentage = 0;
-                    // Robust percentage parsing
-                    if (typeof rawValue === 'string' && rawValue.includes('%')) {
-                        percentage = parseFloat(rawValue.replace('%', '')) / 100;
-                    } else {
-                        const numValue = parseFloat(rawValue);
-                        // If value is > 1, assume it's a percentage (e.g., 40 means 40%)
-                        percentage = numValue > 1 ? numValue / 100 : numValue;
-                    }
-                    return totalRate * percentage;
-                } else {
+                    // Use ONLY driver.payPercentage (stored as decimal 0-1)
+                    const driverPayPercentage = Utils.validatePayPercentage(driver.payPercentage, driver.driverType);
+                    const pay = totalRate * driverPayPercentage;
+                    const percentageDisplay = (driverPayPercentage * 100).toFixed(0) + '%';
+                    return {
+                        pay: pay,
+                        calculation: `${formatCurrency(totalRate)} × ${percentageDisplay} = ${formatCurrency(pay)}`,
+                        rate: totalRate,
+                        percentage: percentageDisplay
+                    };
+                } else if (driver.payment?.type === 'per_mile' && miles > 0) {
                     const ratePerMile = parseFloat(driver.payment?.perMileRate) || 0.64;
-                    return miles * ratePerMile;
+                    const pay = miles * ratePerMile;
+                    return {
+                        pay: pay,
+                        calculation: `${miles.toLocaleString()} miles × ${formatCurrency(ratePerMile)}/mile = ${formatCurrency(pay)}`,
+                        rate: totalRate,
+                        miles: miles,
+                        ratePerMile: ratePerMile
+                    };
+                } else {
+                    return { pay: 0, calculation: 'N/A', rate: totalRate };
                 }
             };
+
+            // Helper to get expenses for a specific load
+            const getLoadExpenses = (loadId) => {
+                return expenses.filter(exp => exp.loadId === loadId);
+            };
+
+            // Get driver type
+            const driverType = driver?.driverType || 'company';
+            const isOwnerOperator = driverType === 'owner_operator';
+            const deductionPrefs = driver?.deductionPreferences || {};
 
             // Get deduction details
             const deductions = settlement.deductions || {};
@@ -1123,13 +1243,13 @@
                         .header { 
                             display: flex; 
                             justify-content: space-between; 
-                            border-bottom: 3px solid #1e3a8a; 
+                            border-bottom: 3px solid #1f2937; 
                             padding-bottom: 8px; 
                             margin-bottom: 10px; 
                         }
                         .company h1 { 
                             margin: 0 0 3px 0; 
-                            color: #1e3a8a; 
+                            color: #1f2937; 
                             font-size: 24px; 
                             font-weight: 700;
                             line-height: 1.2;
@@ -1145,7 +1265,7 @@
                         }
                         .settlement-info h2 { 
                             margin: 0 0 3px 0; 
-                            color: #1e3a8a; 
+                            color: #1f2937; 
                             font-size: 18px;
                             font-weight: 600;
                             line-height: 1.2;
@@ -1163,7 +1283,7 @@
                             margin-bottom: 10px;
                         }
                         .driver-info h3 {
-                            color: #1e3a8a;
+                            color: #1f2937;
                             font-size: 14px;
                             margin-bottom: 4px;
                             line-height: 1.2;
@@ -1178,7 +1298,7 @@
                             margin: 10px 0;
                         }
                         .section-title {
-                            color: #1e3a8a;
+                            color: #1f2937;
                             font-size: 14px;
                             font-weight: 600;
                             margin-bottom: 6px;
@@ -1200,7 +1320,7 @@
                             line-height: 1.2;
                         }
                         th { 
-                            background-color: #1e3a8a;
+                            background-color: #1f2937;
                             color: #fff;
                             font-weight: 600;
                             text-transform: uppercase;
@@ -1242,7 +1362,7 @@
                             font-weight: 600;
                             padding-top: 6px;
                             margin-top: 4px;
-                            border-top: 2px solid #1e3a8a;
+                            border-top: 2px solid #1f2937;
                         }
                         .summary-label {
                             color: #666;
@@ -1258,7 +1378,7 @@
                             color: #ef4444;
                         }
                         .net-pay-box {
-                            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+                            background-color: #1f2937;
                             color: #fff;
                             padding: 12px;
                             border-radius: 4px;
@@ -1300,7 +1420,7 @@
                             <div style="display:flex; align-items:center; gap:15px; margin-bottom:10px;">
                                 <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" style="height:60px; width:auto;" onerror="this.style.display='none';">
                                 <div>
-                                    <h1 style="margin:0; color:#1e3a8a; font-size:28px; font-weight:700;">ATS FREIGHT LLC</h1>
+                                    <h1 style="margin:0; color:#1f2937; font-size:28px; font-weight:700;">ATS FREIGHT LLC</h1>
                                     <p style="margin:5px 0 0 0; color:#666; font-size:12px;">DOT 3169186</p>
                                 </div>
                             </div>
@@ -1321,8 +1441,44 @@
                         <p><strong>Total Miles:</strong> ${settlement.totalMiles || 0}</p>
                     </div>
 
+                    ${loads.length > 0 ? `
                     <div class="section">
-                        <h3 class="section-title">Earnings Breakdown</h3>
+                        <h3 class="section-title">Itemized Loads & Earnings</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Load #</th>
+                                    <th>Date</th>
+                                    <th>Route</th>
+                                    <th class="amount">Load Amount</th>
+                                    <th>Calculation</th>
+                                    <th class="amount">Gross Pay</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${loads.map(l => {
+                const payDetails = calculateDriverPayDetails(l);
+                return `<tr>
+                                        <td><strong>${l.loadNumber || 'N/A'}</strong></td>
+                                        <td>${formatDate(l.delivery?.date || l.updatedAt || l.createdAt)}</td>
+                                        <td><strong>${l.loadNumber || 'N/A'}</strong>: ${(l.pickup?.city || 'N/A')} → ${(l.delivery?.city || 'N/A')}</td>
+                                        <td class="amount">${formatCurrency(payDetails.rate || 0)}</td>
+                                        <td style="font-size: 10px; color: #666;">${payDetails.calculation}</td>
+                                        <td class="amount"><strong>${formatCurrency(payDetails.pay)}</strong></td>
+                                    </tr>`;
+            }).join('')}
+                                <tr style="background-color: #e0f2fe; font-weight: 600;">
+                                    <td colspan="5"><strong>GROSS PAY</strong></td>
+                                    <td class="amount"><strong>${formatCurrency(settlement.grossPay)}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    ` : ''}
+                    
+                    ${settlement.detentionPay > 0 ? `
+                    <div class="section">
+                        <h3 class="section-title">Additional Earnings</h3>
                         <table>
                             <thead>
                                 <tr>
@@ -1332,52 +1488,101 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>Base Driver Pay</td>
-                                    <td class="amount">${formatCurrency(settlement.basePay || 0)}</td>
-                                </tr>
-                                ${settlement.detentionPay > 0 ? `
-                                <tr>
                                     <td>Detention Pay</td>
                                     <td class="amount">${formatCurrency(settlement.detentionPay)}</td>
                                 </tr>
-                                ` : ''}
-                                <tr style="background-color: #e0f2fe; font-weight: 600;">
-                                    <td>Total Gross Pay</td>
-                                    <td class="amount">${formatCurrency(settlement.grossPay)}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    ${loads.length > 0 ? `
-                    <div class="section">
-                        <h3 class="section-title">Associated Loads</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Load #</th>
-                                    <th>Date</th>
-                                    <th>Route</th>
-                                    <th class="amount">Gross Rate</th>
-                                    <th class="amount">Driver Pay</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${loads.map(l => `<tr>
-                                    <td>${l.loadNumber || 'N/A'}</td>
-                                    <td>${formatDate(l.delivery?.date || l.updatedAt || l.createdAt)}</td>
-                                    <td>${(l.pickup?.city || 'N/A')} → ${(l.delivery?.city || 'N/A')}</td>
-                                    <td class="amount">${formatCurrency(l.rate?.total || 0)}</td>
-                                    <td class="amount">${formatCurrency(calculateDriverPay(l))}</td>
-                                </tr>`).join('')}
                             </tbody>
                         </table>
                     </div>
                     ` : ''}
 
-                    ${expenses.length > 0 ? `
+                    ${isOwnerOperator && expenses.length > 0 ? `
                     <div class="section">
-                        <h3 class="section-title">Expenses</h3>
+                        <h3 class="section-title">Itemized Deductions</h3>
+                        ${loads.map(l => {
+                const loadExpenses = getLoadExpenses(l.id);
+                if (loadExpenses.length === 0) return '';
+
+                // Group expenses by type
+                const fuelExpenses = loadExpenses.filter(e => (e.type || '').toLowerCase().includes('fuel'));
+                const maintenanceExpenses = loadExpenses.filter(e => (e.type || '').toLowerCase().includes('maintenance') || (e.type || '').toLowerCase().includes('repair'));
+                const otherExpenses = loadExpenses.filter(e => {
+                    const type = (e.type || '').toLowerCase();
+                    return !type.includes('fuel') && !type.includes('maintenance') && !type.includes('repair') && !type.includes('insurance');
+                });
+
+                let html = `<div style="margin-bottom: 15px;">
+                                <h4 style="color: #1f2937; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Load #${l.loadNumber || 'N/A'}</h4>
+                                <table style="margin-bottom: 10px;">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 30%;">Type</th>
+                                            <th style="width: 50%;">Description</th>
+                                            <th class="amount" style="width: 20%;">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+
+                // Fuel deductions
+                if (deductionPrefs.fuel && fuelExpenses.length > 0) {
+                    fuelExpenses.forEach(e => {
+                        const expDesc = e.description || e.vendor?.name || 'Fuel';
+                        html += `<tr>
+                                        <td>Fuel</td>
+                                        <td>${expDesc}</td>
+                                        <td class="amount">-${formatCurrency(e.amount || 0)}</td>
+                                    </tr>`;
+                    });
+                }
+
+                // Maintenance deductions
+                if (deductionPrefs.maintenance && maintenanceExpenses.length > 0) {
+                    maintenanceExpenses.forEach(e => {
+                        const expDesc = e.description || e.vendor?.name || 'Maintenance';
+                        html += `<tr>
+                                        <td>Maintenance</td>
+                                        <td>${expDesc}</td>
+                                        <td class="amount">-${formatCurrency(e.amount || 0)}</td>
+                                    </tr>`;
+                    });
+                }
+
+                // Other deductions
+                if (deductionPrefs.other && otherExpenses.length > 0) {
+                    otherExpenses.forEach(e => {
+                        const expType = (e.type || 'other').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        const expDesc = e.description || e.vendor?.name || expType;
+                        html += `<tr>
+                                        <td>${expType}</td>
+                                        <td>${expDesc}</td>
+                                        <td class="amount">-${formatCurrency(e.amount || 0)}</td>
+                                    </tr>`;
+                    });
+                }
+
+                html += `</tbody></table></div>`;
+                return html;
+            }).join('')}
+                        
+                        ${deductionPrefs.insurance && deductions.insurance > 0 ? `
+                        <div style="margin-bottom: 10px;">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td style="width: 30%;"><strong>Insurance</strong></td>
+                                        <td style="width: 50%;">Monthly insurance (${loads.length} load${loads.length !== 1 ? 's' : ''})</td>
+                                        <td class="amount" style="width: 20%;">-${formatCurrency(deductions.insurance)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+                    
+                    ${!isOwnerOperator && expenses.length > 0 ? `
+                    <div class="section">
+                        <h3 class="section-title">Expenses (Company Paid)</h3>
                         <table>
                             <thead>
                                 <tr>
@@ -1389,22 +1594,19 @@
                             </thead>
                             <tbody>
                                 ${expenses.map(e => {
-                                    const expDate = e.date || e.createdAt;
-                                    const expType = (e.type || 'other').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-                                    const expDesc = e.description || e.subcategory || e.vendor?.name || expType;
-                                    return `<tr>
+                const expDate = e.date || e.createdAt;
+                const expType = (e.type || 'other').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const expDesc = e.description || e.subcategory || e.vendor?.name || expType;
+                return `<tr>
                                         <td>${formatDate(expDate)}</td>
                                         <td>${expType}</td>
                                         <td>${expDesc}</td>
                                         <td class="amount">${formatCurrency(e.amount || 0)}</td>
                                     </tr>`;
-                                }).join('')}
-                                <tr style="background-color: #fee2e2; font-weight: 600;">
-                                    <td colspan="3">Total Expenses</td>
-                                    <td class="amount">${formatCurrency(deductions.expenses || 0)}</td>
-                                </tr>
+            }).join('')}
                             </tbody>
                         </table>
+                        <p style="margin-top: 8px; font-size: 10px; color: #666; font-style: italic;">Note: Company drivers have no expense deductions. All expenses are paid by the company.</p>
                     </div>
                     ` : ''}
 
@@ -1447,38 +1649,28 @@
                                 <span class="summary-value negative">-${formatCurrency(deductions.other)}</span>
                             </div>
                             ` : ''}
-                            ${taxes.federal > 0 || taxes.state > 0 || taxes.socialSecurity > 0 || taxes.medicare > 0 ? `
                             <div class="summary-row" style="margin-top: 10px; padding-top: 15px; border-top: 1px solid #d1d5db;">
                                 <span class="summary-label" style="font-weight: 600;">Taxes:</span>
                                 <span></span>
                             </div>
-                            ${taxes.federal > 0 ? `
                             <div class="summary-row" style="padding-left: 20px;">
                                 <span class="summary-label">Federal Tax</span>
-                                <span class="summary-value negative">-${formatCurrency(taxes.federal)}</span>
+                                <span class="summary-value negative">-${formatCurrency(taxes.federal || 0)}</span>
                             </div>
-                            ` : ''}
-                            ${taxes.state > 0 ? `
                             <div class="summary-row" style="padding-left: 20px;">
                                 <span class="summary-label">State Tax</span>
-                                <span class="summary-value negative">-${formatCurrency(taxes.state)}</span>
+                                <span class="summary-value negative">-${formatCurrency(taxes.state || 0)}</span>
                             </div>
-                            ` : ''}
-                            ${taxes.socialSecurity > 0 ? `
                             <div class="summary-row" style="padding-left: 20px;">
                                 <span class="summary-label">Social Security</span>
-                                <span class="summary-value negative">-${formatCurrency(taxes.socialSecurity)}</span>
+                                <span class="summary-value negative">-${formatCurrency(taxes.socialSecurity || 0)}</span>
                             </div>
-                            ` : ''}
-                            ${taxes.medicare > 0 ? `
                             <div class="summary-row" style="padding-left: 20px;">
                                 <span class="summary-label">Medicare</span>
-                                <span class="summary-value negative">-${formatCurrency(taxes.medicare)}</span>
+                                <span class="summary-value negative">-${formatCurrency(taxes.medicare || 0)}</span>
                             </div>
-                            ` : ''}
-                            ` : ''}
                             <div class="summary-row total">
-                                <span class="summary-label" style="font-weight: 600; color: #1e3a8a;">Total Deductions</span>
+                                <span class="summary-label" style="font-weight: 600; color: #1f2937;">Total Deductions</span>
                                 <span class="summary-value negative" style="font-weight: 600;">-${formatCurrency(settlement.totalDeductions || 0)}</span>
                             </div>
                         </div>
@@ -1492,9 +1684,28 @@
                     <div class="footer">
                         <p>This is a computer-generated settlement statement. Please review all items carefully.</p>
                         <p>Generated on ${new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}</p>
+                        <div style="margin-top: 15px; text-align: center;">
+                            <button onclick="window.print()" style="padding: 10px 20px; background: #1f2937; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; font-size: 12px;">Print</button>
+                            <button onclick="emailSettlement()" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Email to Driver</button>
+                        </div>
                     </div>
 
-                    <script>window.onload = () => window.print();<\/script>
+                    <script>
+                        const driverEmail = ${driver?.personalInfo?.email || driver?.email ? JSON.stringify(driver.personalInfo?.email || driver.email) : 'null'};
+                        const settlementNumber = ${JSON.stringify(settlement.settlementNumber)};
+                        const periodDisplayStr = ${JSON.stringify(periodDisplay)};
+                        function emailSettlement() {
+                            if (driverEmail) {
+                                const subject = encodeURIComponent('Settlement ' + settlementNumber);
+                                const body = encodeURIComponent('Please find your settlement statement for period ' + periodDisplayStr + '.');
+                                window.location.href = 'mailto:' + driverEmail + '?subject=' + subject + '&body=' + body;
+                            } else {
+                                alert('Driver email not found. Please contact the driver directly.');
+                            }
+                        }
+                        // Auto-print can be enabled by uncommenting the line below
+                        // window.onload = () => window.print();
+                    <\/script>
                 </body>
                 </html>
             `);
@@ -1556,6 +1767,7 @@
 
                 // Refresh the UI
                 if (window.renderSettlements) window.renderSettlements();
+                if (window.initializeSettlementCharts) window.initializeSettlementCharts();
 
                 Utils.showNotification('Settlement deleted successfully', 'success');
             } catch (error) {
@@ -1567,12 +1779,284 @@
         // Expose to global scope
         window.deleteSettlement = deleteSettlement;
 
+        async function markSettlementAsPaid(settlementId) {
+            if (!confirm('Mark this settlement as PAID? This action cannot be undone.')) return;
+
+            try {
+                // Update settlement status
+                await DataManager.updateSettlement(settlementId, {
+                    status: 'paid',
+                    paidAt: new Date().toISOString()
+                });
+
+                // Refresh UI
+                if (window.renderSettlements) window.renderSettlements();
+                if (window.initializeSettlementCharts) window.initializeSettlementCharts();
+
+                // Close modal
+                closeModal();
+
+                Utils.showNotification('Settlement marked as PAID', 'success');
+            } catch (error) {
+                console.error('Error updating settlement:', error);
+                Utils.showNotification('Error updating settlement: ' + error.message, 'error');
+            }
+        }
+        window.markSettlementAsPaid = markSettlementAsPaid;
+
+        async function markSettlementAsProcessed(settlementId) {
+            if (!confirm('Mark this settlement as PROCESSED? This indicates the settlement has been reviewed and approved.')) return;
+
+            try {
+                // Update settlement status
+                await DataManager.updateSettlement(settlementId, {
+                    status: 'processed',
+                    processedAt: new Date().toISOString()
+                });
+
+                // Refresh UI
+                if (window.renderSettlements) window.renderSettlements();
+                if (window.initializeSettlementCharts) window.initializeSettlementCharts();
+
+                // Close modal
+                closeModal();
+
+                Utils.showNotification('Settlement marked as PROCESSED', 'success');
+            } catch (error) {
+                console.error('Error updating settlement:', error);
+                Utils.showNotification('Error updating settlement: ' + error.message, 'error');
+            }
+        }
+        window.markSettlementAsProcessed = markSettlementAsProcessed;
+
+        function sendSettlementEmail(settlementId) {
+            const settlement = DataManager.getSettlement(settlementId);
+            if (!settlement) {
+                Utils.showNotification('Settlement not found', 'error');
+                return;
+            }
+
+            const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
+            const driverEmail = driver?.personalInfo?.email || driver?.email;
+
+            if (!driverEmail) {
+                Utils.showNotification('Driver email not found. Please add email to driver profile.', 'warning');
+                return;
+            }
+
+            const subject = encodeURIComponent(`Settlement ${settlement.settlementNumber} - ${settlement.period?.display || 'Week Settlement'}`);
+            const body = encodeURIComponent(
+                `Dear ${settlement.driverName},\n\n` +
+                `Your settlement ${settlement.settlementNumber} is ready.\n\n` +
+                `Period: ${settlement.period?.display || 'N/A'}\n` +
+                `Gross Pay: $${(settlement.grossPay || 0).toFixed(2)}\n` +
+                `Total Deductions: $${(settlement.totalDeductions || 0).toFixed(2)}\n` +
+                `Net Pay: $${(settlement.netPay || 0).toFixed(2)}\n\n` +
+                `Please review your settlement details in the system.\n\n` +
+                `Best regards,\nATS FREIGHT LLC`
+            );
+
+            window.location.href = `mailto:${driverEmail}?subject=${subject}&body=${body}`;
+            Utils.showNotification('Email client opened', 'success');
+        }
+        window.sendSettlementEmail = sendSettlementEmail;
+
         function viewSettlement(settlementId) {
             const settlement = DataManager.getSettlement(settlementId);
             if (!settlement) return;
 
+            // Update Modal Title
             document.getElementById('modalTitle').textContent = 'Settlement Details - ' + settlement.settlementNumber;
-            downloadSettlement(settlementId);
+
+            // Update Driver Info
+            const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
+            document.getElementById('selectedDriverName').textContent = settlement.driverName;
+
+            const paymentTypeEl = document.getElementById('selectedDriverPaymentType');
+            const rateEl = document.getElementById('selectedDriverRate');
+
+            if (driver) {
+                const paymentType = driver.payment?.type || 'per_mile';
+                paymentTypeEl.textContent = `Payment Type: ${paymentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+
+                if (driver.payment?.type === 'percentage') {
+                    const displayPercentage = driver.payPercentage
+                        ? (driver.payPercentage > 1 ? driver.payPercentage : driver.payPercentage * 100).toFixed(0)
+                        : '75';
+                    rateEl.textContent = `Rate: ${displayPercentage}%`;
+                } else {
+                    rateEl.textContent = `Rate: ${Utils.formatCurrency(driver.payment?.perMileRate || 0.65)}/mile`;
+                }
+            } else {
+                paymentTypeEl.textContent = '-';
+                rateEl.textContent = '-';
+            }
+
+            // Update Settlement Period
+            document.getElementById('modalPeriodWeek').textContent = `Week ${settlement.period?.weekNumber || '-'}, ${settlement.period?.year || '-'}`;
+            document.getElementById('modalPeriodDate').textContent = settlement.period?.display ||
+                (settlement.period?.startDate ? Utils.formatDateRange(settlement.period.startDate, settlement.period.endDate) : '-');
+            document.getElementById('modalGeneratedDate').textContent = `Generated: ${Utils.formatDate(settlement.createdAt)}`;
+
+            // Update Payment Summary
+            document.getElementById('modalGrossPay').textContent = `Gross Pay: ${Utils.formatCurrency(settlement.grossPay)}`;
+            document.getElementById('modalDeductions').textContent = `Deductions: ${Utils.formatCurrency(settlement.totalDeductions)}`;
+            document.getElementById('modalNetPay').textContent = `Net Pay: ${Utils.formatCurrency(settlement.netPay)}`;
+
+            // Update Earnings Breakdown
+            const earningsBody = document.getElementById('modalEarningsBody');
+            earningsBody.innerHTML = '';
+
+            // Base Pay
+            earningsBody.innerHTML += `
+                <tr>
+                    <td class="px-4 py-2 text-sm text-gray-900">Base Pay</td>
+                    <td class="px-4 py-2 text-sm text-gray-900 text-right">${Utils.formatCurrency(settlement.basePay || 0)}</td>
+                </tr>
+            `;
+
+            // Detention Pay
+            if (settlement.detentionPay > 0) {
+                earningsBody.innerHTML += `
+                    <tr>
+                        <td class="px-4 py-2 text-sm text-gray-900">Detention Pay</td>
+                        <td class="px-4 py-2 text-sm text-gray-900 text-right">${Utils.formatCurrency(settlement.detentionPay)}</td>
+                    </tr>
+                `;
+            }
+
+            // Total Gross
+            earningsBody.innerHTML += `
+                <tr class="bg-gray-50">
+                    <td class="px-4 py-2 text-sm font-semibold text-gray-900">Total Gross Pay</td>
+                    <td class="px-4 py-2 text-sm font-semibold text-gray-900 text-right">${Utils.formatCurrency(settlement.grossPay)}</td>
+                </tr>
+            `;
+
+            // Update Deductions Breakdown
+            const deductionsBody = document.getElementById('modalDeductionsBody');
+            deductionsBody.innerHTML = '';
+
+            const d = settlement.deductions || {};
+            const taxes = d.taxes || {};
+
+            const addDeductionRow = (label, amount, force = false) => {
+                if (amount > 0 || force) {
+                    deductionsBody.innerHTML += `
+                        <tr>
+                            <td class="px-4 py-2 text-sm text-gray-900">${label}</td>
+                            <td class="px-4 py-2 text-sm text-gray-900 text-right">${Utils.formatCurrency(amount || 0)}</td>
+                        </tr>
+                    `;
+                }
+            };
+
+            addDeductionRow('Advances', d.advances);
+            addDeductionRow('Lumper Fees', d.lumperFees);
+            addDeductionRow('Fuel', d.fuel);
+            addDeductionRow('Maintenance', d.maintenance);
+            addDeductionRow('Insurance', d.insurance);
+            addDeductionRow('Other Expenses', d.expenses - (d.fuel || 0) - (d.maintenance || 0) - (d.insurance || 0)); // Remaining expenses
+            addDeductionRow('Other Deductions', d.other);
+
+            addDeductionRow('Federal Tax', taxes.federal, true);
+            addDeductionRow('State Tax', taxes.state, true);
+            addDeductionRow('Social Security', taxes.socialSecurity, true);
+            addDeductionRow('Medicare', taxes.medicare, true);
+
+            deductionsBody.innerHTML += `
+                <tr class="bg-gray-50">
+                    <td class="px-4 py-2 text-sm font-semibold text-gray-900">Total Deductions</td>
+                    <td class="px-4 py-2 text-sm font-semibold text-gray-900 text-right">${Utils.formatCurrency(settlement.totalDeductions)}</td>
+                </tr>
+            `;
+
+            // Update Associated Loads
+            const loadsBody = document.getElementById('modalLoadsBody');
+            loadsBody.innerHTML = '';
+
+            if (settlement.loadIds && settlement.loadIds.length > 0) {
+                settlement.loadIds.forEach(loadId => {
+                    const load = DataManager.getLoad(loadId);
+                    if (load) {
+                        // Calculate Breakdown
+                        const gross = parseFloat(load.rate?.total) || 0;
+                        let driverGrossPay = 0;
+
+                        if (driver && driver.payment?.type === 'percentage') {
+                            const pct = Utils.validatePayPercentage(driver.payPercentage, driver.driverType);
+                            driverGrossPay = gross * pct;
+                        } else {
+                            // Per mile or flat
+                            const miles = parseFloat(load.mileage?.total) || 0;
+                            const rate = parseFloat(driver?.payment?.perMileRate) || 0;
+                            driverGrossPay = (miles * rate) || parseFloat(load.rate?.driverPay) || 0;
+                        }
+
+                        const commission = Math.max(0, gross - driverGrossPay);
+
+                        // Calculate Load Expenses
+                        const loadExpenses = DataManager.expenses.filter(e => e.loadId === load.id);
+                        const expenseTotal = loadExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+
+                        const netPay = driverGrossPay - expenseTotal;
+
+                        loadsBody.innerHTML += `
+                            <tr>
+                                <td class="px-4 py-2 text-left text-sm text-gray-900">${load.loadNumber || 'N/A'}</td>
+                                <td class="px-4 py-2 text-left text-sm text-gray-900">${(load.pickup?.city || 'N/A')} → ${(load.delivery?.city || 'N/A')}</td>
+                                <td class="px-4 py-2 text-right text-sm text-gray-900">${Utils.formatCurrency(gross)}</td>
+                                <td class="px-4 py-2 text-right text-sm text-red-600">-${Utils.formatCurrency(commission)}</td>
+                                <td class="px-4 py-2 text-right text-sm text-red-600">-${Utils.formatCurrency(expenseTotal)}</td>
+                                <td class="px-4 py-2 text-right text-sm font-bold text-gray-900">${Utils.formatCurrency(netPay)}</td>
+                            </tr>
+                        `;
+                    }
+                });
+            } else {
+                loadsBody.innerHTML = `<tr><td colspan="6" class="px-4 py-2 text-center text-sm text-gray-500">No loads associated</td></tr>`;
+            }
+
+            // Update Buttons
+            document.getElementById('modalDownloadBtn').onclick = () => downloadSettlement(settlementId);
+            document.getElementById('modalPrintBtn').onclick = () => printSettlement(settlementId);
+
+            const markPaidBtn = document.getElementById('modalMarkPaidBtn');
+            const markProcessedBtn = document.getElementById('modalMarkProcessedBtn');
+            const sendEmailBtn = document.getElementById('modalSendEmailBtn');
+
+            const status = (settlement.status || 'pending').toLowerCase();
+
+            // Button visibility logic based on status
+            if (status === 'paid') {
+                // Paid: Hide all action buttons except email
+                markPaidBtn.classList.add('hidden');
+                markProcessedBtn.classList.add('hidden');
+            } else if (status === 'processed') {
+                // Processed: Show "Mark as Paid", hide "Mark as Processed"
+                markPaidBtn.classList.remove('hidden');
+                markPaidBtn.onclick = () => {
+                    markSettlementAsPaid(settlementId);
+                    // Prompt to send email after marking as paid
+                    setTimeout(() => {
+                        if (confirm('Settlement marked as PAID. Send email notification to driver?')) {
+                            sendSettlementEmail(settlementId);
+                        }
+                    }, 500);
+                };
+                markProcessedBtn.classList.add('hidden');
+            } else {
+                // Pending: Show "Mark as Processed", hide "Mark as Paid"
+                markPaidBtn.classList.add('hidden');
+                markProcessedBtn.classList.remove('hidden');
+                markProcessedBtn.onclick = () => markSettlementAsProcessed(settlementId);
+            }
+
+            // Send Email button always visible
+            sendEmailBtn.onclick = () => sendSettlementEmail(settlementId);
+
+            // Show Modal
+            document.getElementById('settlementModal').classList.add('show');
         }
 
         function closeModal() {
@@ -1595,68 +2079,15 @@
                 weeks.push(label);
             }
 
-            // Aggregate Delivered Loads (Settled or Unsettled)
-            const deliveredLoads = DataManager.loads.filter(l => {
-                const status = (l.status || '').toLowerCase();
-                return status === 'delivered' || l.settlementId;
-            });
-
-            console.log('Chart Debug: Total Loads:', DataManager.loads.length);
-            console.log('Chart Debug: Delivered Loads:', deliveredLoads.length);
-
-            deliveredLoads.forEach(loadRef => {
-                // Get fresh load data to ensure we have all properties (fix for NaN issue)
-                const load = DataManager.loads.find(l => l.id === loadRef.id) || loadRef;
-
-                const dateStr = load.delivery?.date || load.updatedAt || new Date();
-                const date = new Date(dateStr);
+            // Aggregate Live Settlements (Net Pay)
+            DataManager.settlements.forEach(settlement => {
+                const date = new Date(settlement.createdAt);
                 const weekNum = Utils.getWeekNumber(date);
                 const label = `Week ${weekNum}`;
 
                 if (weeklyData.hasOwnProperty(label)) {
-                    // Calculate driver pay correctly based on driver's payment settings
-                    let pay = parseFloat(load.rate?.driverPay) || 0;
-
-                    // If driverPay not set, calculate it
-                    if (!pay && load.driverId) {
-                        const driver = DataManager.drivers.find(d => d.id === load.driverId);
-                        const totalRate = parseFloat(load.rate?.total) || 0;
-                        const miles = parseFloat(load.mileage?.total) || 0;
-
-                        if (driver && driver.payment) {
-                            // Debug driver structure
-                            if (driver.payment.type === 'percentage' && !driver.payment.percentage && !driver.payment.rate) {
-                                console.log('Chart Debug: Driver missing percentage/rate:', driver);
-                            }
-
-                            if (driver.payment.type === 'percentage') {
-                                const totalRate = parseFloat(load.rate?.total) || 0;
-                                // Check both percentage and rate properties
-                                const rawValue = driver.payment.percentage || driver.payment.rate;
-                                let percentage = 0;
-
-                                // Robust percentage parsing
-                                if (typeof rawValue === 'string' && rawValue.includes('%')) {
-                                    percentage = parseFloat(rawValue.replace('%', '')) / 100;
-                                } else {
-                                    const numValue = parseFloat(rawValue);
-                                    // If value is > 1, assume it's a percentage (e.g., 40 means 40%)
-                                    percentage = numValue > 1 ? numValue / 100 : numValue;
-                                }
-
-                                pay = totalRate * percentage;
-                                console.log(`Chart Debug: Load ${load.loadNumber} | Rate: ${totalRate} | Pct: ${percentage} | Pay: ${pay}`);
-                            } else if (miles > 0) {
-                                const ratePerMile = parseFloat(driver.payment.perMileRate) || 0.64;
-                                pay = miles * ratePerMile;
-                            }
-                        }
-                    }
-
-                    console.log(`Chart Debug: Load ${load.loadNumber} (Week ${weekNum}): Pay $${pay}`);
+                    const pay = parseFloat(settlement.netPay) || 0;
                     weeklyData[label] += pay;
-                } else {
-                    console.warn(`Chart Debug: Week ${weekNum} not in range`, Object.keys(weeklyData));
                 }
             });
 
@@ -1667,13 +2098,13 @@
                 mode: 'lines+markers',
                 line: { color: '#3b82f6', width: 3 },
                 marker: { color: '#3b82f6', size: 8 },
-                name: 'Delivered Value'
+                name: 'Settlement Net Pay'
             };
 
             const settlementLayout = {
                 margin: { t: 20, r: 20, b: 40, l: 60 },
                 xaxis: { title: 'Week' },
-                yaxis: { title: 'Driver Pay Amount ($)' },
+                yaxis: { title: 'Settlement Net Pay ($)' },
                 showlegend: false,
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 paper_bgcolor: 'rgba(0,0,0,0)'
@@ -1767,10 +2198,11 @@
                 // FIX: Handle both "65" and "65%" formats
                 if (driver.payment?.type === 'percentage' && totalRate > 0) {
                     // Check both percentage and rate properties
-                    const rawValue = driver.payment.percentage || driver.payment.rate;
+                    // Use ONLY driver.payPercentage (stored as decimal 0-1)
+                    const driverPayPercentage = Utils.validatePayPercentage(driver.payPercentage, driver.driverType);
                     console.log(`DEBUG: Driver ${driver.firstName} ${driver.lastName}`);
                     console.log(`  Payment type: ${driver.payment.type}`);
-                    console.log(`  Raw percentage value: "${rawValue}" (type: ${typeof rawValue})`);
+                    console.log(`  Pay percentage (decimal): ${driverPayPercentage} (${(driverPayPercentage * 100).toFixed(0)}%)`);
                     console.log(`  Load total: $${totalRate}`);
 
                     let percentage = 0;
@@ -1783,6 +2215,7 @@
                         percentage = numValue > 1 ? numValue / 100 : numValue;
                         console.log(`  No % symbol, percentage = ${percentage}`);
                     }
+                    driverPay = totalRate * percentage;
                     driverPay = totalRate * percentage;
                     console.log(`  Final driver pay: $${driverPay.toFixed(2)} (${totalRate} × ${percentage})`);
                 } else if (miles > 0) {

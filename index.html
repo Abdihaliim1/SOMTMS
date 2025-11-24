@@ -8,170 +8,101 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="design-system.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-
-        .bg-navy {
-            background-color: #1e3a8a;
-        }
-
-        .text-navy {
-            color: #1e3a8a;
-        }
-
-        .gradient-bg {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-        }
-
-        .card-shadow {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-
-        .metric-card {
-            transition: transform 0.2s ease-in-out;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-2px);
-        }
-
+        /* Override Tailwind with professional styles */
         .status-available {
-            background-color: #10b981;
+            background-color: #d1fae5;
+            color: #065f46;
         }
 
         .status-dispatched {
-            background-color: #f59e0b;
+            background-color: #fed7aa;
+            color: #9a3412;
         }
 
         .status-in-transit {
-            background-color: #3b82f6;
+            background-color: #dbeafe;
+            color: #1e40af;
         }
 
         .status-delivered {
-            background-color: #6b7280;
+            background-color: #f3f4f6;
+            color: #374151;
         }
 
         .status-cancelled {
-            background-color: #ef4444;
-        }
-
-        .nav-item {
-            transition: all 0.2s ease;
-        }
-
-        .nav-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .sidebar {
-            width: 250px;
-            background: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 100%);
-        }
-
-        .sidebar-item {
-            transition: all 0.2s ease;
-        }
-
-        .sidebar-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-left: 4px solid #ffffff;
-        }
-
-        .main-content {
-            margin-left: 250px;
-        }
-
-        .company-logo {
-            width: 60px;
-            height: 60px;
-            background: #ffffff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: #1e3a8a;
+            background-color: #fee2e2;
+            color: #991b1b;
         }
     </style>
 </head>
 
-<body class="bg-gray-50">
+<body>
     <!-- Sidebar Navigation -->
-    <div class="sidebar fixed left-0 top-0 h-full text-white z-50">
-        <div class="p-6">
-            <div class="flex items-center space-x-3 mb-8">
-                <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-16 w-16 object-contain" id="companyLogo" onerror="this.style.display='none'; document.getElementById('companyLogoFallback').style.display='flex';">
-                <div class="company-logo" id="companyLogoFallback" style="display:none;">ATS</div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" style="height: 48px; width: auto;" id="companyLogo" onerror="this.style.display='none'; document.getElementById('companyLogoFallback').style.display='flex';">
+                <div style="width: 48px; height: 48px; background: #ffffff; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; color: #1f2937;" id="companyLogoFallback">ATS</div>
                 <div>
-                    <h2 class="text-xl font-bold" id="companyName">ATS FREIGHT LLC</h2>
-                    <p class="text-sm opacity-75">Transportation Management System</p>
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ffffff;" id="companyName">ATS FREIGHT LLC</h2>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.8);">Transportation Management System</p>
                 </div>
             </div>
 
-            <nav class="space-y-2">
-                <a href="index.html"
-                    class="sidebar-item active flex items-center px-4 py-3 rounded-lg text-sm font-medium">
-                    <i class="fas fa-tachometer-alt mr-3 w-5"></i>
+            <nav>
+                <a href="index.html" class="sidebar-item active">
+                    <i class="fas fa-tachometer-alt"></i>
                     Dashboard
                 </a>
-                <a href="loads.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
-                    <i class="fas fa-truck mr-3 w-5"></i>
+                <a href="loads.html" class="sidebar-item">
+                    <i class="fas fa-truck"></i>
                     Loads
                 </a>
-                <a href="drivers.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
-                    <i class="fas fa-users mr-3 w-5"></i>
+                <a href="drivers.html" class="sidebar-item">
+                    <i class="fas fa-users"></i>
                     Drivers
                 </a>
-                <a href="fleet.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
-                    <i class="fas fa-truck-monster mr-3 w-5"></i>
+                <a href="fleet.html" class="sidebar-item">
+                    <i class="fas fa-truck-monster"></i>
                     Fleet
                 </a>
-                <a href="customers.html"
-                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
-                    <i class="fas fa-building mr-3 w-5"></i>
+                <a href="customers.html" class="sidebar-item">
+                    <i class="fas fa-building"></i>
                     Customers
                 </a>
-                <a href="expenses.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
-                    <i class="fas fa-receipt mr-3 w-5"></i>
+                <a href="expenses.html" class="sidebar-item">
+                    <i class="fas fa-receipt"></i>
                     Expenses
                 </a>
-                <a href="invoices.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
-                    <i class="fas fa-file-invoice mr-3 w-5"></i>
+                <a href="invoices.html" class="sidebar-item">
+                    <i class="fas fa-file-invoice"></i>
                     Invoices
                 </a>
-                <a href="settlements.html"
-                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
-                    <i class="fas fa-calculator mr-3 w-5"></i>
+                <a href="settlements.html" class="sidebar-item">
+                    <i class="fas fa-calculator"></i>
                     Settlements
                 </a>
-                <a href="reports.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
-                    <i class="fas fa-chart-bar mr-3 w-5"></i>
+                <a href="reports.html" class="sidebar-item">
+                    <i class="fas fa-chart-bar"></i>
                     Reports
                 </a>
-                <a href="import.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
-                    <i class="fas fa-upload mr-3 w-5"></i>
+                <a href="import.html" class="sidebar-item">
+                    <i class="fas fa-upload"></i>
                     Import
+                </a>
+                <a href="settings.html" class="sidebar-item">
+                    <i class="fas fa-cog"></i>
+                    Settings
                 </a>
             </nav>
         </div>
 
-        <div class="absolute bottom-6 left-6 right-6">
-            <button onclick="CompanySettings.openModal()"
-                class="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium bg-white bg-opacity-10 hover:bg-opacity-20 transition-all">
-                <i class="fas fa-cog mr-3 w-5"></i>
+        <div style="position: absolute; bottom: 24px; left: 20px; right: 20px;">
+            <button onclick="CompanySettings.openModal()" class="sidebar-item" style="width: 100%;">
+                <i class="fas fa-cog"></i>
                 Company Settings
             </button>
         </div>
@@ -180,22 +111,20 @@
     <!-- Main Content -->
     <div class="main-content">
         <!-- Top Navigation -->
-        <nav class="gradient-bg text-white shadow-lg">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
-                    <div class="flex items-center space-x-4">
-                        <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
-                        <p class="text-sm opacity-90">Transportation Management System</p>
-                    </div>
-                    <div class="flex items-center space-x-6">
-                        <span class="text-sm">Welcome, Admin</span>
-                        <button onclick="logout()" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
-                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                        </button>
-                    </div>
+        <div style="background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 16px 24px; margin: -24px -24px 24px -24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="margin: 0; font-size: 20px; font-weight: 600; color: #111827;">Dashboard</h1>
+                    <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Transportation Management System</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <span style="font-size: 14px; color: #6b7280;">Welcome, Admin</span>
+                    <button onclick="logout()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 14px;">
+                        <i class="fas fa-sign-out-alt" style="margin-right: 6px;"></i>Logout
+                    </button>
                 </div>
             </div>
-        </nav>
+        </div>
 
         <!-- Dashboard Content -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -319,64 +248,64 @@
             </div>
 
             <!-- Charts and Analytics -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 32px;">
                 <!-- Revenue Chart -->
-                <div class="bg-white rounded-lg p-6 card-shadow">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue Trends</h3>
-                    <div id="revenueChart" class="h-64"></div>
+                <div class="card">
+                    <h3 class="card-title" style="margin-bottom: 16px;">Revenue Trends</h3>
+                    <div id="revenueChart" style="height: 256px;"></div>
                 </div>
 
                 <!-- Load Status Chart -->
-                <div class="bg-white rounded-lg p-6 card-shadow">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Load Status Distribution</h3>
-                    <div id="loadStatusChart" class="h-64"></div>
+                <div class="card">
+                    <h3 class="card-title" style="margin-bottom: 16px;">Load Status Distribution</h3>
+                    <div id="loadStatusChart" style="height: 256px;"></div>
                 </div>
             </div>
 
             <!-- Recent Loads and Quick Actions -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
                 <!-- Recent Loads -->
-                <div class="lg:col-span-2 bg-white rounded-lg card-shadow">
-                    <div class="px-6 py-4 border-b border-gray-200">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-900">Recent Loads</h3>
-                            <button onclick="navigateTo('loads.html')"
-                                class="text-blue-600 hover:text-blue-800 text-sm font-medium">View All</button>
+                <div class="card">
+                    <div class="card-header">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 class="card-title" style="margin: 0;">Recent Loads</h3>
+                            <button onclick="navigateTo('loads.html')" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;">
+                                View All
+                            </button>
                         </div>
                     </div>
-                    <div class="p-6">
-                        <div class="space-y-4" id="recentLoadsContainer">
-                            <!-- Populated by JS -->
-                        </div>
+                    <div id="recentLoadsContainer">
+                        <!-- Populated by JS -->
                     </div>
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="bg-white rounded-lg card-shadow">
-                    <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title" style="margin: 0;">Quick Actions</h3>
                     </div>
-                    <div class="p-6">
-                        <div class="space-y-3">
-                            <button onclick="navigateTo('loads.html')"
-                                class="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                <i class="fas fa-plus mr-2"></i>
-                                Create New Load
-                            </button>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <button onclick="navigateTo('loads.html')" class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-plus" style="margin-right: 8px;"></i>
+                            Create New Load
+                        </button>
 
-                            <button onclick="navigateTo('drivers.html')"
-                                class="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                                <i class="fas fa-user-plus mr-2"></i>
-                                Add Driver
-                            </button>
+                        <button onclick="navigateTo('drivers.html')" class="btn btn-success" style="width: 100%;">
+                            <i class="fas fa-user-plus" style="margin-right: 8px;"></i>
+                            Add Driver
+                        </button>
 
-                            <button onclick="navigateTo('customers.html')"
-                                class="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                                <i class="fas fa-building mr-2"></i>
-                                Add Customer
-                            </button>
+                        <button onclick="navigateTo('customers.html')" class="btn btn-secondary" style="width: 100%;">
+                            <i class="fas fa-building mr-2"></i>
+                            Add Customer
+                        </button>
 
-                            <button onclick="navigateTo('expenses.html')"
+                        <button onclick="populateMockData()" class="btn btn-secondary" style="width: 100%; background-color: #6b7280; border-color: #6b7280;">
+                            <i class="fas fa-database mr-2"></i>
+                            Populate Mock Data
+                        </button>
+
+                        <button onclick="navigateTo('expenses.html')"
                                 class="w-full flex items-center justify-center px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
                                 <i class="fas fa-receipt mr-2"></i>
                                 Record Expense
@@ -478,6 +407,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <script src="main.js"></script>
+    <!-- Mock Data Population Script (Remove in production) -->
+    <script src="populate-mock-data.js"></script>
     <script>
         // Navigation functions
         function navigateToMonthlyLoads() {
@@ -590,7 +521,7 @@
                     const status = (l.status || '').toLowerCase();
                     return date >= startOfMonth && (status === 'delivered' || status === 'completed');
                 })
-                .reduce((sum, l) => sum + (parseFloat(l.rate?.total) || 0), 0);
+                .reduce((sum, l) => sum + (parseFloat(l.companyRevenue || l.rate?.total) || 0), 0);
             document.getElementById('weeklyRevenue').textContent = Utils.formatCurrency(monthlyRevenue);
             // Update label to match logic
             document.getElementById('revenueLabel').textContent = 'Revenue This Month';
@@ -634,7 +565,7 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <p class="font-medium text-gray-900">${Utils.formatCurrency(load.rate?.total || 0)}</p>
+                        <p class="font-medium text-gray-900">${Utils.formatCurrency(load.companyRevenue || load.rate?.total || 0)}</p>
                         <p class="text-sm text-gray-600 capitalize">${(load.status || '').replace('_', ' ')}</p>
                     </div>
                 `;
@@ -663,7 +594,7 @@
                     const d = new Date(l.delivery?.date || l.updatedAt || l.createdAt);
                     const monthDiff = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
                     if (monthDiff >= 0 && monthDiff < 6) {
-                        monthlyRevenue[5 - monthDiff] += (parseFloat(l.rate?.total) || 0);
+                        monthlyRevenue[5 - monthDiff] += (parseFloat(l.companyRevenue || l.rate?.total) || 0);
                     }
                 }
             });

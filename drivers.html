@@ -15,15 +15,15 @@
         }
 
         .bg-navy {
-            background-color: #1e3a8a;
+            background-color: #1f2937;
         }
 
         .text-navy {
-            color: #1e3a8a;
+            color: #1f2937;
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background-color: #1f2937;
         }
 
         .card-shadow {
@@ -51,7 +51,7 @@
         }
 
         .nav-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .modal {
@@ -91,7 +91,7 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-4">
                     <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="company-logo" style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1e3a8a;">ATS</div>
+                    <div class="company-logo" style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1f2937;">ATS</div>
                     <div>
                         <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
                         <p class="text-sm opacity-90">Transportation Management System</p>
@@ -344,6 +344,21 @@
                                     <option value="on_leave">On Leave</option>
                                 </select>
                             </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Driver Type <span class="text-red-500">*</span></label>
+                                <select id="driverType" required onchange="toggleDriverTypeFields()"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Select Driver Type</option>
+                                    <option value="company">Company Driver</option>
+                                    <option value="owner_operator">Owner Operator</option>
+                                    <option value="owner">Owner (Driver)</option>
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    <strong>Company Driver:</strong> 65-70% or per-mile, all expenses paid by company<br>
+                                    <strong>Owner Operator:</strong> 85-90%, expenses may be deducted from settlement<br>
+                                    <strong>Owner (Driver):</strong> Same as company driver, gets business profit separately
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -587,9 +602,12 @@
                             </div>
                             <div id="percentageField" class="hidden">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Percentage Rate</label>
-                                <input type="number" id="percentageRate" step="0.01"
+                                <input type="number" id="percentageRate" step="0.01" min="0" max="100"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="75">
+                                <p class="text-xs text-gray-500 mt-1" id="percentageHint">
+                                    Enter percentage (e.g., 70 for 70%)
+                                </p>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -610,6 +628,46 @@
                                     class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                                 <label for="fuelSurcharge" class="ml-2 block text-sm text-gray-900">Fuel
                                     Surcharge</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Owner Operator Deduction Preferences -->
+                    <div id="deductionPreferencesSection" class="border-t pt-6 hidden">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Deduction Preferences (Owner Operator Only)</h4>
+                        <p class="text-sm text-gray-600 mb-4">Select which expenses should be deducted from settlement. Unchecked items are paid outside the system.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <input type="checkbox" id="deductFuel"
+                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="deductFuel" class="ml-3 block text-sm text-gray-900">
+                                    <span class="font-medium">Fuel</span>
+                                    <span class="text-gray-500 block text-xs">Deduct fuel expenses from settlement</span>
+                                </label>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <input type="checkbox" id="deductInsurance"
+                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="deductInsurance" class="ml-3 block text-sm text-gray-900">
+                                    <span class="font-medium">Insurance</span>
+                                    <span class="text-gray-500 block text-xs">Deduct insurance expenses from settlement</span>
+                                </label>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <input type="checkbox" id="deductMaintenance"
+                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="deductMaintenance" class="ml-3 block text-sm text-gray-900">
+                                    <span class="font-medium">Maintenance</span>
+                                    <span class="text-gray-500 block text-xs">Deduct maintenance expenses from settlement</span>
+                                </label>
+                            </div>
+                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                <input type="checkbox" id="deductOther"
+                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                <label for="deductOther" class="ml-3 block text-sm text-gray-900">
+                                    <span class="font-medium">Other Expenses</span>
+                                    <span class="text-gray-500 block text-xs">Deduct other expenses from settlement</span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -706,6 +764,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <script src="main.js"></script>
+    <script src="populate-mock-data.js"></script>
     <script>
         let currentDriverId = null;
 
@@ -824,10 +883,17 @@
                         <div class="text-sm text-gray-500">${driver.license?.state || ''} ${driver.license?.expiration ? 'Exp: ' + driver.license.expiration : ''}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${driver.payment?.type === 'per_mile' ? 'Per Mile' : driver.payment?.type === 'percentage' ? 'Percentage' : driver.payment?.type === 'flat_rate' ? 'Flat Rate' : 'Unknown'}</div>
+                        <div class="text-sm text-gray-900">
+                            ${driver.driverType === 'company' ? 'Company Driver' : 
+                              driver.driverType === 'owner_operator' ? 'Owner Operator' : 
+                              driver.driverType === 'owner' ? 'Owner (Driver)' : 'N/A'}
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            ${driver.payment?.type === 'per_mile' ? 'Per Mile' : driver.payment?.type === 'percentage' ? 'Percentage' : driver.payment?.type === 'flat_rate' ? 'Flat Rate' : 'Unknown'}
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${driver.payment?.type === 'per_mile' ? Utils.formatCurrency(driver.payment?.perMileRate || 0) + '/mi' : driver.payment?.type === 'percentage' ? (driver.payment?.percentage || 0) + '%' : driver.payment?.type === 'flat_rate' ? Utils.formatCurrency(driver.payment?.flatRate || 0) + '/load' : '-'}</div>
+                        <div class="text-sm text-gray-900">${driver.payment?.type === 'per_mile' ? Utils.formatCurrency(driver.payment?.perMileRate || 0) + '/mi' : driver.payment?.type === 'percentage' ? ((driver.payPercentage || 0) > 1 ? (driver.payPercentage || 0) : (driver.payPercentage || 0) * 100).toFixed(0) + '%' : driver.payment?.type === 'flat_rate' ? Utils.formatCurrency(driver.payment?.flatRate || 0) + '/load' : '-'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white ${statusClass}">
@@ -909,14 +975,30 @@
             document.getElementById('licenseExpiration').value = driver.license.expiration;
             document.getElementById('medicalExpirationDate').value = driver.medicalExpirationDate || '';
 
+            // Set driver type and toggle fields
+            document.getElementById('driverType').value = driver.driverType || '';
+            toggleDriverTypeFields();
+
             document.getElementById('paymentType').value = driver.payment.type;
             togglePaymentFields();
             if (driver.payment.type === 'per_mile') {
                 document.getElementById('ratePerMile').value = driver.payment.perMileRate || '';
             } else if (driver.payment.type === 'percentage') {
-                document.getElementById('percentageRate').value = driver.payment.percentage || '';
+                // Display payPercentage as percentage (multiply by 100 if stored as decimal)
+                const displayPercentage = driver.payPercentage 
+                    ? (driver.payPercentage > 1 ? driver.payPercentage : driver.payPercentage * 100)
+                    : '';
+                document.getElementById('percentageRate').value = displayPercentage;
             } else if (driver.payment.type === 'flat_rate') {
                 document.getElementById('ratePerMile').value = driver.payment.flatRate || '';
+            }
+
+            // Populate deduction preferences for Owner Operators
+            if (driver.driverType === 'owner_operator' && driver.deductionPreferences) {
+                document.getElementById('deductFuel').checked = driver.deductionPreferences.fuel || false;
+                document.getElementById('deductInsurance').checked = driver.deductionPreferences.insurance || false;
+                document.getElementById('deductMaintenance').checked = driver.deductionPreferences.maintenance || false;
+                document.getElementById('deductOther').checked = driver.deductionPreferences.other || false;
             }
 
             document.getElementById('hireDate').value = driver.hireDate || '';
@@ -944,7 +1026,7 @@
                 
                 PAYMENT:
                 Type: ${driver.payment.type}
-                Rate: ${driver.payment.type === 'per_mile' ? Utils.formatCurrency(driver.payment.perMileRate) + '/mi' : driver.payment.percentage + '%'}
+                Rate: ${driver.payment.type === 'per_mile' ? Utils.formatCurrency(driver.payment.perMileRate) + '/mi' : ((driver.payPercentage || 0) > 1 ? (driver.payPercentage || 0) : (driver.payPercentage || 0) * 100).toFixed(0) + '%'}
             `;
             alert(content);
         }
@@ -961,6 +1043,34 @@
         // Expose driver action functions to global scope
         window.editDriver = editDriver;
         window.deleteDriver = deleteDriver;
+
+        function toggleDriverTypeFields() {
+            const driverType = document.getElementById('driverType').value;
+            const deductionSection = document.getElementById('deductionPreferencesSection');
+            const percentageField = document.getElementById('percentageField');
+            const percentageHint = document.getElementById('percentageHint');
+            
+            // Show/hide deduction preferences section for Owner Operators
+            if (driverType === 'owner_operator') {
+                deductionSection.classList.remove('hidden');
+                // Set default percentage range hint for owner operators
+                if (percentageHint) {
+                    percentageHint.textContent = 'Enter percentage (typically 85-90% for Owner Operators)';
+                }
+            } else {
+                deductionSection.classList.add('hidden');
+                // Set default percentage range hint for company drivers
+                if (percentageHint) {
+                    if (driverType === 'company') {
+                        percentageHint.textContent = 'Enter percentage (typically 65-70% for Company Drivers)';
+                    } else if (driverType === 'owner') {
+                        percentageHint.textContent = 'Enter percentage (same as Company Driver, typically 65-70%)';
+                    } else {
+                        percentageHint.textContent = 'Enter percentage (e.g., 70 for 70%)';
+                    }
+                }
+            }
+        }
 
         function togglePaymentFields() {
             const type = document.getElementById('paymentType').value;
@@ -989,6 +1099,10 @@
         document.getElementById('paymentFilter').addEventListener('change', renderDrivers);
         document.getElementById('searchInput').addEventListener('input', renderDrivers);
         document.getElementById('paymentType').addEventListener('change', togglePaymentFields);
+        document.getElementById('driverType').addEventListener('change', toggleDriverTypeFields);
+        
+        // Expose toggleDriverTypeFields to global scope
+        window.toggleDriverTypeFields = toggleDriverTypeFields;
 
         // Form submission
         window.driverForm_handler = async function (e) {
@@ -1000,6 +1114,14 @@
             submitBtn.textContent = 'Saving...';
 
             try {
+                const driverType = document.getElementById('driverType').value;
+                if (!driverType) {
+                    Utils.showNotification('Please select a Driver Type', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    return;
+                }
+
                 const driverData = {
                     driverNumber: document.getElementById('driverNumber').value,
                     firstName: document.getElementById('firstName').value,
@@ -1007,6 +1129,7 @@
                     email: document.getElementById('email').value,
                     phone: document.getElementById('phone').value,
                     status: document.getElementById('status').value,
+                    driverType: driverType, // New field
                     license: {
                         number: document.getElementById('licenseNumber').value,
                         state: document.getElementById('licenseState').value,
@@ -1030,6 +1153,17 @@
                         layover: parseFloat(document.getElementById('layoverPay').value) || 0,
                         fuelSurcharge: document.getElementById('fuelSurcharge').checked || false
                     },
+                    // Store pay percentage separately for easier access
+                    payPercentage: document.getElementById('paymentType').value === 'percentage'
+                        ? Utils.validatePayPercentage(parseFloat(document.getElementById('percentageRate').value) || 0, driverType)
+                        : undefined,
+                    // Deduction preferences for Owner Operators
+                    deductionPreferences: driverType === 'owner_operator' ? {
+                        fuel: document.getElementById('deductFuel').checked || false,
+                        insurance: document.getElementById('deductInsurance').checked || false,
+                        maintenance: document.getElementById('deductMaintenance').checked || false,
+                        other: document.getElementById('deductOther').checked || false
+                    } : undefined,
                     employment: {
                         hireDate: document.getElementById('hireDate').value,
                         payFrequency: document.getElementById('payFrequency').value

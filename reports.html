@@ -16,15 +16,15 @@
         }
 
         .bg-navy {
-            background-color: #1e3a8a;
+            background-color: #1f2937;
         }
 
         .text-navy {
-            color: #1e3a8a;
+            color: #1f2937;
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background-color: #1f2937;
         }
 
         .card-shadow {
@@ -48,12 +48,12 @@
         }
 
         .nav-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .sidebar {
             width: 250px;
-            background: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 100%);
+            background-color: #1f2937;
         }
 
         .sidebar-item {
@@ -65,7 +65,7 @@
         }
 
         .sidebar-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
             border-left: 4px solid #ffffff;
         }
 
@@ -83,7 +83,27 @@
             justify-content: center;
             font-size: 24px;
             font-weight: bold;
-            color: #1e3a8a;
+            color: #1f2937;
+        }
+
+        /* Print styles */
+        @media print {
+            .sidebar {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            button {
+                display: none !important;
+            }
+
+            select {
+                border: none !important;
+                background: transparent !important;
+            }
         }
     </style>
 </head>
@@ -173,11 +193,17 @@
                             <option value="month" selected>This Month</option>
                             <option value="quarter">This Quarter</option>
                             <option value="year">This Year</option>
+                            <option value="all_time">All Time</option>
                         </select>
+                        <button onclick="ReportManager.printReport()"
+                            class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                            <i class="fas fa-print mr-2"></i>
+                            Print
+                        </button>
                         <button onclick="ReportManager.exportReport()"
                             class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                             <i class="fas fa-download mr-2"></i>
-                            Export
+                            Export CSV
                         </button>
                     </div>
                 </div>
@@ -275,20 +301,87 @@
                 <div class="bg-white rounded-lg p-6 card-shadow mb-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Profit Breakdown</h3>
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center py-2 border-b">
-                            <span class="text-gray-700 font-medium">Total Revenue</span>
-                            <span class="text-green-600 font-bold text-lg" id="breakdownRevenue">$0</span>
+                        <!-- Revenue Section -->
+                        <div class="border-b pb-3">
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-gray-700 font-medium">Total Revenue</span>
+                                <span class="text-green-600 font-bold text-lg" id="breakdownRevenue">$0</span>
+                            </div>
+                            <div class="pl-4 space-y-1 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Company Driver Loads</span>
+                                    <span class="text-green-600" id="breakdownRevenueCompany">$0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Owner Operator Loads (Commission)</span>
+                                    <span class="text-green-600" id="breakdownRevenueOO">$0</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex justify-between items-center py-2 border-b">
-                            <span class="text-gray-700">Total Expenses</span>
-                            <span class="text-red-600 font-semibold" id="breakdownExpenses">$0</span>
+
+                        <!-- Expenses Section -->
+                        <div class="border-b pb-3">
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-gray-700 font-medium">Total Expenses</span>
+                                <span class="text-red-600 font-semibold" id="breakdownExpenses">$0</span>
+                            </div>
+                            <div class="pl-4 space-y-1 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Fuel</span>
+                                    <span class="text-red-600" id="breakdownExpenseFuel">$0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Insurance</span>
+                                    <span class="text-red-600" id="breakdownExpenseInsurance">$0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Maintenance</span>
+                                    <span class="text-red-600" id="breakdownExpenseMaintenance">$0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Truck Payments (Leases/Loans)</span>
+                                    <span class="text-red-600" id="breakdownExpenseTruckPayments">$0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Fixed Expenses</span>
+                                    <span class="text-red-600" id="breakdownExpenseFixed">$0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Other</span>
+                                    <span class="text-red-600" id="breakdownExpenseOther">$0</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex justify-between items-center py-2 border-b">
-                            <span class="text-gray-700">Driver Pay</span>
-                            <span class="text-red-600 font-semibold" id="breakdownDriverPay">$0</span>
+
+                        <!-- Driver Pay Section -->
+                        <div class="border-b pb-3">
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-gray-700 font-medium">Driver Pay</span>
+                                <span class="text-red-600 font-semibold" id="breakdownDriverPay">$0</span>
+                            </div>
+                            <div class="pl-4 space-y-1 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Company Drivers</span>
+                                    <span class="text-red-600" id="breakdownDriverPayCompany">$0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Owner Operators</span>
+                                    <span class="text-red-600" id="breakdownDriverPayOO">$0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Owner (as Driver)</span>
+                                    <span class="text-red-600" id="breakdownDriverPayOwner">$0</span>
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- Net Profit -->
                         <div class="flex justify-between items-center py-3 bg-gray-50 rounded-lg px-4 mt-4">
-                            <span class="text-gray-900 font-bold text-lg">Net Profit</span>
+                            <div>
+                                <span class="text-gray-900 font-bold text-lg">Net Profit</span>
+                                <p class="text-xs text-gray-500 mt-1">Owner gets this as distribution (salary already in
+                                    driver pay)</p>
+                            </div>
                             <span class="font-bold text-xl" id="breakdownNetProfit">$0</span>
                         </div>
                     </div>
@@ -452,6 +545,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <script src="main.js"></script>
+    <script src="populate-mock-data.js"></script>
     <script>
         // Report Manager Module
         const ReportManager = {
@@ -502,6 +596,9 @@
                     case 'year':
                         startDate = new Date(now.getFullYear(), 0, 1);
                         break;
+                    case 'all_time':
+                        startDate = null; // No date filter - show all data
+                        break;
                     default:
                         startDate = null;
                 }
@@ -523,10 +620,22 @@
 
                 // Filter expenses by period
                 if (startDate) {
+                    const expensesBeforeFilter = expenses.length;
                     expenses = expenses.filter(exp => {
                         const expDate = new Date(exp.date || exp.createdAt);
-                        return expDate >= startDate && expDate <= now;
+                        // Include expenses within the period OR future-dated expenses (for mock data)
+                        // This allows mock data with future dates to still be included
+                        if (expDate > now) {
+                            // Future-dated expense (likely mock data) - include it
+                            return true;
+                        }
+                        // Normal date filtering
+                        const inRange = expDate >= startDate && expDate <= now;
+                        return inRange;
                     });
+                    console.log(`[Reports] Expenses filtered by date: ${expensesBeforeFilter} -> ${expenses.length} (period: ${period}, startDate: ${startDate?.toISOString()}, now: ${now.toISOString()})`);
+                } else {
+                    console.log(`[Reports] No date filter (all_time), showing all ${expenses.length} expenses`);
                 }
 
                 // Filter settlements by period
@@ -537,13 +646,39 @@
                     });
                 }
 
-                // 1. Revenue: Sum of all load prices from booked, in_transit, and delivered loads
+                // 1. Revenue: Break down by driver type
                 const revenueLoads = loads.filter(l => {
                     const status = (l.status || '').toLowerCase().replace(' ', '_');
-                    return status === 'booked' || status === 'in_transit' || status === 'delivered' || 
-                           status === 'completed' || status === 'dispatched';
+                    return status === 'booked' || status === 'in_transit' || status === 'delivered' ||
+                        status === 'completed' || status === 'dispatched';
                 });
-                const totalRevenue = revenueLoads.reduce((sum, l) => sum + (parseFloat(l.rate?.total || l.rate || 0) || 0), 0);
+
+                // Calculate revenue by driver type
+                let companyDriverRevenue = 0;
+                let ownerOperatorRevenue = 0;
+
+                revenueLoads.forEach(load => {
+                    const revenue = parseFloat(load.companyRevenue || load.rate?.total || load.rate || 0) || 0;
+                    if (load.driverId) {
+                        const driver = drivers.find(d => d.id === load.driverId);
+                        if (driver) {
+                            if (driver.driverType === 'owner_operator') {
+                                ownerOperatorRevenue += revenue;
+                            } else {
+                                // Company driver or owner (driver)
+                                companyDriverRevenue += revenue;
+                            }
+                        } else {
+                            // Driver not found, count as company driver revenue
+                            companyDriverRevenue += revenue;
+                        }
+                    } else {
+                        // No driver assigned, count as company driver revenue
+                        companyDriverRevenue += revenue;
+                    }
+                });
+
+                const totalRevenue = companyDriverRevenue + ownerOperatorRevenue;
 
                 // 2. Total Miles: Sum of all miles from booked, in_transit, and delivered loads
                 const totalMiles = revenueLoads.reduce((sum, l) => sum + (parseFloat(l.mileage?.total || l.miles || 0) || 0), 0);
@@ -555,13 +690,159 @@
                 });
                 const loadsCompleted = completedLoads.length;
 
-                // 4. Driver Pay (Sum of net pay from all settlements)
-                const totalDriverPay = settlements.reduce((sum, st) => sum + (parseFloat(st.netPay) || 0), 0);
+                // 4. Driver Pay (Break down by driver type)
+                // Calculate from revenueLoads (accrued expense) instead of settlements (cash basis)
+                let companyDriverPay = 0;
+                let ownerOperatorPay = 0;
+                let ownerAsDriverPay = 0;
 
-                // 5. Expenses (Sum of all tracked expenses)
-                const totalExpenses = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+                revenueLoads.forEach(load => {
+                    let pay = parseFloat(load.rate?.driverPay) || 0;
+
+                    // If driverPay not set on load, estimate it based on driver settings
+                    if (!pay && load.driverId) {
+                        const driver = drivers.find(d => d.id === load.driverId);
+                        if (driver && driver.payment) {
+                            const totalRate = parseFloat(load.companyRevenue || load.rate?.total || load.rate || 0) || 0;
+                            const miles = parseFloat(load.mileage?.total || load.miles || 0) || 0;
+
+                            if (driver.payment.type === 'percentage') {
+                                // Use driver.payPercentage (decimal 0-1)
+                                // Handle case where it might be stored as whole number (e.g. 75 instead of 0.75)
+                                let pct = parseFloat(driver.payPercentage) || 0.75;
+                                if (pct > 1) pct = pct / 100;
+                                pay = totalRate * pct;
+                            } else if (driver.payment.type === 'per_mile') {
+                                const ratePerMile = parseFloat(driver.payment.perMileRate) || 0.65;
+                                pay = miles * ratePerMile;
+                            }
+                        }
+                    }
+
+                    if (load.driverId) {
+                        const driver = drivers.find(d => d.id === load.driverId);
+                        if (driver) {
+                            if (driver.driverType === 'owner_operator') {
+                                ownerOperatorPay += pay;
+                            } else if (driver.driverType === 'owner') {
+                                ownerAsDriverPay += pay;
+                            } else {
+                                companyDriverPay += pay;
+                            }
+                        } else {
+                            companyDriverPay += pay;
+                        }
+                    } else {
+                        companyDriverPay += pay;
+                    }
+                });
+
+                const totalDriverPay = companyDriverPay + ownerOperatorPay + ownerAsDriverPay;
+
+                // 5. Expenses (Break down by category - exclude O/O-paid expenses)
+                // Only count expenses paid by company or tracked_only (not owner_operator)
+                const companyExpenses = expenses.filter(exp => {
+                    const paidBy = exp.paidBy || 'company'; // Default to company if not set
+                    return paidBy !== 'owner_operator'; // Exclude O/O-paid expenses from P&L
+                });
+
+                // Break down expenses by category
+                let fuelExpenses = 0;
+                let insuranceExpenses = 0;
+                let maintenanceExpenses = 0;
+                let fixedExpenses = 0;
+                let truckPayments = 0;
+                let otherExpenses = 0;
+
+                companyExpenses.forEach(exp => {
+                    const amount = parseFloat(exp.amount) || 0;
+                    // Use category field if available, otherwise use type
+                    const category = (exp.category || exp.type || 'other').toLowerCase();
+
+                    if (category.includes('fuel')) {
+                        fuelExpenses += amount;
+                    } else if (category.includes('insurance')) {
+                        insuranceExpenses += amount;
+                    } else if (category.includes('maintenance') || category.includes('repair')) {
+                        maintenanceExpenses += amount;
+                    } else if (category === 'lease_payment' || category === 'loan_payment' || category === 'truck_payment') {
+                        // Truck payments - will be calculated separately to avoid double counting
+                        truckPayments += amount;
+                    } else if (category === 'rent' || category === 'software' || category === 'salary' || category === 'overhead' || category === 'fixed' || category === 'office') {
+                        fixedExpenses += amount;
+                    } else {
+                        otherExpenses += amount;
+                    }
+                });
+
+                // DEDUCT COMPANY-PAID EXPENSES FROM OWNER OPERATOR PAY
+                // If company paid for fuel/insurance/etc for an Owner Operator, that amount 
+                // is an expense for the company, but it should be deducted from the driver's pay
+                // so that Net Profit = Commission.
+                // Math: Revenue - (DriverGrossPay - Deductions) - Expenses = Commission
+                //       Revenue - DriverGrossPay + Deductions - Expenses = Commission
+                //       (Revenue - DriverGrossPay - Expenses) + Deductions = Commission
+                // Since Expenses includes the Deductions amount, they cancel out if we don't deduct from pay.
+                // Wait: Revenue (3200) - DriverPay (2816) - Expenses (300) = 84. Commission is 384.
+                // We need Profit to be 384.
+                // So DriverPay needs to be 2816 - 300 = 2516.
+                // Then: 3200 - 2516 - 300 = 384. Correct.
+
+                let deductionsFromOOPay = 0;
+                companyExpenses.forEach(exp => {
+                    if (exp.driverId) {
+                        const driver = drivers.find(d => d.id === exp.driverId);
+                        if (driver && driver.driverType === 'owner_operator') {
+                            deductionsFromOOPay += parseFloat(exp.amount) || 0;
+                        }
+                    } else if (exp.truckId) {
+                        // Also check by truck if driver not set (e.g. insurance)
+                        const truck = DataManager.trucks.find(t => t.id === exp.truckId);
+                        if (truck && truck.ownership === 'owner_operator') {
+                            deductionsFromOOPay += parseFloat(exp.amount) || 0;
+                        }
+                    }
+                });
+
+                // Apply deductions
+                ownerOperatorPay = Math.max(0, ownerOperatorPay - deductionsFromOOPay);
+
+                // Calculate truck payments (leases + loan payments)
+                // Note: For loan payments, ideally we'd calculate interest portion only,
+                // but for simplicity, we'll count full payment as expense (principal is asset)
+                // If truck payments aren't already in expenses (from recurring expenses),
+                // calculate them from truck data
+                const trucks = DataManager.trucks || [];
+                const periodMonths = startDate ? Math.max(1, Math.ceil((now - startDate) / (1000 * 60 * 60 * 24 * 30))) : 1;
+
+                // Check if truck payments are already in expenses (from recurring expenses)
+                const existingTruckPaymentExpenses = companyExpenses.filter(exp => {
+                    const type = (exp.type || '').toLowerCase();
+                    return type === 'lease_payment' || type === 'loan_payment';
+                });
+
+                const existingTruckPaymentTotal = existingTruckPaymentExpenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+
+                // If we already have truck payment expenses from the forEach loop above, use those
+                // Otherwise, calculate from truck monthly payments
+                if (existingTruckPaymentTotal === 0) {
+                    // Calculate from truck monthly payments if not already in expenses
+                    trucks.forEach(truck => {
+                        if ((truck.ownership === 'leased' || truck.ownership === 'financed') && truck.monthlyPayment) {
+                            // Only count if truck is company-owned (not O/O)
+                            if (truck.ownership !== 'owner_operator') {
+                                truckPayments += truck.monthlyPayment * periodMonths;
+                            }
+                        }
+                    });
+                }
+                // If existingTruckPaymentTotal > 0, truckPayments already set from forEach loop above
+
+                const totalExpenses = fuelExpenses + insuranceExpenses + maintenanceExpenses + fixedExpenses + truckPayments + otherExpenses;
 
                 // 6. Net Profit = Revenue - Driver Pay - Expenses
+                // Note: Owner-as-driver pay is already included in driver pay,
+                // so net profit is what owner gets as distribution (no double counting)
                 const netProfit = totalRevenue - totalDriverPay - totalExpenses;
 
                 // 7. Profit Margin = (Net Profit / Revenue) × 100
@@ -575,7 +856,7 @@
                     const date = new Date(load.deliveredAt || load.delivery?.date || load.pickedUpAt || load.createdAt);
                     const month = date.getMonth(); // 0-11
                     if (!isNaN(month)) {
-                        monthlyRevenue[month] += (parseFloat(load.rate?.total || load.rate || 0) || 0);
+                        monthlyRevenue[month] += (parseFloat(load.companyRevenue || load.rate?.total || load.rate || 0) || 0);
                     }
                 });
 
@@ -597,7 +878,7 @@
                 const driverStats = drivers.map(d => {
                     const driverLoads = completedLoads.filter(l => String(l.driverId) === String(d.id));
                     const miles = driverLoads.reduce((sum, l) => sum + (parseFloat(l.mileage?.total || l.miles || 0) || 0), 0);
-                    const revenue = driverLoads.reduce((sum, l) => sum + (parseFloat(l.rate?.total || l.rate || 0) || 0), 0);
+                    const revenue = driverLoads.reduce((sum, l) => sum + (parseFloat(l.companyRevenue || l.rate?.total || l.rate || 0) || 0), 0);
                     const loadCount = driverLoads.length;
                     // Simple performance score logic
                     const performance = loadCount > 0 ? Math.min(100, 80 + (loadCount * 2)) : 80;
@@ -614,7 +895,7 @@
                 // 8. Customer Analysis
                 const customerStats = customers.map(c => {
                     const custLoads = completedLoads.filter(l => String(l.customerId) === String(c.id));
-                    const revenue = custLoads.reduce((sum, l) => sum + (parseFloat(l.rate?.total || l.rate || 0) || 0), 0);
+                    const revenue = custLoads.reduce((sum, l) => sum + (parseFloat(l.companyRevenue || l.rate?.total || l.rate || 0) || 0), 0);
                     const loadCount = custLoads.length;
                     const totalMiles = custLoads.reduce((sum, l) => sum + (parseFloat(l.mileage?.total || l.miles || 0) || 0), 0);
                     const avgRate = totalMiles > 0 ? (revenue / totalMiles).toFixed(2) : '0.00';
@@ -628,9 +909,9 @@
                     };
                 }).sort((a, b) => b.revenue - a.revenue);
 
-                // 9. Expense Breakdown (Group by actual expense types)
+                // 9. Expense Breakdown (Group by actual expense types - exclude O/O-paid)
                 const expenseByType = {};
-                expenses.forEach(exp => {
+                companyExpenses.forEach(exp => {
                     const type = exp.type || 'other';
                     const amount = parseFloat(exp.amount) || 0;
                     expenseByType[type] = (expenseByType[type] || 0) + amount;
@@ -654,17 +935,45 @@
                 });
 
                 // If no expenses, show placeholder
-                const expenseBreakdown = {
+                const expenseChartData = {
                     labels: expenseLabels.length > 0 ? expenseLabels : ['No Expenses'],
                     values: expenseValues.length > 0 ? expenseValues : [0]
                 };
 
+                // Debug: Log expense breakdown before storing
+                console.log('[Reports] Storing expense breakdown:', {
+                    fuel: fuelExpenses,
+                    insurance: insuranceExpenses,
+                    maintenance: maintenanceExpenses,
+                    fixed: fixedExpenses,
+                    truckPayments: truckPayments,
+                    other: otherExpenses,
+                    total: totalExpenses
+                });
+
                 ReportManager.data = {
                     revenue: totalRevenue,
+                    revenueBreakdown: {
+                        companyDriver: companyDriverRevenue,
+                        ownerOperator: ownerOperatorRevenue
+                    },
                     miles: totalMiles,
                     loads: loadsCompleted,
                     driverPay: totalDriverPay,
+                    driverPayBreakdown: {
+                        companyDriver: companyDriverPay,
+                        ownerOperator: ownerOperatorPay,
+                        ownerAsDriver: ownerAsDriverPay
+                    },
                     expenses: totalExpenses,
+                    expenseBreakdown: {
+                        fuel: fuelExpenses,
+                        insurance: insuranceExpenses,
+                        maintenance: maintenanceExpenses,
+                        fixed: fixedExpenses,
+                        truckPayments: truckPayments,
+                        other: otherExpenses
+                    },
                     netProfit: netProfit,
                     profitMargin,
                     revenueLoads: revenueLoads, // Store for revenue table calculations
@@ -682,7 +991,7 @@
                             statusCounts['cancelled']
                         ]
                     },
-                    expenseBreakdown,
+                    expenseChartData, // Keep for chart compatibility
                     drivers: driverStats,
                     customers: customerStats
                 };
@@ -740,18 +1049,69 @@
 
                 // Update profit breakdown
                 const breakdownRevenue = document.getElementById('breakdownRevenue');
+                const breakdownRevenueCompany = document.getElementById('breakdownRevenueCompany');
+                const breakdownRevenueOO = document.getElementById('breakdownRevenueOO');
                 const breakdownExpenses = document.getElementById('breakdownExpenses');
+                const breakdownExpenseFuel = document.getElementById('breakdownExpenseFuel');
+                const breakdownExpenseInsurance = document.getElementById('breakdownExpenseInsurance');
+                const breakdownExpenseMaintenance = document.getElementById('breakdownExpenseMaintenance');
+                const breakdownExpenseTruckPayments = document.getElementById('breakdownExpenseTruckPayments');
+                const breakdownExpenseFixed = document.getElementById('breakdownExpenseFixed');
+                const breakdownExpenseOther = document.getElementById('breakdownExpenseOther');
                 const breakdownDriverPay = document.getElementById('breakdownDriverPay');
+                const breakdownDriverPayCompany = document.getElementById('breakdownDriverPayCompany');
+                const breakdownDriverPayOO = document.getElementById('breakdownDriverPayOO');
+                const breakdownDriverPayOwner = document.getElementById('breakdownDriverPayOwner');
                 const breakdownNetProfit = document.getElementById('breakdownNetProfit');
 
                 if (breakdownRevenue) breakdownRevenue.textContent = Utils.formatCurrency(ReportManager.data.revenue);
+                if (breakdownRevenueCompany) breakdownRevenueCompany.textContent = Utils.formatCurrency(ReportManager.data.revenueBreakdown?.companyDriver || 0);
+                if (breakdownRevenueOO) breakdownRevenueOO.textContent = Utils.formatCurrency(ReportManager.data.revenueBreakdown?.ownerOperator || 0);
+
+                // Debug: Log what we're trying to display
+                console.log('[Reports] Displaying expense breakdown:', {
+                    total: ReportManager.data.expenses,
+                    breakdown: ReportManager.data.expenseBreakdown
+                });
+
                 if (breakdownExpenses) breakdownExpenses.textContent = Utils.formatCurrency(ReportManager.data.expenses);
+                if (breakdownExpenseFuel) {
+                    const fuelValue = ReportManager.data.expenseBreakdown?.fuel || 0;
+                    console.log('[Reports] Setting fuel expense:', fuelValue);
+                    breakdownExpenseFuel.textContent = Utils.formatCurrency(fuelValue);
+                }
+                if (breakdownExpenseInsurance) {
+                    const insuranceValue = ReportManager.data.expenseBreakdown?.insurance || 0;
+                    console.log('[Reports] Setting insurance expense:', insuranceValue);
+                    breakdownExpenseInsurance.textContent = Utils.formatCurrency(insuranceValue);
+                }
+                if (breakdownExpenseMaintenance) {
+                    const maintenanceValue = ReportManager.data.expenseBreakdown?.maintenance || 0;
+                    console.log('[Reports] Setting maintenance expense:', maintenanceValue);
+                    breakdownExpenseMaintenance.textContent = Utils.formatCurrency(maintenanceValue);
+                }
+                if (breakdownExpenseTruckPayments) breakdownExpenseTruckPayments.textContent = Utils.formatCurrency(ReportManager.data.expenseBreakdown?.truckPayments || 0);
+                if (breakdownExpenseFixed) {
+                    const fixedValue = ReportManager.data.expenseBreakdown?.fixed || 0;
+                    console.log('[Reports] Setting fixed expense:', fixedValue);
+                    breakdownExpenseFixed.textContent = Utils.formatCurrency(fixedValue);
+                }
+                if (breakdownExpenseOther) {
+                    const otherValue = ReportManager.data.expenseBreakdown?.other || 0;
+                    console.log('[Reports] Setting other expense:', otherValue);
+                    breakdownExpenseOther.textContent = Utils.formatCurrency(otherValue);
+                }
+
                 if (breakdownDriverPay) breakdownDriverPay.textContent = Utils.formatCurrency(ReportManager.data.driverPay);
+                if (breakdownDriverPayCompany) breakdownDriverPayCompany.textContent = Utils.formatCurrency(ReportManager.data.driverPayBreakdown?.companyDriver || 0);
+                if (breakdownDriverPayOO) breakdownDriverPayOO.textContent = Utils.formatCurrency(ReportManager.data.driverPayBreakdown?.ownerOperator || 0);
+                if (breakdownDriverPayOwner) breakdownDriverPayOwner.textContent = Utils.formatCurrency(ReportManager.data.driverPayBreakdown?.ownerAsDriver || 0);
+
                 if (breakdownNetProfit) {
                     breakdownNetProfit.textContent = Utils.formatCurrency(ReportManager.data.netProfit);
                     // Color code profit (green if positive, red if negative)
-                    breakdownNetProfit.className = ReportManager.data.netProfit >= 0 
-                        ? 'font-bold text-xl text-green-600' 
+                    breakdownNetProfit.className = ReportManager.data.netProfit >= 0
+                        ? 'font-bold text-xl text-green-600'
                         : 'font-bold text-xl text-red-600';
                 }
 
@@ -762,16 +1122,30 @@
                     type: 'scatter',
                     mode: 'lines+markers',
                     name: 'Revenue',
-                    line: { color: '#3b82f6', width: 3 },
-                    marker: { size: 8 }
+                    line: { color: '#2563eb', width: 3, shape: 'spline' }, // Smooth line, darker blue
+                    marker: { size: 8, color: '#1d4ed8', line: { color: '#ffffff', width: 2 } },
+                    hovertemplate: '<b>%{x}</b><br>Revenue: $%{y:,.2f}<extra></extra>'
                 };
 
                 Plotly.newPlot('revenueChart', [revenueTrace], {
                     title: '',
-                    xaxis: { title: 'Month' },
-                    yaxis: { title: 'Revenue ($)' },
-                    margin: { t: 20, r: 20, b: 50, l: 60 }
-                }, { responsive: true });
+                    font: { family: 'Inter, sans-serif' },
+                    xaxis: {
+                        title: 'Month',
+                        showgrid: false,
+                        zeroline: false
+                    },
+                    yaxis: {
+                        title: 'Revenue ($)',
+                        gridcolor: '#f3f4f6',
+                        zeroline: false,
+                        tickprefix: '$'
+                    },
+                    margin: { t: 20, r: 20, b: 50, l: 60 },
+                    hovermode: 'x',
+                    plot_bgcolor: '#ffffff',
+                    paper_bgcolor: '#ffffff'
+                }, { responsive: true, displayModeBar: false });
 
                 // Load status chart
                 const loadStatusTrace = {
@@ -779,14 +1153,21 @@
                     values: ReportManager.data.loadStatus.values,
                     type: 'pie',
                     marker: {
-                        colors: ['#10b981', '#3b82f6', '#6b7280', '#ef4444']
-                    }
+                        colors: ['#10b981', '#3b82f6', '#9ca3af', '#ef4444'] // Emerald, Blue, Gray, Red
+                    },
+                    textinfo: 'label+percent',
+                    textposition: 'inside',
+                    hole: 0.4, // Donut chart style
+                    hovertemplate: '<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>'
                 };
 
                 Plotly.newPlot('loadStatusChart', [loadStatusTrace], {
                     title: '',
-                    margin: { t: 20, r: 20, b: 20, l: 20 }
-                }, { responsive: true });
+                    font: { family: 'Inter, sans-serif' },
+                    margin: { t: 20, r: 20, b: 20, l: 20 },
+                    showlegend: true,
+                    legend: { orientation: 'h', y: -0.1 }
+                }, { responsive: true, displayModeBar: false });
             },
 
             // Load revenue tab
@@ -797,15 +1178,29 @@
                     y: ReportManager.data.monthlyRevenue.values,
                     type: 'bar',
                     name: 'Revenue',
-                    marker: { color: '#3b82f6' }
+                    marker: {
+                        color: '#3b82f6',
+                        line: { color: '#2563eb', width: 1.5 }
+                    },
+                    hovertemplate: '<b>%{x}</b><br>Revenue: $%{y:,.2f}<extra></extra>'
                 };
 
                 Plotly.newPlot('monthlyRevenueChart', [monthlyTrace], {
                     title: '',
-                    xaxis: { title: 'Month' },
-                    yaxis: { title: 'Revenue ($)' },
-                    margin: { t: 20, r: 20, b: 50, l: 60 }
-                }, { responsive: true });
+                    font: { family: 'Inter, sans-serif' },
+                    xaxis: {
+                        title: 'Month',
+                        showgrid: false
+                    },
+                    yaxis: {
+                        title: 'Revenue ($)',
+                        gridcolor: '#f3f4f6',
+                        tickprefix: '$'
+                    },
+                    margin: { t: 20, r: 20, b: 50, l: 60 },
+                    hovermode: 'x',
+                    bargap: 0.3
+                }, { responsive: true, displayModeBar: false });
 
                 // Customer revenue chart
                 const customerTrace = {
@@ -813,15 +1208,30 @@
                     y: ReportManager.data.customers.map(c => c.revenue),
                     type: 'bar',
                     name: 'Revenue',
-                    marker: { color: '#10b981' }
+                    marker: {
+                        color: '#10b981',
+                        line: { color: '#059669', width: 1.5 }
+                    },
+                    hovertemplate: '<b>%{x}</b><br>Revenue: $%{y:,.2f}<extra></extra>'
                 };
 
                 Plotly.newPlot('customerRevenueChart', [customerTrace], {
                     title: '',
-                    xaxis: { title: 'Customer' },
-                    yaxis: { title: 'Revenue ($)' },
-                    margin: { t: 20, r: 20, b: 80, l: 60 }
-                }, { responsive: true });
+                    font: { family: 'Inter, sans-serif' },
+                    xaxis: {
+                        title: 'Customer',
+                        tickangle: -45,
+                        showgrid: false
+                    },
+                    yaxis: {
+                        title: 'Revenue ($)',
+                        gridcolor: '#f3f4f6',
+                        tickprefix: '$'
+                    },
+                    margin: { t: 20, r: 20, b: 100, l: 60 }, // Increased bottom margin for labels
+                    hovermode: 'x',
+                    bargap: 0.3
+                }, { responsive: true, displayModeBar: false });
 
                 // Revenue table - calculate actual monthly data from revenue loads (booked, in_transit, delivered)
                 const tbody = document.getElementById('revenueTableBody');
@@ -836,12 +1246,12 @@
                     const date = new Date(load.deliveredAt || load.delivery?.date || load.pickedUpAt || load.createdAt);
                     const month = date.getMonth();
                     const year = date.getFullYear();
-                    
+
                     if (year === currentYear && !isNaN(month)) {
                         if (!monthlyData[month]) {
                             monthlyData[month] = { revenue: 0, loads: 0, miles: 0 };
                         }
-                        monthlyData[month].revenue += parseFloat(load.rate?.total || load.rate || 0) || 0;
+                        monthlyData[month].revenue += parseFloat(load.companyRevenue || load.rate?.total || load.rate || 0) || 0;
                         monthlyData[month].loads += 1;
                         monthlyData[month].miles += parseFloat(load.mileage?.total || load.miles || 0) || 0;
                     }
@@ -869,22 +1279,31 @@
             loadExpenses: () => {
                 // Expense breakdown chart
                 const expenseTrace = {
-                    labels: ReportManager.data.expenseBreakdown.labels,
-                    values: ReportManager.data.expenseBreakdown.values,
+                    labels: ReportManager.data.expenseChartData.labels,
+                    values: ReportManager.data.expenseChartData.values,
                     type: 'pie',
                     marker: {
                         colors: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6']
-                    }
+                    },
+                    textinfo: 'label+percent',
+                    textposition: 'inside',
+                    hole: 0.4,
+                    hovertemplate: '<b>%{label}</b><br>Amount: $%{value:,.2f}<br>Percentage: %{percent}<extra></extra>'
                 };
 
                 Plotly.newPlot('expenseBreakdownChart', [expenseTrace], {
                     title: '',
-                    margin: { t: 20, r: 20, b: 20, l: 20 }
-                }, { responsive: true });
+                    font: { family: 'Inter, sans-serif' },
+                    margin: { t: 20, r: 20, b: 20, l: 20 },
+                    showlegend: true,
+                    legend: { orientation: 'h', y: -0.1 }
+                }, { responsive: true, displayModeBar: false });
 
                 // Expense trend chart (Calculate actual monthly expenses)
                 const monthlyExpenses = Array(12).fill(0);
-                expenses.forEach(exp => {
+                // Get expenses from DataManager (filtered by period if needed)
+                const allExpenses = DataManager.expenses || [];
+                allExpenses.forEach(exp => {
                     const date = new Date(exp.date || exp.createdAt);
                     const month = date.getMonth();
                     if (!isNaN(month)) {
@@ -898,16 +1317,26 @@
                     type: 'scatter',
                     mode: 'lines+markers',
                     name: 'Expenses',
-                    line: { color: '#ef4444', width: 3 },
-                    marker: { size: 8 }
+                    line: { color: '#ef4444', width: 3, shape: 'spline' },
+                    marker: { size: 8, color: '#dc2626', line: { color: '#ffffff', width: 2 } },
+                    hovertemplate: '<b>%{x}</b><br>Expenses: $%{y:,.2f}<extra></extra>'
                 };
 
                 Plotly.newPlot('expenseTrendChart', [trendTrace], {
                     title: '',
-                    xaxis: { title: 'Month' },
-                    yaxis: { title: 'Expenses ($)' },
-                    margin: { t: 20, r: 20, b: 50, l: 60 }
-                }, { responsive: true });
+                    font: { family: 'Inter, sans-serif' },
+                    xaxis: {
+                        title: 'Month',
+                        showgrid: false
+                    },
+                    yaxis: {
+                        title: 'Expenses ($)',
+                        gridcolor: '#f3f4f6',
+                        tickprefix: '$'
+                    },
+                    margin: { t: 20, r: 20, b: 50, l: 60 },
+                    hovermode: 'x'
+                }, { responsive: true, displayModeBar: false });
             },
 
             // Load drivers tab
@@ -918,15 +1347,30 @@
                     y: ReportManager.data.drivers.map(d => d.performance),
                     type: 'bar',
                     name: 'Performance Score',
-                    marker: { color: '#3b82f6' }
+                    marker: {
+                        color: '#3b82f6',
+                        line: { color: '#2563eb', width: 1.5 }
+                    },
+                    hovertemplate: '<b>%{x}</b><br>Score: %{y}%<extra></extra>'
                 };
 
                 Plotly.newPlot('driverPerformanceChart', [performanceTrace], {
                     title: '',
-                    xaxis: { title: 'Driver' },
-                    yaxis: { title: 'Performance Score' },
-                    margin: { t: 20, r: 20, b: 80, l: 60 }
-                }, { responsive: true });
+                    font: { family: 'Inter, sans-serif' },
+                    xaxis: {
+                        title: 'Driver',
+                        tickangle: -45,
+                        showgrid: false
+                    },
+                    yaxis: {
+                        title: 'Performance Score',
+                        range: [0, 100],
+                        gridcolor: '#f3f4f6'
+                    },
+                    margin: { t: 20, r: 20, b: 100, l: 60 },
+                    hovermode: 'x',
+                    bargap: 0.3
+                }, { responsive: true, displayModeBar: false });
 
                 // Driver table
                 const tbody = document.getElementById('driverTableBody');
@@ -960,15 +1404,30 @@
                     y: ReportManager.data.customers.map(c => c.revenue),
                     type: 'bar',
                     name: 'Revenue',
-                    marker: { color: '#10b981' }
+                    marker: {
+                        color: '#10b981',
+                        line: { color: '#059669', width: 1.5 }
+                    },
+                    hovertemplate: '<b>%{x}</b><br>Revenue: $%{y:,.2f}<extra></extra>'
                 };
 
                 Plotly.newPlot('customerAnalysisChart', [analysisTrace], {
                     title: '',
-                    xaxis: { title: 'Customer' },
-                    yaxis: { title: 'Revenue ($)' },
-                    margin: { t: 20, r: 20, b: 80, l: 60 }
-                }, { responsive: true });
+                    font: { family: 'Inter, sans-serif' },
+                    xaxis: {
+                        title: 'Customer',
+                        tickangle: -45,
+                        showgrid: false
+                    },
+                    yaxis: {
+                        title: 'Revenue ($)',
+                        gridcolor: '#f3f4f6',
+                        tickprefix: '$'
+                    },
+                    margin: { t: 20, r: 20, b: 100, l: 60 },
+                    hovermode: 'x',
+                    bargap: 0.3
+                }, { responsive: true, displayModeBar: false });
 
                 // Customer table
                 const tbody = document.getElementById('customerTableBody');
@@ -987,9 +1446,134 @@
                 });
             },
 
+            // Print report
+            printReport: () => {
+                window.print();
+            },
+
             // Export report
             exportReport: () => {
-                Utils.showNotification('Report export feature coming soon', 'info');
+                // Recalculate data to ensure we have the latest values
+                ReportManager.calculateRealData();
+
+                const currentTab = ReportManager.currentTab;
+                const period = document.getElementById('reportPeriod').value;
+                const data = ReportManager.data;
+
+                // Debug: Log the data being exported
+                console.log('Export Debug - Current Tab:', currentTab);
+                console.log('Export Debug - Period:', period);
+                console.log('Export Debug - Data Object:', data);
+                console.log('Export Debug - Total Revenue:', data.totalRevenue);
+                console.log('Export Debug - DataManager Loads:', DataManager.loads.length);
+                console.log('Export Debug - DataManager Expenses:', DataManager.expenses.length);
+
+                let csvContent = '';
+                let filename = '';
+                const date = new Date().toISOString().split('T')[0];
+
+                // Helper function to format currency for CSV
+                const formatCSV = (value) => {
+                    if (value === null || value === undefined || value === '' || isNaN(value)) {
+                        return '0.00';
+                    }
+                    if (typeof value === 'number') {
+                        return value.toFixed(2);
+                    }
+                    const num = parseFloat(value);
+                    return isNaN(num) ? '0.00' : num.toFixed(2);
+                };
+
+                // Helper function to escape CSV values
+                const escapeCSV = (value) => {
+                    if (value === null || value === undefined) return '';
+                    const str = String(value);
+                    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                        return `"${str.replace(/"/g, '""')}"`;
+                    }
+                    return str;
+                };
+
+                switch (currentTab) {
+                    case 'overview':
+                        filename = `overview-report-${date}.csv`;
+                        csvContent = 'Metric,Amount\n';
+                        csvContent += `Total Revenue,$${formatCSV(data.totalRevenue)}\n`;
+                        csvContent += `Company Driver Revenue,$${formatCSV(data.companyDriverRevenue)}\n`;
+                        csvContent += `Owner Operator Revenue,$${formatCSV(data.ownerOperatorRevenue)}\n`;
+                        csvContent += `Total Miles,${formatCSV(data.totalMiles)}\n`;
+                        csvContent += `Loads Completed,${data.loadsCompleted}\n`;
+                        csvContent += `Total Driver Pay,$${formatCSV(data.totalDriverPay)}\n`;
+                        csvContent += `Company Driver Pay,$${formatCSV(data.companyDriverPay)}\n`;
+                        csvContent += `Owner Operator Pay,$${formatCSV(data.ownerOperatorPay)}\n`;
+                        csvContent += `Owner as Driver Pay,$${formatCSV(data.ownerAsDriverPay)}\n`;
+                        csvContent += `Total Expenses,$${formatCSV(data.totalExpenses)}\n`;
+                        csvContent += `Fuel Expenses,$${formatCSV(data.fuelExpenses)}\n`;
+                        csvContent += `Insurance Expenses,$${formatCSV(data.insuranceExpenses)}\n`;
+                        csvContent += `Maintenance Expenses,$${formatCSV(data.maintenanceExpenses)}\n`;
+                        csvContent += `Fixed Expenses,$${formatCSV(data.fixedExpenses)}\n`;
+                        csvContent += `Truck Payments,$${formatCSV(data.truckPayments)}\n`;
+                        csvContent += `Other Expenses,$${formatCSV(data.otherExpenses)}\n`;
+                        csvContent += `Net Profit,$${formatCSV(data.netProfit)}\n`;
+                        csvContent += `Profit Margin,${formatCSV(data.profitMargin)}%\n`;
+                        break;
+
+                    case 'revenue':
+                        filename = `revenue-report-${date}.csv`;
+                        csvContent = 'Month,Revenue\n';
+                        if (data.monthlyRevenue && data.monthLabels) {
+                            data.monthLabels.forEach((month, idx) => {
+                                csvContent += `${month},$${formatCSV(data.monthlyRevenue[idx])}\n`;
+                            });
+                        }
+                        csvContent += '\n';
+                        csvContent += 'Customer,Revenue\n';
+                        if (data.customerRevenue) {
+                            Object.entries(data.customerRevenue).forEach(([customer, revenue]) => {
+                                csvContent += `${escapeCSV(customer)},$${formatCSV(revenue)}\n`;
+                            });
+                        }
+                        break;
+
+                    case 'expenses':
+                        filename = `expenses-report-${date}.csv`;
+                        csvContent = 'Category,Amount\n';
+                        csvContent += `Fuel,$${formatCSV(data.fuelExpenses)}\n`;
+                        csvContent += `Insurance,$${formatCSV(data.insuranceExpenses)}\n`;
+                        csvContent += `Maintenance,$${formatCSV(data.maintenanceExpenses)}\n`;
+                        csvContent += `Fixed Expenses,$${formatCSV(data.fixedExpenses)}\n`;
+                        csvContent += `Truck Payments,$${formatCSV(data.truckPayments)}\n`;
+                        csvContent += `Other Expenses,$${formatCSV(data.otherExpenses)}\n`;
+                        csvContent += `Total,$${formatCSV(data.totalExpenses)}\n`;
+                        break;
+
+                    case 'drivers':
+                        filename = `drivers-report-${date}.csv`;
+                        csvContent = 'Driver Type,Pay Amount\n';
+                        csvContent += `Company Drivers,$${formatCSV(data.companyDriverPay)}\n`;
+                        csvContent += `Owner Operators,$${formatCSV(data.ownerOperatorPay)}\n`;
+                        csvContent += `Owner as Driver,$${formatCSV(data.ownerAsDriverPay)}\n`;
+                        csvContent += `Total,$${formatCSV(data.totalDriverPay)}\n`;
+                        break;
+
+                    default:
+                        Utils.showNotification('Please select a tab to export', 'warning');
+                        return;
+                }
+
+                // Create blob and download
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                Utils.showNotification(`Report exported: ${filename}`, 'success');
             },
 
             // Setup event listeners
@@ -1049,8 +1633,14 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Wait for DataManager to load all data from Firebase first
             await DataManager.init();
+            // Wait a bit for all Firebase listeners to populate data
+            await new Promise(resolve => setTimeout(resolve, 1000));
             // Then initialize reports with the loaded data
             ReportManager.init();
+            // Force refresh the overview tab to ensure data is displayed
+            if (ReportManager.currentTab === 'overview') {
+                ReportManager.loadOverview();
+            }
         });
     </script>
 </body>

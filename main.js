@@ -81,6 +81,98 @@ const Utils = {
         return prefix + Date.now().toString(36) + Math.random().toString(36).substr(2);
     },
 
+    // Validate and normalize pay percentage (always returns decimal 0-1)
+    validatePayPercentage: (percentage, driverType) => {
+        if (percentage === null || percentage === undefined || percentage === '') {
+            // Provide defaults based on driver type
+            if (driverType === 'owner_operator') {
+                return 0.88; // 88% default for O/O
+            } else if (driverType === 'company' || driverType === 'owner') {
+                return 0.70; // 70% default for company drivers
+            }
+            return 0.70; // Safe default
+        }
+
+        let decimalValue = parseFloat(percentage);
+
+        // If stored as integer (e.g., 88), convert to decimal (0.88)
+        if (decimalValue > 1) {
+            decimalValue = decimalValue / 100;
+        }
+
+        // Validate range
+        if (isNaN(decimalValue) || decimalValue < 0 || decimalValue > 1) {
+            console.error(`Invalid pay percentage: ${percentage}. Using default.`);
+            if (driverType === 'owner_operator') {
+                return 0.88;
+            }
+            return 0.70;
+        }
+
+        // Warn if unusual for driver type
+        if (driverType === 'owner_operator' && decimalValue < 0.80) {
+            console.warn(`Unusual O/O percentage: ${(decimalValue * 100).toFixed(0)}%. Typically 85-90%`);
+        } else if ((driverType === 'company' || driverType === 'owner') && decimalValue > 0.80) {
+            console.warn(`Unusual company driver percentage: ${(decimalValue * 100).toFixed(0)}%. Typically 65-75%`);
+        }
+
+        return decimalValue;
+    },
+
+    // Calculate company revenue based on driver type (using current rules)
+    // Accepts either driverId (string) or driver (object)
+    calculateCompanyRevenue: async (loadAmount, driverIdOrDriver) => {
+        if (!driverIdOrDriver || !loadAmount) {
+            return loadAmount || 0;
+        }
+
+        let driver;
+        if (typeof driverIdOrDriver === 'string') {
+            driver = DataManager.drivers.find(d => d.id === driverIdOrDriver);
+        } else {
+            driver = driverIdOrDriver;
+        }
+
+        if (!driver) {
+            console.warn('No driver found, using full revenue');
+            return loadAmount || 0;
+        }
+
+        return Utils.calculateCompanyRevenueSync(loadAmount, driver);
+    },
+
+    // Synchronous version (uses cached rules or driver.payPercentage)
+    calculateCompanyRevenueSync: (loadAmount, driver) => {
+        if (!driver || !loadAmount) {
+            return loadAmount || 0;
+        }
+
+        const grossAmount = parseFloat(loadAmount) || 0;
+        const driverType = driver.driverType;
+
+        // Company Driver or Owner (Driver): Count 100% of load as revenue
+        if (driverType === 'company' || driverType === 'owner') {
+            return grossAmount;
+        }
+
+        // Owner Operator: Count only company's commission
+        if (driverType === 'owner_operator') {
+            // Try to use commission rate from cached rules first
+            const cachedRules = DataManager.cachedRules;
+            if (cachedRules?.revenueRules?.commissionRate) {
+                return grossAmount * cachedRules.revenueRules.commissionRate;
+            }
+
+            // Fallback: Calculate from driver's payPercentage (stored as decimal 0-1)
+            const driverPayPercentage = Utils.validatePayPercentage(driver.payPercentage, driverType);
+            const companyCommission = 1 - driverPayPercentage;
+            return grossAmount * companyCommission;
+        }
+
+        // Default: count full amount if driver type unknown
+        return grossAmount;
+    },
+
     // Calculate distance between two points
     calculateDistance: (origin, destination) => {
         // Expanded lookup table for common routes (in miles)
@@ -366,15 +458,15 @@ const Utils = {
     formatDateRange: (startDate, endDate) => {
         const start = new Date(startDate);
         const end = new Date(endDate);
-        
+
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
+
         const startMonth = monthNames[start.getMonth()];
         const startDay = start.getDate();
         const endMonth = monthNames[end.getMonth()];
         const endDay = end.getDate();
         const year = end.getFullYear();
-        
+
         // If same month, format as "Nov 10 - 17, 2025"
         if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
             return `${startMonth} ${startDay} - ${endDay}, ${year}`;
@@ -408,10 +500,10 @@ function checkExpirations() {
     // Check driver medical card expirations
     DataManager.drivers.forEach(d => {
         if (!d.medicalExpirationDate) return;
-        
+
         const exp = new Date(d.medicalExpirationDate);
         exp.setHours(0, 0, 0, 0);
-        
+
         if (exp <= in30Days && exp >= today) {
             const days = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
             const driverName = `${d.firstName || ''} ${d.lastName || ''}`.trim() || d.driverNumber || 'Unknown Driver';
@@ -436,17 +528,27 @@ function checkExpirations() {
     // Check truck expirations
     DataManager.trucks.forEach(t => {
         const truckNumber = t.number || t.truckNumber || 'Unknown Truck';
-        
-        ['registrationExpiry', 'inspectionDueDate', 'cabCardRenewalDate'].forEach(field => {
+
+        // Standard compliance fields
+        const complianceFields = ['registrationExpiry', 'inspectionDueDate', 'cabCardRenewalDate'];
+
+        // Add lease end date for leased trucks
+        if (t.ownership === 'leased' && t.leaseEndDate) {
+            complianceFields.push('leaseEndDate');
+        }
+
+        complianceFields.forEach(field => {
             if (!t[field]) return;
-            
+
             const exp = new Date(t[field]);
             exp.setHours(0, 0, 0, 0);
-            
+
             if (exp <= in30Days && exp >= today) {
                 const days = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
                 const label = field === 'registrationExpiry' ? 'REGISTRATION' :
-                             field === 'inspectionDueDate' ? 'ANNUAL INSPECTION' : 'CAB CARD (IRP)';
+                    field === 'inspectionDueDate' ? 'ANNUAL INSPECTION' :
+                        field === 'cabCardRenewalDate' ? 'CAB CARD (IRP)' :
+                            field === 'leaseEndDate' ? 'LEASE END DATE' : field.toUpperCase();
                 alerts.push({
                     type: field,
                     message: `${label}: Truck ${truckNumber} expires in ${days} day${days !== 1 ? 's' : ''}`,
@@ -456,7 +558,9 @@ function checkExpirations() {
             } else if (exp < today) {
                 const daysOverdue = Math.ceil((today - exp) / (1000 * 60 * 60 * 24));
                 const label = field === 'registrationExpiry' ? 'REGISTRATION' :
-                             field === 'inspectionDueDate' ? 'ANNUAL INSPECTION' : 'CAB CARD (IRP)';
+                    field === 'inspectionDueDate' ? 'ANNUAL INSPECTION' :
+                        field === 'cabCardRenewalDate' ? 'CAB CARD (IRP)' :
+                            field === 'leaseEndDate' ? 'LEASE END DATE' : field.toUpperCase();
                 alerts.push({
                     type: field,
                     message: `${label}: Truck ${truckNumber} EXPIRED ${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} ago`,
@@ -465,6 +569,30 @@ function checkExpirations() {
                 });
             }
         });
+
+        // Check O/O insurance expiration (only for owner operator trucks)
+        if (t.insurancePaidBy === 'owner_operator' && t.insuranceExpirationDate) {
+            const exp = new Date(t.insuranceExpirationDate);
+            exp.setHours(0, 0, 0, 0);
+
+            if (exp <= in30Days && exp >= today) {
+                const days = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+                alerts.push({
+                    type: 'insurance',
+                    message: `O/O INSURANCE: Truck ${truckNumber} expires in ${days} day${days !== 1 ? 's' : ''}`,
+                    days: days,
+                    date: exp
+                });
+            } else if (exp < today) {
+                const daysOverdue = Math.ceil((today - exp) / (1000 * 60 * 60 * 24));
+                alerts.push({
+                    type: 'insurance',
+                    message: `O/O INSURANCE: Truck ${truckNumber} EXPIRED ${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} ago`,
+                    days: -daysOverdue,
+                    date: exp
+                });
+            }
+        }
     });
 
     // Sort alerts by urgency (expired first, then by days remaining)
@@ -479,7 +607,7 @@ function checkExpirations() {
         const expiredCount = alerts.filter(a => a.days < 0).length;
         const expiringCount = alerts.length - expiredCount;
         let notificationMsg = '';
-        
+
         if (expiredCount > 0 && expiringCount > 0) {
             notificationMsg = `COMPLIANCE ALERT: ${expiredCount} expired, ${expiringCount} expiring soon!`;
         } else if (expiredCount > 0) {
@@ -487,9 +615,9 @@ function checkExpirations() {
         } else {
             notificationMsg = `COMPLIANCE ALERT: ${expiringCount} item${expiringCount !== 1 ? 's' : ''} expiring soon!`;
         }
-        
+
         Utils.showNotification(notificationMsg, expiredCount > 0 ? 'error' : 'warning');
-        
+
         // Render compliance alerts if function exists
         if (window.renderComplianceAlerts) {
             window.renderComplianceAlerts(alerts);
@@ -574,6 +702,23 @@ const DataManager = {
         DataManager.initialized = true;
         console.log("Initializing DataManager with Firebase Persistence...");
 
+        // Load rules on initialization
+        try {
+            await DataManager.getRules();
+            console.log("System rules loaded");
+
+            // Check if rules changed since last visit
+            const lastKnownVersion = localStorage.getItem('lastRuleVersion');
+            const currentRules = DataManager.cachedRules;
+
+            if (lastKnownVersion && currentRules && lastKnownVersion !== currentRules.version) {
+                console.log(`Rules changed from ${lastKnownVersion} to ${currentRules.version}`);
+                // Rules changed - will be handled by settings page or manual recalculation
+            }
+        } catch (error) {
+            console.error('Error loading rules:', error);
+        }
+
         try {
             // Listener: LOADS
             db.collection('loads').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
@@ -581,7 +726,13 @@ const DataManager = {
                 console.log(`Loaded ${DataManager.loads.length} loads from Firebase`);
                 // Auto-refresh UI if the function exists on the current page
                 if (window.renderLoads) window.renderLoads();
+                // Auto-refresh UI if the function exists on the current page
+                if (window.renderLoads) window.renderLoads();
                 if (window.updateDashboard) window.updateDashboard();
+                if (window.updateDashboard) window.updateDashboard();
+                if (window.updateDriverStats) window.updateDriverStats(); // Update driver stats when loads change
+                // Auto-generate invoices for delivered loads
+                if (window.createInvoicesForDeliveredLoads) window.createInvoicesForDeliveredLoads();
             }, error => {
                 console.error('Error loading loads:', error);
             });
@@ -592,6 +743,9 @@ const DataManager = {
                 console.log(`Loaded ${DataManager.drivers.length} drivers from Firebase`);
                 if (window.renderDrivers) window.renderDrivers();
                 if (window.renderFleet) window.renderFleet();
+                if (window.renderDrivers) window.renderDrivers();
+                if (window.renderFleet) window.renderFleet();
+                if (window.updateDriverStats) window.updateDriverStats(); // Update driver stats when drivers change
                 // Check expirations when drivers update
                 if (window.checkExpirations) window.checkExpirations();
             }, error => {
@@ -603,6 +757,8 @@ const DataManager = {
                 DataManager.customers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.customers.length} customers from Firebase`);
                 if (window.renderCustomers) window.renderCustomers();
+                // Retry invoice creation now that customers are loaded
+                if (window.createInvoicesForDeliveredLoads) window.createInvoicesForDeliveredLoads();
             }, error => {
                 console.error('Error loading customers:', error);
             });
@@ -665,6 +821,20 @@ const DataManager = {
             payload.updatedAt = new Date().toISOString();
             payload.companyId = 'ats_freight';
 
+            // Ensure company_revenue is calculated if not already set
+            if (!payload.companyRevenue && payload.rate?.total) {
+                payload.grossLoadAmount = payload.rate.total;
+                // Get driver object for calculation
+                const driver = payload.driverId ? DataManager.drivers.find(d => d.id === payload.driverId) : null;
+                payload.companyRevenue = Utils.calculateCompanyRevenueSync(payload.rate.total, driver);
+
+                // Track which rules version was used
+                if (DataManager.cachedRules) {
+                    payload.calculatedWithRuleVersion = DataManager.cachedRules.version;
+                    payload.calculatedAt = new Date().toISOString();
+                }
+            }
+
             const docRef = await db.collection('loads').add(payload);
 
             // Add to local array immediately - REMOVED to prevent duplicates with onSnapshot
@@ -683,6 +853,27 @@ const DataManager = {
         try {
             const payload = JSON.parse(JSON.stringify(loadData));
             payload.updatedAt = new Date().toISOString();
+
+            // Recalculate company_revenue if driver or rate changed
+            if (payload.driverId !== undefined || payload.rate?.total !== undefined) {
+                const existingLoad = DataManager.loads.find(l => l.id === loadId);
+                const currentDriverId = payload.driverId !== undefined ? payload.driverId : (existingLoad?.driverId);
+                const currentRate = payload.rate?.total !== undefined ? payload.rate.total : (existingLoad?.rate?.total);
+
+                if (currentRate) {
+                    payload.grossLoadAmount = currentRate;
+                    // Get driver object for calculation
+                    const currentDriver = currentDriverId ? DataManager.drivers.find(d => d.id === currentDriverId) : null;
+                    payload.companyRevenue = Utils.calculateCompanyRevenueSync(currentRate, currentDriver);
+
+                    // Update rule version tracking
+                    if (DataManager.cachedRules) {
+                        payload.calculatedWithRuleVersion = DataManager.cachedRules.version;
+                        payload.recalculatedAt = new Date().toISOString();
+                    }
+                }
+            }
+
             await db.collection('loads').doc(loadId).update(payload);
 
             // UPDATE LOCAL ARRAY
@@ -779,6 +970,64 @@ const DataManager = {
             payload.companyId = 'ats_freight';
 
             const docRef = await db.collection('trucks').add(payload);
+
+            // If company truck with monthly insurance, create first month's expense
+            if (payload.insurancePaidBy === 'company' && payload.monthlyInsuranceCost > 0) {
+                const today = new Date();
+                const expenseData = {
+                    type: 'insurance',
+                    amount: payload.monthlyInsuranceCost,
+                    description: `Monthly insurance - ${payload.number || 'Truck'}`,
+                    truckId: docRef.id,
+                    truckNumber: payload.number || 'Unknown',
+                    paidBy: 'company',
+                    date: today.toISOString(),
+                    vendor: {
+                        name: 'Insurance Provider'
+                    },
+                    isRecurring: true,
+                    recurringType: 'monthly',
+                    recurringTruckId: docRef.id
+                };
+
+                try {
+                    await DataManager.addExpense(expenseData);
+                    console.log('Created initial monthly insurance expense for truck', payload.number);
+                } catch (expenseError) {
+                    console.warn('Could not create initial insurance expense:', expenseError);
+                    // Don't fail truck creation if expense creation fails
+                }
+            }
+
+            // Create monthly recurring lease/loan payment expense for leased or financed trucks
+            if ((payload.ownership === 'leased' || payload.ownership === 'financed') && payload.monthlyPayment > 0) {
+                const today = new Date();
+                const expenseType = payload.ownership === 'leased' ? 'lease_payment' : 'loan_payment';
+                const expenseData = {
+                    type: expenseType,
+                    amount: payload.monthlyPayment,
+                    description: `Monthly ${payload.ownership === 'leased' ? 'lease' : 'loan'} payment - ${payload.number || 'Truck'}`,
+                    truckId: docRef.id,
+                    truckNumber: payload.number || 'Unknown',
+                    paidBy: 'company',
+                    date: today.toISOString(),
+                    vendor: {
+                        name: payload.ownership === 'leased' ? 'Lease Company' : 'Lender'
+                    },
+                    isRecurring: true,
+                    recurringType: 'monthly',
+                    recurringTruckId: docRef.id
+                };
+
+                try {
+                    await DataManager.addExpense(expenseData);
+                    console.log(`Created initial monthly ${payload.ownership} payment expense for truck`, payload.number);
+                } catch (expenseError) {
+                    console.warn(`Could not create initial ${payload.ownership} payment expense:`, expenseError);
+                    // Don't fail truck creation if expense creation fails
+                }
+            }
+
             Utils.showNotification('Truck added successfully!', 'success');
             return docRef.id;
         } catch (e) {
@@ -915,7 +1164,7 @@ const DataManager = {
                 if (invoiceData.loadIds && invoiceData.loadIds.length > 0) {
                     const batch = db.batch();
                     let validLoads = 0;
-                    
+
                     for (const loadId of invoiceData.loadIds) {
                         try {
                             const loadRef = db.collection('loads').doc(loadId);
@@ -930,7 +1179,7 @@ const DataManager = {
                             console.warn(`Error checking load ${loadId}:`, err);
                         }
                     }
-                    
+
                     // Only commit if there are valid loads to update
                     if (validLoads > 0) {
                         await batch.commit();
@@ -989,7 +1238,7 @@ const DataManager = {
                 const data = settlement.data();
                 const batch = db.batch();
                 let validUpdates = 0;
-                
+
                 // Unlink loads
                 if (data.loadIds && data.loadIds.length > 0) {
                     for (const loadId of data.loadIds) {
@@ -1007,7 +1256,7 @@ const DataManager = {
                         }
                     }
                 }
-                
+
                 // Unlink expenses
                 if (data.expenseIds && data.expenseIds.length > 0) {
                     for (const expenseId of data.expenseIds) {
@@ -1025,7 +1274,7 @@ const DataManager = {
                         }
                     }
                 }
-                
+
                 // Only commit if there are valid updates
                 if (validUpdates > 0) {
                     await batch.commit();
@@ -1089,6 +1338,172 @@ const DataManager = {
 
     getExpense: (expenseId) => {
         return DataManager.expenses.find(e => e.id === expenseId);
+    },
+
+    // ============================================
+    // RULES MANAGEMENT SYSTEM
+    // ============================================
+
+    // Cached rules (refreshed every 5 minutes)
+    cachedRules: null,
+    rulesCacheTime: null,
+
+    // Default rules structure
+    defaultRules: {
+        driverPayRules: {
+            companyDriver: {
+                paymentType: "percentage",
+                percentage: 0.70,  // 70% of load
+                updatedAt: new Date().toISOString()
+            },
+            ownerOperator: {
+                paymentType: "percentage",
+                percentage: 0.88,  // 88% of load
+                updatedAt: new Date().toISOString()
+            },
+            owner: {
+                paymentType: "percentage",
+                percentage: 0.70,  // Same as company driver
+                updatedAt: new Date().toISOString()
+            }
+        },
+        revenueRules: {
+            companyDriverLoad: "full",  // Count 100% as revenue
+            ownerOperatorLoad: "full",  // Count 100% as revenue (Gross vs Net accounting)
+            commissionRate: 0.12,  // 12% commission from O/O (100% - 88%)
+            updatedAt: new Date().toISOString()
+        },
+        expenseRules: {
+            fuelPaidBy: "company",
+            insurancePaidBy: "company",
+            maintenancePaidBy: "company",
+            updatedAt: new Date().toISOString()
+        },
+        invoiceRules: {
+            autoCreateOnDelivery: true,
+            paymentTerms: 30,  // Net 30
+            invoicePrefix: "INV",
+            updatedAt: new Date().toISOString()
+        },
+        version: "1.0.0",
+        lastUpdated: new Date().toISOString()
+    },
+
+    // Get current rules from database (with caching)
+    getRules: async () => {
+        // Cache rules for 5 minutes to avoid excessive database reads
+        const cacheTimeout = 5 * 60 * 1000; // 5 minutes
+        if (DataManager.cachedRules && DataManager.rulesCacheTime &&
+            (Date.now() - DataManager.rulesCacheTime < cacheTimeout)) {
+            return DataManager.cachedRules;
+        }
+
+        try {
+            const doc = await db.collection('systemRules').doc('current').get();
+
+            if (doc.exists) {
+                DataManager.cachedRules = doc.data();
+                DataManager.rulesCacheTime = Date.now();
+                return DataManager.cachedRules;
+            } else {
+                // If no rules exist, create defaults
+                await db.collection('systemRules').doc('current').set(DataManager.defaultRules);
+                DataManager.cachedRules = DataManager.defaultRules;
+                DataManager.rulesCacheTime = Date.now();
+                return DataManager.cachedRules;
+            }
+        } catch (error) {
+            console.error('Error getting rules:', error);
+            // Return defaults if database read fails
+            return DataManager.defaultRules;
+        }
+    },
+
+    // Set/update rules in database
+    setRules: async (rules) => {
+        try {
+            // Increment version
+            const currentRules = await DataManager.getRules();
+            const versionParts = (currentRules.version || "1.0.0").split('.');
+            versionParts[1] = parseInt(versionParts[1]) + 1; // Increment minor version
+            rules.version = versionParts.join('.');
+            rules.lastUpdated = new Date().toISOString();
+
+            // Save to database
+            await db.collection('systemRules').doc('current').set(rules);
+
+            // Update cache
+            DataManager.cachedRules = rules;
+            DataManager.rulesCacheTime = Date.now();
+
+            // Store version in localStorage for change detection
+            localStorage.setItem('lastRuleVersion', rules.version);
+
+            Utils.showNotification('Rules updated successfully!', 'success');
+            return rules;
+        } catch (error) {
+            console.error('Error setting rules:', error);
+            Utils.showNotification('Error updating rules: ' + error.message, 'error');
+            throw error;
+        }
+    },
+
+    // Recalculate all data with new rules
+    recalculateAllDataWithNewRules: async (changedRule) => {
+        console.log(`Recalculating all data due to rule change: ${changedRule}`);
+
+        Utils.showNotification('Recalculating all data with new rules...', 'info');
+
+        // Get current rules
+        const rules = await DataManager.getRules();
+
+        let recalculatedCount = 0;
+
+        // Step 1: Recalculate all loads
+        if (changedRule === 'companyDriver' || changedRule === 'ownerOperator' || changedRule === 'revenueRules' || changedRule === 'all') {
+            const allLoads = DataManager.loads;
+
+            for (const load of allLoads) {
+                if (!load.driverId) continue;
+
+                const driver = DataManager.drivers.find(d => d.id === load.driverId);
+                if (!driver) continue;
+
+                const loadRevenue = parseFloat(load.rate?.total || load.rate || 0);
+                if (!loadRevenue) continue;
+
+                // Recalculate company revenue using new rules
+                // Recalculate company revenue using new rules
+                let companyRevenue = 0;
+                // ALWAYS use full load amount as revenue (Gross Revenue)
+                // Driver pay will be deducted as an expense to get Net Profit
+                companyRevenue = loadRevenue;
+
+                // Update load with recalculated values
+                try {
+                    const updateData = {
+                        companyRevenue: companyRevenue,
+                        calculatedWithRuleVersion: rules.version,
+                        recalculatedAt: new Date().toISOString()
+                    };
+
+                    // Also update grossLoadAmount if it exists
+                    if (load.rate?.total) {
+                        updateData.grossLoadAmount = load.rate.total;
+                    }
+
+                    await DataManager.updateLoad(load.id, updateData);
+                    recalculatedCount++;
+                } catch (error) {
+                    console.error(`Error recalculating load ${load.id}:`, error);
+                }
+            }
+        }
+
+        console.log(`Recalculated ${recalculatedCount} loads with new rules`);
+        Utils.showNotification(`Recalculated ${recalculatedCount} loads successfully!`, 'success');
+
+        return recalculatedCount;
     }
 };
 
@@ -1112,12 +1527,9 @@ const MapsAPI = {
                 'Other': Math.floor(distance * 0.4)
             };
 
-            return {
-                distance: distance,
-                duration: duration,
-                route: `${origin} → ${destination}`,
-                stateBreakdown: stateBreakdown
-            };
+            // Initialize UI
+            window.renderDashboard();
+
         } catch (error) {
             console.error('Error calculating route:', error);
             throw error;
@@ -1148,9 +1560,9 @@ const OCRService = {
         try {
             // For now, we'll use Tesseract.js for client-side OCR
             // In production, you can replace this with Google Vision API or AWS Textract
-            
+
             let extractedText = '';
-            
+
             // Check if Tesseract is available (you'll need to include tesseract.js library)
             if (typeof Tesseract !== 'undefined') {
                 const { data: { text } } = await Tesseract.recognize(file);
@@ -1307,7 +1719,7 @@ const OCRService = {
             /(?:DELIVERY|DEL)\s*DATE[\s:]*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i,
             /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/gi
         ];
-        
+
         const dates = [];
         for (const pattern of datePatterns) {
             try {
@@ -1328,7 +1740,7 @@ const OCRService = {
                 }
             }
         }
-        
+
         if (dates.length > 0) {
             data.pickupDate = this.parseDate(dates[0]);
             if (dates.length > 1) {
@@ -1350,7 +1762,7 @@ const OCRService = {
     // Parse date string to ISO format
     parseDate: (dateStr) => {
         if (!dateStr) return '';
-        
+
         // Handle various date formats
         const formats = [
             /(\d{1,2})\/(\d{1,2})\/(\d{2,4})/,  // MM/DD/YYYY or M/D/YY
@@ -1363,17 +1775,17 @@ const OCRService = {
                 let month = parseInt(match[1]);
                 let day = parseInt(match[2]);
                 let year = parseInt(match[3]);
-                
+
                 // Handle 2-digit years
                 if (year < 100) {
                     year += 2000;
                 }
-                
+
                 // Format as YYYY-MM-DD
                 return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             }
         }
-        
+
         return dateStr;
     },
 
@@ -1534,12 +1946,14 @@ const SettlementCalculator = {
 
             if (driver.payment.type === 'per_mile') {
                 basePay += miles * driver.payment.perMileRate;
-            } else if (driver.payment.type === 'percentage') {
+            } else if (driver.payment?.type === 'percentage') {
                 // Owner operator percentage calculation
+                // Use ONLY driver.payPercentage (stored as decimal 0-1)
                 const loadRevenue = load.rate.total;
-                const percentageRate = driver.payment.percentageRate || 75;
-                percentagePay += loadRevenue * (percentageRate / 100);
-                basePay += loadRevenue * (percentageRate / 100);
+                const driverPayPercentage = Utils.validatePayPercentage(driver.payPercentage, driver.driverType);
+                const payForLoad = loadRevenue * driverPayPercentage;
+                percentagePay += payForLoad;
+                basePay += payForLoad;
             } else if (driver.payment.type === 'flat_rate') {
                 basePay += driver.payment.flatRate;
             } else if (driver.payment.type === 'salary') {
@@ -1790,6 +2204,16 @@ const App = {
             App.setupEventListeners();
 
             console.log('TMS initialized successfully');
+
+            // FIX: Force recalculation of all data to ensure Owner Operator revenue is correct
+            // This runs after initialization to fix existing data
+            setTimeout(() => {
+                if (DataManager && DataManager.recalculateAllDataWithNewRules) {
+                    console.log('Triggering auto-recalculation of data...');
+                    DataManager.recalculateAllDataWithNewRules('all');
+                }
+            }, 5000);
+
         } catch (error) {
             console.error('Error initializing TMS:', error);
             Utils.showNotification('Error initializing application', 'error');
@@ -1872,19 +2296,19 @@ const App = {
     // Validate form
     validateForm: (form) => {
         if (!form) return true; // Skip validation if form doesn't exist
-        
+
         const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
         if (inputs.length === 0) return true; // No required fields, validation passes
-        
+
         let isValid = true;
         const invalidFields = [];
 
         inputs.forEach(input => {
             // Skip disabled or hidden fields
             if (input.disabled || input.type === 'hidden') return;
-            
+
             const value = input.value ? input.value.trim() : '';
-            
+
             if (!value) {
                 input.classList.add('border-red-500');
                 isValid = false;
@@ -1910,7 +2334,7 @@ const App = {
         });
 
         if (!isValid) {
-            const message = invalidFields.length > 0 
+            const message = invalidFields.length > 0
                 ? `Please fill in: ${invalidFields.slice(0, 3).join(', ')}${invalidFields.length > 3 ? '...' : ''}`
                 : 'Please fill in all required fields correctly';
             Utils.showNotification(message, 'error');
@@ -2120,70 +2544,60 @@ function loadDriverUnpaidLoads() {
             // Get fresh load data from DataManager to ensure we have all properties
             const load = DataManager.loads.find(l => l.id === loadRef.id) || loadRef;
 
-            // Calculate Driver Pay based on their profile
+            // Calculate Driver Pay based on their profile and driver type
             const driver = DataManager.drivers.find(d => d.id === driverId);
             let payAmount = 0;
 
             console.log('=== LOAD CALCULATION DEBUG ===');
             console.log('Load:', load.loadNumber);
             console.log('Driver:', driver?.firstName, driver?.lastName);
+            console.log('Driver Type:', driver?.driverType);
             console.log('Payment Type:', driver?.payment?.type);
 
+            const totalRate = parseFloat(load.rate?.total) || 0;
+            const driverType = driver?.driverType;
+
             if (driver?.payment?.type === 'percentage') {
-                // Robust percentage parsing
-                const totalRate = parseFloat(load.rate?.total) || 0;
-                // Check both percentage and rate properties
-                const rawValue = driver.payment.percentage || driver.payment.rate;
-                let percentage = 0;
-
-                console.log('Raw load.rate:', load.rate);
-                console.log('load.rate.total:', load.rate?.total);
-                console.log('Parsed totalRate:', totalRate);
-                console.log('Raw percentage value:', rawValue);
-                console.log('Type of raw percentage:', typeof rawValue);
-
-                if (typeof rawValue === 'string' && rawValue.includes('%')) {
-                    // Handle "40%" format
-                    percentage = parseFloat(rawValue.replace('%', '')) / 100;
-                    console.log('String with % - percentage:', percentage);
-                } else {
-                    // Handle numeric values (40 or 0.40)
-                    const numValue = parseFloat(rawValue);
-                    // If value is > 1, assume it's a percentage (e.g., 40 means 40%)
-                    percentage = numValue > 1 ? numValue / 100 : numValue;
-                    console.log('Numeric value - numValue:', numValue, 'percentage:', percentage);
-                }
-
-                payAmount = totalRate * percentage;
-                console.log(`Final Calculation: $${totalRate} × ${percentage} = $${payAmount}`);
-            } else {
-                // Default to Per Mile
+                // For both Company Drivers and Owner Operators with percentage pay
+                // Gross pay = Load amount × driver percentage
+                // Use ONLY driver.payPercentage (stored as decimal 0-1, e.g., 0.88 for 88%)
+                const driverPayPercentage = Utils.validatePayPercentage(driver.payPercentage, driver.driverType);
+                payAmount = totalRate * driverPayPercentage;
+                console.log(`Gross Pay Calculation: $${totalRate} × ${(driverPayPercentage * 100).toFixed(0)}% = $${payAmount.toFixed(2)}`);
+            } else if (driver?.payment?.type === 'per_mile') {
+                // Per mile calculation (typically for Company Drivers)
                 const miles = parseFloat(load.mileage?.total || load.totalMiles || 0);
                 const rate = parseFloat(driver?.payment?.perMileRate || 0);
                 payAmount = miles * rate;
                 console.log(`Per Mile: ${miles} miles × $${rate} = $${payAmount}`);
+            } else {
+                // Default to Per Mile if payment type not set
+                const miles = parseFloat(load.mileage?.total || load.totalMiles || 0);
+                const rate = parseFloat(driver?.payment?.perMileRate || 0.64);
+                payAmount = miles * rate;
+                console.log(`Default Per Mile: ${miles} miles × $${rate} = $${payAmount}`);
             }
 
             // Add detention pay to gross pay (check multiple possible locations)
             const detentionPay = parseFloat(
-                load.financials?.detentionPay || 
-                load.rate?.detentionPay || 
-                load.detentionPay || 
+                load.financials?.detentionPay ||
+                load.rate?.detentionPay ||
+                load.detentionPay ||
                 0
             );
             const grossPay = payAmount + detentionPay;
 
             // Track deductions (check multiple possible locations)
             const advanceAmount = parseFloat(
-                load.financials?.advanceAmount || 
-                load.rate?.advance || 
-                load.advanceAmount || 
+                load.financials?.advanceAmount ||
+                load.rate?.advance ||
+                load.advanceAmount ||
                 0
             );
             const lumperFees = parseFloat(
-                load.financials?.lumperFees || 
-                load.rate?.lumperFees || 
-                load.lumperFees || 
+                load.financials?.lumperFees ||
+                load.rate?.lumperFees ||
+                load.lumperFees ||
                 0
             );
 
@@ -2219,12 +2633,12 @@ function loadDriverUnpaidLoads() {
 function loadDriverExpenses() {
     const driverId = document.getElementById('driverSelect')?.value;
     const expensesBody = document.getElementById('driverExpensesBody');
-    
+
     if (!expensesBody) return;
-    
+
     // Reset
     expensesBody.innerHTML = '';
-    
+
     if (!driverId) {
         expensesBody.innerHTML = `
             <tr>
@@ -2235,7 +2649,7 @@ function loadDriverExpenses() {
         `;
         return;
     }
-    
+
     // Get driver to find associated trucks
     const driver = DataManager.drivers.find(d => d.id === driverId);
     if (!driver) {
@@ -2248,7 +2662,7 @@ function loadDriverExpenses() {
         `;
         return;
     }
-    
+
     // Get all loads for this driver (including unpaid delivered loads)
     const driverLoads = DataManager.loads.filter(l => {
         const isDriverMatch = String(l.driverId) === String(driverId);
@@ -2257,92 +2671,88 @@ function loadDriverExpenses() {
         const isUnpaid = !l.settlementId || l.settlementId === 'null' || l.settlementId === 'undefined';
         return isDriverMatch && isDelivered && isUnpaid;
     });
-    
+
     const truckIds = [...new Set(driverLoads.map(l => l.truckId).filter(Boolean))];
-    
+
+    // Check driver type (driver already declared above)
+    const isOwnerOperator = driver?.driverType === 'owner_operator';
+
     // Find expenses for this driver (and optionally trucks they used)
     // Filter expenses that:
     // 1. Are assigned to this driver (driverId matches)
     // 2. OR are assigned to trucks this driver used (truckId matches)
     // 3. Are not already included in a settlement (settlementId is null/undefined)
+    // 4. FOR COMPANY DRIVERS: Don't show any expenses (company pays, no deductions)
+    // 5. FOR OWNER OPERATORS: Only show expenses where paidBy === 'company' (will be deducted)
     const eligibleExpenses = DataManager.expenses.filter(e => {
         const isDriverMatch = e.driverId === driverId;
         const isTruckMatch = e.truckId && truckIds.includes(e.truckId);
         const isUnsettled = !e.settlementId || e.settlementId === 'null' || e.settlementId === 'undefined';
-        
+
+        // Company drivers: NO expenses shown (company pays everything, no deductions)
+        if (!isOwnerOperator) {
+            return false; // Don't show expenses for company drivers
+        }
+
+        // Owner Operators: Only show expenses paid by company (will be deducted)
+        if (isOwnerOperator) {
+            const paidBy = e.paidBy || 'company'; // Default to company for backward compatibility
+            if (paidBy !== 'company') {
+                return false; // Don't show expenses paid by O/O themselves
+            }
+        }
+
         return (isDriverMatch || isTruckMatch) && isUnsettled;
     });
-    
-    console.log(`Found ${eligibleExpenses.length} eligible expenses for driver ${driverId}`);
-    
+
+    console.log(`Found ${eligibleExpenses.length} eligible expenses for driver ${driverId} (Driver Type: ${driver?.driverType || 'unknown'})`);
+
+    // Show message for company drivers
+    if (!isOwnerOperator) {
+        expensesBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-4 py-3 text-sm text-gray-500 text-center bg-blue-50">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Company drivers do not have expense deductions. Only advances and lumper fees apply.
+                </td>
+            </tr>
+        `;
+        calculateSettlementTotal();
+        return;
+    }
+
     if (eligibleExpenses.length === 0) {
         expensesBody.innerHTML = `
             <tr>
                 <td colspan="6" class="px-4 py-3 text-sm text-gray-500 text-center">
-                    No expenses found for this driver
+                    No deductible expenses found for this owner operator
                 </td>
             </tr>
         `;
     } else {
-        // Match expenses to loads based on dates
-        const expenseLoadMap = new Map(); // expenseId -> loadId
-        
+        // Group expenses by load (only if manually linked) or by category
+        const expensesByLoad = new Map();
+        const unlinkedExpenses = [];
+
         eligibleExpenses.forEach(expense => {
-            const expenseDate = new Date(expense.date || expense.createdAt);
-            expenseDate.setHours(0, 0, 0, 0);
-            
-            // First, check if expense already has a loadId
+            // Only group by load if expense has a manual loadId link
             if (expense.loadId) {
                 const load = driverLoads.find(l => l.id === expense.loadId);
                 if (load) {
-                    expenseLoadMap.set(expense.id, expense.loadId);
-                    return;
-                }
-            }
-            
-            // Otherwise, try to match by date
-            // Match if expense date is between load pickup and delivery dates
-            for (const load of driverLoads) {
-                const pickupDate = load.pickup?.scheduledDate || load.pickup?.date || load.createdAt;
-                const deliveryDate = load.delivery?.date || load.deliveredAt || load.updatedAt;
-                
-                if (pickupDate && deliveryDate) {
-                    const pickup = new Date(pickupDate);
-                    const delivery = new Date(deliveryDate);
-                    pickup.setHours(0, 0, 0, 0);
-                    delivery.setHours(23, 59, 59, 999);
-                    
-                    // Also check if expense is within 2 days before pickup or 2 days after delivery
-                    // (to catch fuel purchased before trip, or expenses after delivery)
-                    const pickupWindow = new Date(pickup);
-                    pickupWindow.setDate(pickupWindow.getDate() - 2);
-                    const deliveryWindow = new Date(delivery);
-                    deliveryWindow.setDate(deliveryWindow.getDate() + 2);
-                    
-                    if (expenseDate >= pickupWindow && expenseDate <= deliveryWindow) {
-                        expenseLoadMap.set(expense.id, load.id);
-                        break; // Match to first load that fits
+                    if (!expensesByLoad.has(expense.loadId)) {
+                        expensesByLoad.set(expense.loadId, []);
                     }
+                    expensesByLoad.get(expense.loadId).push(expense);
+                } else {
+                    // Load not found in driver's loads, treat as unlinked
+                    unlinkedExpenses.push(expense);
                 }
-            }
-        });
-        
-        // Group expenses by load
-        const expensesByLoad = new Map();
-        const unlinkedExpenses = [];
-        
-        eligibleExpenses.forEach(expense => {
-            const loadId = expenseLoadMap.get(expense.id);
-            if (loadId) {
-                if (!expensesByLoad.has(loadId)) {
-                    expensesByLoad.set(loadId, []);
-                }
-                expensesByLoad.get(loadId).push(expense);
             } else {
+                // No load link - expense is category-based (fuel, insurance, maintenance, etc.)
                 unlinkedExpenses.push(expense);
             }
         });
-        
+
         // Sort expenses within each group by date
         expensesByLoad.forEach((expenses, loadId) => {
             expenses.sort((a, b) => {
@@ -2351,21 +2761,21 @@ function loadDriverExpenses() {
                 return dateA - dateB;
             });
         });
-        
+
         // Sort unlinked expenses by date
         unlinkedExpenses.sort((a, b) => {
             const dateA = new Date(a.date || a.createdAt || 0);
             const dateB = new Date(b.date || b.createdAt || 0);
             return dateA - dateB;
         });
-        
+
         // Display expenses grouped by load
         expensesByLoad.forEach((expenses, loadId) => {
             const load = driverLoads.find(l => l.id === loadId);
             const loadNumber = load?.loadNumber || 'Unknown Load';
             const loadPickup = load?.pickup?.city || '';
             const loadDelivery = load?.delivery?.city || '';
-            
+
             // Add header row for this load's expenses
             const headerRow = document.createElement('tr');
             headerRow.className = "bg-blue-50 font-semibold";
@@ -2375,19 +2785,19 @@ function loadDriverExpenses() {
                 </td>
             `;
             expensesBody.appendChild(headerRow);
-            
+
             // Add expense rows for this load
             expenses.forEach(expense => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-blue-50 transition-colors";
                 tr.setAttribute('data-load-id', loadId);
-                
+
                 const expenseDate = expense.date || expense.createdAt;
                 const expenseType = expense.type || 'other';
                 const expenseAmount = parseFloat(expense.amount || 0);
                 const vendorName = expense.vendor?.name || '';
                 const description = expense.description || expense.subcategory || expenseType;
-                
+
                 tr.innerHTML = `
                     <td class="px-3 py-2">
                         <input type="checkbox" class="expense-checkbox w-4 h-4 text-blue-600 rounded" 
@@ -2405,46 +2815,62 @@ function loadDriverExpenses() {
                 expensesBody.appendChild(tr);
             });
         });
-        
-        // Display unlinked expenses (if any)
+
+        // Display unlinked expenses grouped by category (if any)
         if (unlinkedExpenses.length > 0) {
-            const headerRow = document.createElement('tr');
-            headerRow.className = "bg-gray-50 font-semibold";
-            headerRow.innerHTML = `
-                <td colspan="6" class="px-3 py-2 text-xs text-gray-600">
-                    <i class="fas fa-question-circle mr-2"></i>Unlinked Expenses (No matching load found)
-                </td>
-            `;
-            expensesBody.appendChild(headerRow);
-            
+            // Group unlinked expenses by category/type
+            const expensesByCategory = new Map();
             unlinkedExpenses.forEach(expense => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-50 transition-colors";
-                
-                const expenseDate = expense.date || expense.createdAt;
-                const expenseType = expense.type || 'other';
-                const expenseAmount = parseFloat(expense.amount || 0);
-                const vendorName = expense.vendor?.name || '';
-                const description = expense.description || expense.subcategory || expenseType;
-                
-                tr.innerHTML = `
-                    <td class="px-3 py-2">
-                        <input type="checkbox" class="expense-checkbox w-4 h-4 text-blue-600 rounded" 
-                            value="${expense.id}" 
-                            data-amount="${expenseAmount.toFixed(2)}"
-                            onchange="calculateSettlementTotal()">
+                const category = expense.type || 'other';
+                if (!expensesByCategory.has(category)) {
+                    expensesByCategory.set(category, []);
+                }
+                expensesByCategory.get(category).push(expense);
+            });
+
+            // Display each category
+            expensesByCategory.forEach((expenses, category) => {
+                const categoryTotal = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+
+                const headerRow = document.createElement('tr');
+                headerRow.className = "bg-gray-50 font-semibold";
+                headerRow.innerHTML = `
+                    <td colspan="6" class="px-3 py-2 text-xs text-gray-700">
+                        <i class="fas fa-tag mr-2"></i>${category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')} Expenses (${expenses.length} item${expenses.length !== 1 ? 's' : ''}) - Total: ${Utils.formatCurrency(categoryTotal)}
                     </td>
-                    <td class="px-3 py-2 text-sm text-gray-600">${Utils.formatDate(expenseDate)}</td>
-                    <td class="px-3 py-2 text-sm text-gray-900 capitalize">${expenseType.replace('_', ' ')}</td>
-                    <td class="px-3 py-2 text-sm text-gray-700">${description}${vendorName ? ` - ${vendorName}` : ''}</td>
-                    <td class="px-3 py-2 text-sm text-gray-400">-</td>
-                    <td class="px-3 py-2 text-sm font-medium text-red-600 text-right">${Utils.formatCurrency(expenseAmount)}</td>
                 `;
-                expensesBody.appendChild(tr);
+                expensesBody.appendChild(headerRow);
+
+                expenses.forEach(expense => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-50 transition-colors";
+
+                    const expenseDate = expense.date || expense.createdAt;
+                    const expenseType = expense.type || 'other';
+                    const expenseAmount = parseFloat(expense.amount || 0);
+                    const vendorName = expense.vendor?.name || '';
+                    const description = expense.description || expense.subcategory || expenseType;
+                    const truckNumber = expense.truckNumber || '-';
+
+                    tr.innerHTML = `
+                        <td class="px-3 py-2">
+                            <input type="checkbox" class="expense-checkbox w-4 h-4 text-blue-600 rounded" 
+                                value="${expense.id}" 
+                                data-amount="${expenseAmount.toFixed(2)}"
+                                onchange="calculateSettlementTotal()">
+                        </td>
+                        <td class="px-3 py-2 text-sm text-gray-600">${Utils.formatDate(expenseDate)}</td>
+                        <td class="px-3 py-2 text-sm text-gray-900 capitalize">${expenseType.replace('_', ' ')}</td>
+                        <td class="px-3 py-2 text-sm text-gray-700">${description}${vendorName ? ` - ${vendorName}` : ''}</td>
+                        <td class="px-3 py-2 text-sm text-gray-500">${truckNumber}</td>
+                        <td class="px-3 py-2 text-sm font-medium text-red-600 text-right">${Utils.formatCurrency(expenseAmount)}</td>
+                    `;
+                    expensesBody.appendChild(tr);
+                });
             });
         }
     }
-    
+
     calculateSettlementTotal();
 }
 
@@ -2453,7 +2879,7 @@ function syncExpenseWithLoad(expenseId, loadId) {
     // When an expense is checked, automatically check its associated load
     const loadCheckbox = document.querySelector(`.settlement-checkbox[value="${loadId}"]`);
     const expenseCheckbox = document.querySelector(`.expense-checkbox[value="${expenseId}"]`);
-    
+
     if (expenseCheckbox && expenseCheckbox.checked && loadCheckbox && !loadCheckbox.checked) {
         loadCheckbox.checked = true;
         calculateSettlementTotal();
@@ -2464,15 +2890,15 @@ function syncExpenseWithLoad(expenseId, loadId) {
 function autoSelectExpensesForLoad(loadId) {
     const loadCheckbox = document.querySelector(`.settlement-checkbox[value="${loadId}"]`);
     if (!loadCheckbox) return;
-    
+
     // Find all expenses linked to this load
     const expenseCheckboxes = document.querySelectorAll(`.expense-checkbox[data-load-id="${loadId}"]`);
-    
+
     expenseCheckboxes.forEach(expenseCheckbox => {
         // If load is checked, check the expense. If load is unchecked, uncheck the expense.
         expenseCheckbox.checked = loadCheckbox.checked;
     });
-    
+
     calculateSettlementTotal();
 }
 
@@ -2494,48 +2920,128 @@ function calculateSettlementTotal() {
         lumperTotal += parseFloat(cb.dataset.lumper || 0);
     });
 
-    // Calculate expenses total
-    let expensesTotal = 0;
-    expenseCheckboxes.forEach(cb => {
-        expensesTotal += parseFloat(cb.dataset.amount || 0);
-    });
+    // Get driver info for deduction preferences
+    const driverId = document.getElementById('driverSelect')?.value;
+    const driver = driverId ? DataManager.drivers.find(d => d.id === driverId) : null;
+    const driverType = driver?.driverType;
+    const isOwnerOperator = driverType === 'owner_operator';
+    const isCompanyDriver = driverType === 'company';
+    const isOwner = driverType === 'owner';
+    const deductionPrefs = driver?.deductionPreferences || {};
 
     // Gross pay = base + detention
     const grossPay = basePay + detentionTotal;
 
-    // Manual deductions (fuel, insurance, other)
-    const fuel = parseFloat(document.getElementById('fuelDeduction')?.value) || 0;
-    let insurance = parseFloat(document.getElementById('insuranceDeduction')?.value) || 0;
-    const other = parseFloat(document.getElementById('otherDeduction')?.value) || 0;
+    // Calculate deductions based on driver type
+    let expensesTotal = 0;
+    let fuelDeduction = 0;
+    let insuranceDeduction = 0;
+    let maintenanceDeduction = 0;
+    let otherExpenseDeduction = 0;
 
-    // Calculate tax deductions based on driver type
-    const driverId = document.getElementById('driverSelect')?.value;
-    const driver = driverId ? DataManager.drivers.find(d => d.id === driverId) : null;
-    const isOwnerOperator = driver?.payment?.type === 'percentage' || driver?.payment?.type === 'owner_operator';
-    
-    // Auto-populate insurance if not set (only for company drivers)
-    if (!insurance && !isOwnerOperator && driver) {
-        insurance = 45.00; // Default insurance for company drivers
-        const insuranceField = document.getElementById('insuranceDeduction');
-        if (insuranceField && !insuranceField.value) {
-            insuranceField.value = insurance.toFixed(2);
+    // For Company Drivers: No deductions (company pays everything)
+    // For Owner Operators: Calculate deductions based on preferences
+    if (isOwnerOperator && deductionPrefs) {
+        const selectedLoads = Array.from(checkboxes).map(cb => {
+            const loadId = cb.value;
+            return DataManager.loads.find(l => l.id === loadId);
+        }).filter(l => l);
+
+        // Calculate fuel deduction (from expenses - only if paid_by == "company")
+        if (deductionPrefs.fuel) {
+            expenseCheckboxes.forEach(cb => {
+                const expenseId = cb.value;
+                const expense = DataManager.expenses.find(e => e.id === expenseId);
+                if (expense) {
+                    const paidBy = expense.paidBy || 'company'; // Default to company
+                    // Only deduct if paid by company
+                    if (paidBy === 'company') {
+                        const expenseType = (expense.type || '').toLowerCase();
+                        if (expenseType.includes('fuel')) {
+                            fuelDeduction += parseFloat(cb.dataset.amount || 0);
+                            expensesTotal += parseFloat(cb.dataset.amount || 0);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Calculate maintenance deduction (from expenses - only if paid_by == "company")
+        if (deductionPrefs.maintenance) {
+            expenseCheckboxes.forEach(cb => {
+                const expenseId = cb.value;
+                const expense = DataManager.expenses.find(e => e.id === expenseId);
+                if (expense) {
+                    const paidBy = expense.paidBy || 'company'; // Default to company
+                    // Only deduct if paid by company
+                    if (paidBy === 'company') {
+                        const expenseType = (expense.type || '').toLowerCase();
+                        if (expenseType.includes('maintenance') || expenseType.includes('repair')) {
+                            maintenanceDeduction += parseFloat(cb.dataset.amount || 0);
+                            expensesTotal += parseFloat(cb.dataset.amount || 0);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Calculate insurance deduction (per load)
+        if (deductionPrefs.insurance) {
+            // Get monthly insurance amount (could be from driver profile or manual entry)
+            const monthlyInsurance = parseFloat(document.getElementById('insuranceDeduction')?.value) ||
+                parseFloat(driver?.payment?.monthlyInsurance) ||
+                800; // Default $800/month
+
+            // Calculate insurance per load: monthly insurance ÷ number of loads in period
+            const loadsInPeriod = selectedLoads.length || 1; // Prevent division by zero
+            insuranceDeduction = monthlyInsurance / loadsInPeriod;
+            expensesTotal += insuranceDeduction;
+        }
+
+        // Calculate other expenses deduction (only if paid_by == "company")
+        if (deductionPrefs.other) {
+            expenseCheckboxes.forEach(cb => {
+                const expenseId = cb.value;
+                const expense = DataManager.expenses.find(e => e.id === expenseId);
+                if (expense) {
+                    const paidBy = expense.paidBy || 'company'; // Default to company
+                    // Only deduct if paid by company
+                    if (paidBy === 'company') {
+                        const expenseType = (expense.type || '').toLowerCase();
+                        // Other = not fuel, insurance, or maintenance
+                        if (!expenseType.includes('fuel') && !expenseType.includes('insurance') &&
+                            !expenseType.includes('maintenance') && !expenseType.includes('repair')) {
+                            otherExpenseDeduction += parseFloat(cb.dataset.amount || 0);
+                            expensesTotal += parseFloat(cb.dataset.amount || 0);
+                        }
+                    }
+                }
+            });
         }
     }
 
-    // Tax calculations (only for company drivers, not owner operators)
+    // Tax calculations
+    // Company Drivers and Owner (Driver): Full tax deductions
+    // Owner Operators: No tax deductions (they're independent contractors)
+    // Tax calculations
+    // Company Drivers and Owner (Driver): Full tax deductions
+    // Owner Operators: No tax deductions (they're independent contractors)
+    // UPDATE: User requested to remove ALL tax deductions from this view
     const taxes = {
-        federal: isOwnerOperator ? 0 : grossPay * 0.075, // 7.5% federal tax
-        state: isOwnerOperator ? 0 : grossPay * 0.02,     // 2% state tax
-        socialSecurity: isOwnerOperator ? 0 : grossPay * 0.062, // 6.2% social security
-        medicare: isOwnerOperator ? 0 : grossPay * 0.0145  // 1.45% medicare
+        federal: 0,
+        state: 0,
+        socialSecurity: 0,
+        medicare: 0
     };
-    
+
     const totalTaxes = Object.values(taxes).reduce((sum, tax) => sum + tax, 0);
 
-    // Total deductions = load deductions + expenses + manual deductions + taxes
-    const totalDeductions = advancesTotal + lumperTotal + expensesTotal + fuel + insurance + other + totalTaxes;
+    // Total deductions
+    // Company Drivers: Only advances, lumper, and taxes (no expenses)
+    // Owner Operators: Advances, lumper, expenses (based on preferences), no taxes
+    const totalDeductions = advancesTotal + lumperTotal + expensesTotal + totalTaxes;
     const netPay = grossPay - totalDeductions;
-    
+
     // Update expenses total display
     const expensesTotalEl = document.getElementById('expensesTotal');
     if (expensesTotalEl) {
@@ -2612,8 +3118,47 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     App.init();
+
+    // Check if rules changed and need recalculation
+    try {
+        // Wait a bit for DataManager to initialize
+        setTimeout(async () => {
+            if (DataManager.initialized) {
+                const rules = await DataManager.getRules();
+                const lastKnownVersion = localStorage.getItem('lastRuleVersion');
+
+                if (lastKnownVersion && lastKnownVersion !== rules.version) {
+                    console.log(`Rules changed from ${lastKnownVersion} to ${rules.version}`);
+
+                    // Only show notification on reports/settings pages, not on every page
+                    const currentPage = window.location.pathname;
+                    if (currentPage.includes('reports.html') || currentPage.includes('settings.html')) {
+                        const shouldRecalculate = confirm(
+                            'System rules have been updated (version ' + rules.version + ').\n\n' +
+                            'Would you like to recalculate all data now?\n' +
+                            '(This may take a few moments)'
+                        );
+
+                        if (shouldRecalculate) {
+                            Utils.showNotification('Recalculating all data...', 'info');
+                            await DataManager.recalculateAllDataWithNewRules('system_update');
+                            localStorage.setItem('lastRuleVersion', rules.version);
+                        }
+                    } else {
+                        // Just update the stored version silently
+                        localStorage.setItem('lastRuleVersion', rules.version);
+                    }
+                } else if (!lastKnownVersion) {
+                    // First time - just store the version
+                    localStorage.setItem('lastRuleVersion', rules.version);
+                }
+            }
+        }, 1000); // Wait 1 second for DataManager to initialize
+    } catch (error) {
+        console.error('Error checking rule version:', error);
+    }
 });
 
 // GLOBAL EXPORTS — DO NOT DELETE EVER AGAIN

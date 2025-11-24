@@ -15,15 +15,15 @@
         }
 
         .bg-navy {
-            background-color: #1e3a8a;
+            background-color: #1f2937;
         }
 
         .text-navy {
-            color: #1e3a8a;
+            color: #1f2937;
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background-color: #1f2937;
         }
 
         .card-shadow {
@@ -59,7 +59,7 @@
         }
 
         .nav-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .modal {
@@ -99,7 +99,7 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-4">
                     <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="company-logo" style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1e3a8a;">ATS</div>
+                    <div class="company-logo" style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1f2937;">ATS</div>
                     <div>
                         <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
                         <p class="text-sm opacity-90">Transportation Management System</p>
@@ -609,6 +609,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <script src="main.js"></script>
+    <script src="populate-mock-data.js"></script>
     <script>
         let currentLoadId = null;
 
@@ -977,6 +978,13 @@ Miles: ${load.mileage?.total || 0}
                     }
                 };
 
+                // Calculate company revenue based on driver type
+                const grossLoadAmount = loadData.rate.total;
+                loadData.grossLoadAmount = grossLoadAmount; // Store gross amount
+                // Get driver object for calculation
+                const driver = loadData.driverId ? DataManager.drivers.find(d => d.id === loadData.driverId) : null;
+                loadData.companyRevenue = Utils.calculateCompanyRevenueSync(grossLoadAmount, driver);
+
                 if (currentLoadId) {
                     // Get the original load to check for status change
                     const originalLoad = DataManager.getLoad(currentLoadId);
@@ -1005,7 +1013,9 @@ Miles: ${load.mileage?.total || 0}
                         } else {
                             let driverPay = 0;
                             if (driver.payment?.type === 'percentage') {
-                                driverPay = parseFloat(load.rate?.total || 0) * (parseFloat(driver.payment.percentage || 75) / 100);
+                                // Use ONLY driver.payPercentage (stored as decimal 0-1)
+                                const driverPayPercentage = Utils.validatePayPercentage(driver.payPercentage, driver.driverType);
+                                driverPay = parseFloat(load.rate?.total || 0) * driverPayPercentage;
                             } else {
                                 // Per mile (default)
                                 const miles = parseFloat(load.mileage?.total || 0);

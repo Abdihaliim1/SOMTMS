@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Settings - ATS FREIGHT LLC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="design-system.css">
+    <style>
+        .gradient-bg {
+            background-color: #1f2937;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" style="height: 48px; width: auto;" id="companyLogo" onerror="this.style.display='none'; document.getElementById('companyLogoFallback').style.display='flex';">
+                <div style="width: 48px; height: 48px; background: #ffffff; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; color: #1f2937;" id="companyLogoFallback">ATS</div>
+                <div>
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ffffff;">ATS FREIGHT LLC</h2>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.8);">Transportation Management System</p>
+                </div>
+            </div>
+        </div>
+        <nav>
+            <a href="index.html" class="sidebar-item">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="loads.html" class="sidebar-item">
+                <i class="fas fa-truck"></i>
+                Loads
+            </a>
+            <a href="drivers.html" class="sidebar-item">
+                <i class="fas fa-users"></i>
+                Drivers
+            </a>
+            <a href="fleet.html" class="sidebar-item">
+                <i class="fas fa-truck-monster"></i>
+                Fleet
+            </a>
+            <a href="customers.html" class="sidebar-item">
+                <i class="fas fa-building"></i>
+                Customers
+            </a>
+            <a href="expenses.html" class="sidebar-item">
+                <i class="fas fa-receipt"></i>
+                Expenses
+            </a>
+            <a href="invoices.html" class="sidebar-item">
+                <i class="fas fa-file-invoice"></i>
+                Invoices
+            </a>
+            <a href="settlements.html" class="sidebar-item">
+                <i class="fas fa-calculator"></i>
+                Settlements
+            </a>
+            <a href="reports.html" class="sidebar-item">
+                <i class="fas fa-chart-bar"></i>
+                Reports
+            </a>
+            <a href="settings.html" class="sidebar-item active">
+                <i class="fas fa-cog"></i>
+                Settings
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <div style="background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 16px 24px; margin: -24px -24px 24px -24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="margin: 0; font-size: 20px; font-weight: 600; color: #111827;">System Settings</h1>
+                    <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Manage business rules and system configuration</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <span style="font-size: 14px; color: #6b7280;">Welcome, Admin</span>
+                    <button onclick="logout()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 14px;">
+                        <i class="fas fa-sign-out-alt" style="margin-right: 6px;"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warning Alert -->
+        <div class="card" style="background-color: #fef3c7; border-color: #f59e0b; margin-bottom: 24px;">
+            <div style="display: flex; align-items: start; gap: 12px;">
+                <i class="fas fa-exclamation-triangle" style="color: #d97706; font-size: 20px; margin-top: 2px;"></i>
+                <div>
+                    <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #92400e;">⚠️ Important: Rule Changes</h3>
+                    <p style="margin: 0; font-size: 14px; color: #78350f; line-height: 1.5;">
+                        Changing these rules will automatically recalculate <strong>ALL existing loads, settlements, and reports</strong> using the new rules.
+                        This may take a few moments depending on the amount of data.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Driver Payment Rules -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3 class="card-title">Driver Payment Rules</h3>
+                <p style="margin: 8px 0 0 0; font-size: 14px; color: #6b7280;">Configure how drivers are paid for loads</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Company Driver Pay Percentage</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="number" id="companyDriverPay" class="form-input" min="0" max="100" step="0.1" style="flex: 1;">
+                        <span style="font-size: 14px; color: #6b7280;">%</span>
+                    </div>
+                    <p class="form-help">Percentage of load amount paid to company drivers (e.g., 70 = 70%)</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Owner Operator Pay Percentage</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="number" id="ownerOperatorPay" class="form-input" min="0" max="100" step="0.1" style="flex: 1;">
+                        <span style="font-size: 14px; color: #6b7280;">%</span>
+                    </div>
+                    <p class="form-help">Percentage of load amount paid to owner operators (e.g., 88 = 88%)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Recognition Rules -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3 class="card-title">Revenue Recognition Rules</h3>
+                <p style="margin: 8px 0 0 0; font-size: 14px; color: #6b7280;">Configure how revenue is calculated for company P&L</p>
+            </div>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label class="form-label">Owner Operator Commission Rate</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" id="commissionRate" class="form-input" min="0" max="100" step="0.1" style="flex: 1;">
+                    <span style="font-size: 14px; color: #6b7280;">%</span>
+                </div>
+                <p class="form-help">
+                    Company's commission percentage from Owner Operator loads.<br>
+                    <strong>Example:</strong> If O/O gets 88%, company commission = 12% (100% - 88%)
+                </p>
+            </div>
+        </div>
+
+        <!-- Invoice Rules -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3 class="card-title">Invoice Rules</h3>
+                <p style="margin: 8px 0 0 0; font-size: 14px; color: #6b7280;">Configure invoice generation and payment terms</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px;">
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="autoCreateInvoice" style="margin-right: 8px;">
+                        Auto-create invoices on delivery
+                    </label>
+                    <p class="form-help">Automatically create invoices when loads are marked as delivered</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Payment Terms (Days)</label>
+                    <input type="number" id="paymentTerms" class="form-input" min="0" step="1">
+                    <p class="form-help">Default payment terms (e.g., 30 = Net 30)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Rules Info -->
+        <div class="card" style="margin-bottom: 24px; background-color: #f9fafb;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 600; color: #111827;">Current Rule Version</h4>
+                    <p style="margin: 0; font-size: 12px; color: #6b7280;" id="ruleVersion">Loading...</p>
+                </div>
+                <div style="text-align: right;">
+                    <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 600; color: #111827;">Last Updated</h4>
+                    <p style="margin: 0; font-size: 12px; color: #6b7280;" id="lastUpdated">Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; margin-top: 32px;">
+            <button onclick="saveAllRules()" class="btn btn-primary" style="padding: 12px 24px;">
+                <i class="fas fa-save" style="margin-right: 8px;"></i>
+                Save All Rules
+            </button>
+            <button onclick="recalculateAllData()" class="btn btn-secondary" style="padding: 12px 24px;">
+                <i class="fas fa-sync-alt" style="margin-right: 8px;"></i>
+                Recalculate All Data
+            </button>
+            <button onclick="resetToDefaults()" class="btn btn-secondary" style="padding: 12px 24px;">
+                <i class="fas fa-undo" style="margin-right: 8px;"></i>
+                Reset to Defaults
+            </button>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+    <script>
+        let currentRules = null;
+
+        // Initialize settings page
+        async function initSettingsPage() {
+            try {
+                // Load current rules
+                currentRules = await DataManager.getRules();
+                
+                // Populate form with current rules
+                document.getElementById('companyDriverPay').value = (currentRules.driverPayRules?.companyDriver?.percentage || 0.70) * 100;
+                document.getElementById('ownerOperatorPay').value = (currentRules.driverPayRules?.ownerOperator?.percentage || 0.88) * 100;
+                document.getElementById('commissionRate').value = (currentRules.revenueRules?.commissionRate || 0.12) * 100;
+                document.getElementById('autoCreateInvoice').checked = currentRules.invoiceRules?.autoCreateOnDelivery !== false;
+                document.getElementById('paymentTerms').value = currentRules.invoiceRules?.paymentTerms || 30;
+                
+                // Show current version
+                document.getElementById('ruleVersion').textContent = currentRules.version || '1.0.0';
+                document.getElementById('lastUpdated').textContent = currentRules.lastUpdated 
+                    ? new Date(currentRules.lastUpdated).toLocaleString() 
+                    : 'Never';
+            } catch (error) {
+                console.error('Error initializing settings:', error);
+                Utils.showNotification('Error loading settings: ' + error.message, 'error');
+            }
+        }
+
+        // Save all rules
+        async function saveAllRules() {
+            try {
+                if (!currentRules) {
+                    currentRules = await DataManager.getRules();
+                }
+
+                // Get new values from form
+                const newCompanyDriverPay = parseFloat(document.getElementById('companyDriverPay').value) / 100;
+                const newOwnerOperatorPay = parseFloat(document.getElementById('ownerOperatorPay').value) / 100;
+                const newCommissionRate = parseFloat(document.getElementById('commissionRate').value) / 100;
+                const newAutoCreateInvoice = document.getElementById('autoCreateInvoice').checked;
+                const newPaymentTerms = parseInt(document.getElementById('paymentTerms').value);
+
+                // Validate inputs
+                if (isNaN(newCompanyDriverPay) || newCompanyDriverPay < 0 || newCompanyDriverPay > 1) {
+                    Utils.showNotification('Company Driver Pay must be between 0 and 100%', 'error');
+                    return;
+                }
+                if (isNaN(newOwnerOperatorPay) || newOwnerOperatorPay < 0 || newOwnerOperatorPay > 1) {
+                    Utils.showNotification('Owner Operator Pay must be between 0 and 100%', 'error');
+                    return;
+                }
+                if (isNaN(newCommissionRate) || newCommissionRate < 0 || newCommissionRate > 1) {
+                    Utils.showNotification('Commission Rate must be between 0 and 100%', 'error');
+                    return;
+                }
+
+                // Check what changed
+                const changes = [];
+                if (currentRules.driverPayRules?.companyDriver?.percentage !== newCompanyDriverPay) {
+                    changes.push('Company Driver Pay');
+                }
+                if (currentRules.driverPayRules?.ownerOperator?.percentage !== newOwnerOperatorPay) {
+                    changes.push('Owner Operator Pay');
+                }
+                if (currentRules.revenueRules?.commissionRate !== newCommissionRate) {
+                    changes.push('Commission Rate');
+                }
+                if (currentRules.invoiceRules?.autoCreateOnDelivery !== newAutoCreateInvoice) {
+                    changes.push('Auto-create Invoice');
+                }
+                if (currentRules.invoiceRules?.paymentTerms !== newPaymentTerms) {
+                    changes.push('Payment Terms');
+                }
+
+                if (changes.length === 0) {
+                    Utils.showNotification('No changes detected', 'info');
+                    return;
+                }
+
+                // Confirm changes
+                const confirmed = confirm(
+                    `The following rules will be updated:\n${changes.join('\n')}\n\n` +
+                    `ALL existing loads, settlements, and reports will be recalculated.\n\n` +
+                    `This may take a few moments. Continue?`
+                );
+
+                if (!confirmed) return;
+
+                // Update rules
+                currentRules.driverPayRules = currentRules.driverPayRules || {};
+                currentRules.driverPayRules.companyDriver = {
+                    paymentType: "percentage",
+                    percentage: newCompanyDriverPay,
+                    updatedAt: new Date().toISOString()
+                };
+                currentRules.driverPayRules.ownerOperator = {
+                    paymentType: "percentage",
+                    percentage: newOwnerOperatorPay,
+                    updatedAt: new Date().toISOString()
+                };
+                currentRules.revenueRules = currentRules.revenueRules || {};
+                currentRules.revenueRules.commissionRate = newCommissionRate;
+                currentRules.revenueRules.updatedAt = new Date().toISOString();
+                currentRules.invoiceRules = currentRules.invoiceRules || {};
+                currentRules.invoiceRules.autoCreateOnDelivery = newAutoCreateInvoice;
+                currentRules.invoiceRules.paymentTerms = newPaymentTerms;
+                currentRules.invoiceRules.updatedAt = new Date().toISOString();
+
+                // Save to database
+                await DataManager.setRules(currentRules);
+
+                // Recalculate everything
+                Utils.showNotification('Recalculating all data...', 'info');
+                await DataManager.recalculateAllDataWithNewRules('manual_update');
+
+                Utils.showNotification('Rules updated and data recalculated!', 'success');
+
+                // Refresh page after a delay
+                setTimeout(() => {
+                    initSettingsPage(); // Reload to show new version
+                }, 1500);
+            } catch (error) {
+                console.error('Error saving rules:', error);
+                Utils.showNotification('Error saving rules: ' + error.message, 'error');
+            }
+        }
+
+        // Recalculate all data with current rules
+        async function recalculateAllData() {
+            const confirmed = confirm(
+                'This will recalculate ALL loads, settlements, and reports using the current rules.\n\n' +
+                'This may take a few moments. Continue?'
+            );
+
+            if (!confirmed) return;
+
+            try {
+                Utils.showNotification('Recalculating all data...', 'info');
+                await DataManager.recalculateAllDataWithNewRules('all');
+                Utils.showNotification('All data recalculated successfully!', 'success');
+            } catch (error) {
+                console.error('Error recalculating:', error);
+                Utils.showNotification('Error recalculating data: ' + error.message, 'error');
+            }
+        }
+
+        // Reset to default rules
+        async function resetToDefaults() {
+            const confirmed = confirm(
+                'This will reset all rules to default values and recalculate all data.\n\n' +
+                'Continue?'
+            );
+
+            if (!confirmed) return;
+
+            try {
+                await DataManager.setRules(DataManager.defaultRules);
+                Utils.showNotification('Recalculating all data...', 'info');
+                await DataManager.recalculateAllDataWithNewRules('all');
+                Utils.showNotification('Rules reset to defaults and data recalculated!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                console.error('Error resetting rules:', error);
+                Utils.showNotification('Error resetting rules: ' + error.message, 'error');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            if (Auth && Auth.signOut) {
+                Auth.signOut();
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!DataManager.initialized) {
+                await DataManager.init();
+            }
+            await initSettingsPage();
+        });
+    </script>
+</body>
+
+</html>
+

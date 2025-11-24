@@ -16,15 +16,15 @@
         }
 
         .bg-navy {
-            background-color: #1e3a8a;
+            background-color: #1f2937;
         }
 
         .text-navy {
-            color: #1e3a8a;
+            color: #1f2937;
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background-color: #1f2937;
         }
 
         .card-shadow {
@@ -40,7 +40,7 @@
         }
 
         .nav-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .modal {
@@ -79,8 +79,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-4">
-                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="company-logo" style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1e3a8a;">ATS</div>
+                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="company-logo"
+                        style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1f2937;">
+                        ATS</div>
                     <div>
                         <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
                         <p class="text-sm opacity-90">Transportation Management System</p>
@@ -136,15 +139,14 @@
                     </div>
                     <div class="ml-5 w-0 flex-1">
                         <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Q4 2025 Miles</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">125,230</dd>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Current Quarter Miles</dt>
+                            <dd class="text-2xl font-semibold text-gray-900">0</dd>
                         </dl>
                     </div>
                 </div>
                 <div class="mt-4">
-                    <div class="flex items-center text-sm text-blue-600">
-                        <i class="fas fa-arrow-up mr-1"></i>
-                        +8% from Q3
+                    <div class="flex items-center text-sm text-gray-400">
+                        <span>No data yet</span>
                     </div>
                 </div>
             </div>
@@ -159,7 +161,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Fuel Purchased</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">18,500</dd>
+                            <dd class="text-2xl font-semibold text-gray-900">0</dd>
                         </dl>
                     </div>
                 </div>
@@ -180,13 +182,13 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Fuel Cost</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">$55,500</dd>
+                            <dd class="text-2xl font-semibold text-gray-900">$0</dd>
                         </dl>
                     </div>
                 </div>
                 <div class="mt-4">
                     <div class="flex items-center text-sm text-gray-600">
-                        <span>Average: $3.00/gal</span>
+                        <span>Average: $0.00/gal</span>
                     </div>
                 </div>
             </div>
@@ -201,13 +203,13 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Tax Due</dt>
-                            <dd class="text-2xl font-semibold text-gray-900">$3,250</dd>
+                            <dd class="text-2xl font-semibold text-gray-900">$0</dd>
                         </dl>
                     </div>
                 </div>
                 <div class="mt-4">
                     <div class="flex items-center text-sm text-red-600">
-                        <span>Q4 2025</span>
+                        <span>Current Quarter</span>
                     </div>
                 </div>
             </div>
@@ -263,166 +265,13 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">Q4 2025</div>
-                                <div class="text-sm text-gray-500">Oct-Dec 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">125,230</div>
-                                <div class="text-xs text-gray-500">6.76 MPG</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">18,500</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">$55,500</div>
-                                <div class="text-xs text-gray-500">$3.00/gal avg</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$3,250</div>
-                                <div class="text-xs text-gray-500">Due: Jan 31, 2026</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                    In Progress
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewReport('Q4-2025')" class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="editReport('Q4-2025')"
-                                    class="text-green-600 hover:text-green-900 mr-3">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="downloadReport('Q4-2025')"
-                                    class="text-purple-600 hover:text-purple-900 mr-3">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                                <button onclick="fileReport('Q4-2025')" class="text-orange-600 hover:text-orange-900">
-                                    <i class="fas fa-file-upload"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">Q3 2025</div>
-                                <div class="text-sm text-gray-500">Jul-Sep 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">118,450</div>
-                                <div class="text-xs text-gray-500">6.85 MPG</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">17,300</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">$51,200</div>
-                                <div class="text-xs text-gray-500">$2.96/gal avg</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$2,890</div>
-                                <div class="text-xs text-gray-500">Paid: Oct 31, 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                    Filed
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewReport('Q3-2025')" class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="downloadReport('Q3-2025')"
-                                    class="text-purple-600 hover:text-purple-900 mr-3">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                                <button onclick="printReport('Q3-2025')" class="text-orange-600 hover:text-orange-900">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">Q2 2025</div>
-                                <div class="text-sm text-gray-500">Apr-Jun 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">112,680</div>
-                                <div class="text-xs text-gray-500">6.92 MPG</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">16,280</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">$48,750</div>
-                                <div class="text-xs text-gray-500">$2.99/gal avg</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$2,650</div>
-                                <div class="text-xs text-gray-500">Paid: Jul 31, 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                    Filed
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewReport('Q2-2025')" class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="downloadReport('Q2-2025')"
-                                    class="text-purple-600 hover:text-purple-900 mr-3">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                                <button onclick="printReport('Q2-2025')" class="text-orange-600 hover:text-orange-900">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">Q1 2025</div>
-                                <div class="text-sm text-gray-500">Jan-Mar 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">108,920</div>
-                                <div class="text-xs text-gray-500">6.88 MPG</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">15,840</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">$46,200</div>
-                                <div class="text-xs text-gray-500">$2.92/gal avg</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">$2,420</div>
-                                <div class="text-xs text-gray-500">Paid: Apr 30, 2025</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                    Filed
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="viewReport('Q1-2025')" class="text-blue-600 hover:text-blue-900 mr-3">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="downloadReport('Q1-2025')"
-                                    class="text-purple-600 hover:text-purple-900 mr-3">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                                <button onclick="printReport('Q1-2025')" class="text-orange-600 hover:text-orange-900">
-                                    <i class="fas fa-print"></i>
-                                </button>
+                            <td colspan="7" class="px-6 py-12 text-center">
+                                <div class="text-gray-400">
+                                    <i class="fas fa-file-invoice-dollar text-4xl mb-3"></i>
+                                    <p class="text-lg font-medium">No IFTA Reports Yet</p>
+                                    <p class="text-sm mt-2">Click "Generate Report" to create your first quarterly IFTA
+                                        report</p>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -711,7 +560,8 @@
     <footer class="mt-12 py-8 border-t border-gray-200">
         <div class="text-center">
             <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
-            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT 3169186</p>
+            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT
+                3169186</p>
         </div>
     </footer>
 

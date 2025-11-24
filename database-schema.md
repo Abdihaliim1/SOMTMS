@@ -120,6 +120,15 @@
     lumperFees: 75.00
   },
   
+  // Revenue Calculation (based on driver type)
+  grossLoadAmount: 2500.00, // Total amount load pays (same as rate.total)
+  companyRevenue: 2500.00,  // Company's actual revenue from this load
+  // Calculation logic:
+  // - Company Driver: companyRevenue = grossLoadAmount (100%)
+  // - Owner Operator: companyRevenue = grossLoadAmount × (1 - driver_percentage)
+  //   Example: Load $3000, O/O gets 88% → companyRevenue = $3000 × 0.12 = $360
+  // - Owner (Driver): companyRevenue = grossLoadAmount (100%)
+  
   // Calculated fields
   mileage: {
     total: 1000,
@@ -201,6 +210,12 @@
     restrictions: ["L"]
   },
   
+  // Driver Type
+  driverType: "company|owner_operator|owner",
+  // company: Company Driver - 65-70% or per-mile, all expenses paid by company, no deductions
+  // owner_operator: Owner Operator - 85-90%, expenses may be deducted from settlement
+  // owner: Owner (Driver) - Same as company driver, gets business profit separately
+  
   // Payment Configuration
   payment: {
     type: "per_mile|percentage|flat_rate",
@@ -211,6 +226,19 @@
     detentionPay: 25.00,
     layoverPay: 100.00
   },
+  
+  // Pay Percentage (stored separately for easier access)
+  payPercentage: 70, // Percentage value (e.g., 70 for 70%)
+  
+  // Deduction Preferences (Owner Operators only)
+  deductionPreferences: {
+    fuel: true,        // Deduct fuel expenses from settlement
+    insurance: false,  // Deduct insurance expenses from settlement
+    maintenance: true, // Deduct maintenance expenses from settlement
+    other: false       // Deduct other expenses from settlement
+  },
+  // If preference is false, expense is paid outside the system
+  // If preference is true, expense is tracked and deducted from settlement
   
   // Employment Status
   employment: {
@@ -325,7 +353,19 @@
   inspectionDueDate: timestamp, // Annual inspection due date
   cabCardRenewalDate: timestamp, // IRP (International Registration Plan) cab card renewal date
   
-  // Insurance
+  // Insurance Configuration
+  insurancePaidBy: "company|owner_operator",
+  // company: Company pays monthly insurance, record as recurring expense
+  // owner_operator: O/O provides proof, track expiration only
+  
+  // Company Insurance (if insurancePaidBy === "company")
+  monthlyInsuranceCost: 500.00, // Monthly insurance premium
+  
+  // Owner Operator Insurance (if insurancePaidBy === "owner_operator")
+  insuranceExpirationDate: timestamp, // O/O insurance certificate expiration
+  insuranceCertificateUrl: "https://storage.url/insurance-cert.pdf", // Uploaded certificate
+  
+  // Legacy Insurance Object (for backward compatibility)
   insurance: {
     provider: "Progressive Commercial",
     policyNumber: "POL123456789",
@@ -337,14 +377,30 @@
     }
   },
   
+  // Ownership Type
+  ownership: "owned|leased|financed|owner_operator",
+  // owned: Company owned (fully paid) - no monthly payment, full depreciation, included in profit calculations
+  // leased: Company leased - monthly lease payment, return at end or buy out, included in profit calculations
+  // financed: Financed (loan) - monthly loan payment (part expense, part principal), company owns eventually, included in profit calculations
+  // owner_operator: O/O truck - O/O owns/leases, linked to O/O driver, excluded from company profit calculations
+  
   // Financial
   financial: {
     purchaseDate: timestamp,
     purchasePrice: 150000,
     monthlyPayment: 2500,
-    leaseOrOwn: "own",
+    leaseOrOwn: "own", // Legacy field, use ownership instead
     depreciation: 0.15
   },
+  
+  // Direct Financial Fields (for profit calculations)
+  monthlyPayment: 2500.00, // Monthly lease/loan payment (for leased/financed trucks only)
+  purchasePrice: 150000.00, // Purchase price (for owned/financed trucks, for ROI calculation)
+  leaseEndDate: timestamp, // Lease end date (for leased trucks only)
+  payoffAmount: 50000.00, // Remaining loan payoff amount (for financed trucks only)
+  
+  // Owner Operator Link
+  ownerOperatorDriverId: "driver_doc_id", // Link to O/O driver (for owner_operator trucks only)
   
   createdAt: timestamp,
   updatedAt: timestamp
@@ -434,8 +490,8 @@
   companyId: "ats_freight_llc",
   
   // Basic Information
-  type: "fuel|maintenance|insurance|toll|lumper|other",
-  category: "operational|administrative|maintenance",
+  type: "fuel|maintenance|insurance|toll|lumper|permit|lodging|other",
+  category: "fuel|maintenance|insurance|toll|lumper|permit|lodging|other", // Same as type - used for grouping expenses by category
   subcategory: "fuel_diesel|oil_change|tire_replacement",
   
   // Transaction Details
@@ -446,13 +502,22 @@
   
   // Associated Entities
   driverId: "driver_doc_id",
-  truckId: "truck_doc_id",
-  loadId: "load_doc_id",
+  truckId: "truck_doc_id", // Required for truck-specific expenses (fuel, maintenance, insurance)
+  loadId: "load_doc_id", // Optional - Manual link to specific load (no automatic date matching)
+  // Note: Expenses are grouped by category (type), not by load
+  // Per-truck expenses use truckId, not loadId
   vendor: {
     name: "Pilot Flying J",
     address: "123 Truck Stop Rd, Columbus, OH",
     phone: "(614) 555-FUEL"
   },
+  
+  // Payment Tracking (for Owner Operators)
+  paidBy: "company|owner_operator|tracked_only",
+  // company: Paid by company - track as expense AND deduct from O/O settlement
+  // owner_operator: Paid by O/O outside system - DON'T track in company P&L
+  // tracked_only: For records only, doesn't affect P&L or settlement
+  // Default: "company" (for Company Drivers, always company)
   
   // Receipt/Documentation
   receipt: {

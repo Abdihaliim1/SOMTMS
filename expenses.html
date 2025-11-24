@@ -15,15 +15,15 @@
         }
 
         .bg-navy {
-            background-color: #1e3a8a;
+            background-color: #1f2937;
         }
 
         .text-navy {
-            color: #1e3a8a;
+            color: #1f2937;
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background-color: #1f2937;
         }
 
         .card-shadow {
@@ -51,7 +51,7 @@
         }
 
         .nav-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .modal {
@@ -354,6 +354,7 @@
 
             <div class="p-6">
                 <form id="expenseForm" class="space-y-6">
+                    <input type="hidden" id="expenseId" value="">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Expense Type</label>
@@ -390,7 +391,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Driver</label>
                             <select id="driver"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                onchange="updateLoadOptions()">
+                                onchange="updateLoadOptions(); togglePaidByField()">
                                 <option value="">Select Driver</option>
                             </select>
                         </div>
@@ -407,9 +408,12 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Link to Load (Optional)</label>
                         <select id="loadId"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">No specific load (will auto-match by date)</option>
+                            <option value="">No specific load (category-based expense)</option>
                         </select>
-                        <p class="text-xs text-gray-500 mt-1">If left blank, system will automatically match expenses to loads based on dates</p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <strong>Leave blank</strong> for category-based expenses (fuel, insurance, maintenance).<br>
+                            <strong>Select a load</strong> only if this expense is specifically tied to that load.
+                        </p>
                     </div>
 
                     <div>
@@ -417,6 +421,26 @@
                         <input type="text" id="vendor"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Vendor name">
+                    </div>
+
+                    <!-- Warning Message -->
+                    <div id="expenseWarning" class="mt-2"></div>
+                    
+                    <!-- Paid By Field (for Owner Operators) -->
+                    <div id="paidBySection" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Paid By <span class="text-red-500">*</span></label>
+                        <select id="paidBy" required
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Select who paid</option>
+                            <option value="company">Company (Deduct from settlement)</option>
+                            <option value="owner_operator">Owner Operator (Outside system)</option>
+                            <option value="tracked_only">Tracked Only (For records, not P&L)</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <strong>Company:</strong> Track as expense AND deduct from O/O settlement<br>
+                            <strong>Owner Operator:</strong> Don't track in company P&L (O/O paid outside system)<br>
+                            <strong>Tracked Only:</strong> For records only, doesn't affect P&L or settlement
+                        </p>
                     </div>
 
                     <div>
@@ -455,6 +479,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <script src="main.js"></script>
+    <script src="populate-mock-data.js"></script>
     <script>
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -514,11 +539,14 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white ${statusClass}">
-                            ${expense.status.charAt(0).toUpperCase() + expense.status.slice(1)}
+                            ${expense.status ? (expense.status.charAt(0).toUpperCase() + expense.status.slice(1)) : 'Pending'}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onclick="deleteExpense('${expense.id}')" class="text-red-600 hover:text-red-900">
+                        <button onclick="editExpense('${expense.id}')" class="text-blue-600 hover:text-blue-900 mr-3" title="Edit Expense">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteExpense('${expense.id}')" class="text-red-600 hover:text-red-900" title="Delete Expense">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -584,6 +612,8 @@
         function openExpenseModal() {
             document.getElementById('modalTitle').textContent = 'Add New Expense';
             document.getElementById('expenseForm').reset();
+            document.getElementById('expenseId').value = ''; // Clear expense ID for new expense
+            document.getElementById('paidBySection').classList.add('hidden');
 
             // Populate drivers
             const driverSelect = document.getElementById('driver');
@@ -610,45 +640,154 @@
             document.getElementById('expenseModal').classList.add('show');
         }
 
+        function togglePaidByField() {
+            const driverId = document.getElementById('driver').value;
+            const paidBySection = document.getElementById('paidBySection');
+            const paidByField = document.getElementById('paidBy');
+            
+            if (!driverId) {
+                paidBySection.classList.add('hidden');
+                paidByField.removeAttribute('required');
+                return;
+            }
+
+            const driver = DataManager.drivers.find(d => d.id === driverId);
+            const driverType = driver?.driverType;
+
+            // Show paid_by field only for Owner Operators
+            const warningDiv = document.getElementById('expenseWarning');
+            if (driverType === 'owner_operator') {
+                paidBySection.classList.remove('hidden');
+                paidByField.setAttribute('required', 'required');
+                // Set default to "company" if not set
+                if (!paidByField.value) {
+                    paidByField.value = 'company';
+                }
+                
+                // Show warning about deduction
+                if (warningDiv) {
+                    warningDiv.innerHTML = `
+                        <div class="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                            <strong>Owner Operator Expense:</strong> If "Company" is selected, this expense will be deducted from the O/O's settlement.
+                            If "Owner Operator" is selected, it will not be tracked as a company expense.
+                        </div>
+                    `;
+                }
+            } else {
+                // For Company Drivers and Owner (Driver), all expenses are paid by company
+                paidBySection.classList.add('hidden');
+                paidByField.removeAttribute('required');
+                paidByField.value = 'company'; // Set default but don't show field
+                
+                // Show info message for company drivers
+                if (warningDiv) {
+                    warningDiv.innerHTML = `
+                        <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
+                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                            <strong>Company Driver Expense:</strong> This expense will be paid by the company and will NOT be deducted from the driver's pay.
+                            It will appear in company expense reports only.
+                        </div>
+                    `;
+                }
+            }
+        }
+
         function updateLoadOptions() {
             const driverId = document.getElementById('driver')?.value;
             const loadSelect = document.getElementById('loadId');
             
             if (!loadSelect) return;
             
-            loadSelect.innerHTML = '<option value="">No specific load (will auto-match by date)</option>';
+            loadSelect.innerHTML = '<option value="">No specific load (category-based expense)</option>';
             
             if (driverId && DataManager.loads) {
-                // Get all loads for this driver (delivered or in transit)
+                // Get recent loads for this driver (suggest last 10 loads)
                 const driverLoads = DataManager.loads.filter(l => {
                     const isDriverMatch = String(l.driverId) === String(driverId);
-                    const status = (l.status || '').toLowerCase();
-                    const isActive = status === 'delivered' || status === 'completed' || status === 'in_transit' || status === 'dispatched';
-                    return isDriverMatch && isActive;
+                    return isDriverMatch;
                 });
                 
-                // Sort by delivery date (newest first)
+                // Sort by delivery date (newest first) - show most recent loads as suggestions
                 driverLoads.sort((a, b) => {
                     const dateA = new Date(a.delivery?.date || a.deliveredAt || a.createdAt || 0);
                     const dateB = new Date(b.delivery?.date || b.deliveredAt || b.createdAt || 0);
                     return dateB - dateA;
                 });
                 
-                driverLoads.forEach(load => {
+                // Show only last 10 loads as suggestions
+                const recentLoads = driverLoads.slice(0, 10);
+                
+                recentLoads.forEach(load => {
                     const loadNumber = load.loadNumber || 'Unknown';
                     const pickup = load.pickup?.city || '';
                     const delivery = load.delivery?.city || '';
                     const route = pickup && delivery ? `${pickup} → ${delivery}` : '';
                     const date = load.delivery?.date || load.deliveredAt || load.createdAt;
                     const dateStr = date ? Utils.formatDate(date) : '';
+                    const status = (load.status || '').toLowerCase();
+                    const statusLabel = status === 'delivered' ? '✓' : status === 'in_transit' ? '→' : '';
                     
-                    loadSelect.innerHTML += `<option value="${load.id}">${loadNumber}${route ? ` - ${route}` : ''}${dateStr ? ` (${dateStr})` : ''}</option>`;
+                    loadSelect.innerHTML += `<option value="${load.id}">${statusLabel} ${loadNumber}${route ? ` - ${route}` : ''}${dateStr ? ` (${dateStr})` : ''}</option>`;
                 });
             }
         }
 
         function closeModal() {
             document.getElementById('expenseModal').classList.remove('show');
+        }
+
+        function editExpense(expenseId) {
+            const expense = DataManager.expenses.find(e => e.id === expenseId);
+            if (!expense) {
+                Utils.showNotification('Expense not found', 'error');
+                return;
+            }
+
+            // Set modal title
+            document.getElementById('modalTitle').textContent = 'Edit Expense';
+            document.getElementById('expenseId').value = expenseId;
+
+            // Populate form fields
+            document.getElementById('expenseType').value = expense.type || '';
+            document.getElementById('amount').value = expense.amount || '';
+            document.getElementById('description').value = expense.description || '';
+            document.getElementById('vendor').value = expense.vendor || '';
+
+            // Populate drivers
+            const driverSelect = document.getElementById('driver');
+            driverSelect.innerHTML = '<option value="">Select Driver</option>';
+            if (DataManager.drivers) {
+                DataManager.drivers.forEach(d => {
+                    const selected = expense.driverId === d.id ? 'selected' : '';
+                    driverSelect.innerHTML += `<option value="${d.id}" ${selected}>${d.firstName} ${d.lastName}</option>`;
+                });
+            }
+
+            // Populate trucks
+            const truckSelect = document.getElementById('truck');
+            truckSelect.innerHTML = '<option value="">Select Truck</option>';
+            if (DataManager.trucks) {
+                DataManager.trucks.forEach(t => {
+                    const selected = expense.truckId === t.id ? 'selected' : '';
+                    truckSelect.innerHTML += `<option value="${t.id}" ${selected}>${t.number} - ${t.make}</option>`;
+                });
+            }
+
+            // Populate load options
+            updateLoadOptions();
+            if (expense.loadId) {
+                document.getElementById('loadId').value = expense.loadId;
+            }
+
+            // Handle paidBy field for Owner Operators
+            togglePaidByField();
+            if (expense.paidBy) {
+                document.getElementById('paidBy').value = expense.paidBy;
+            }
+
+            // Open modal
+            document.getElementById('expenseModal').classList.add('show');
         }
 
         async function deleteExpense(id) {
@@ -670,6 +809,7 @@
         window.renderExpenses = renderExpenses;
         window.updateStats = updateStats;
         window.openExpenseModal = openExpenseModal;
+        window.editExpense = editExpense;
         window.closeModal = closeModal;
         window.deleteExpense = deleteExpense;
 
@@ -687,24 +827,48 @@
                 const truckSelect = document.getElementById('truck');
 
                 const loadSelect = document.getElementById('loadId');
+                // Determine paid_by based on driver type
+                const driver = driverSelect.value ? DataManager.drivers.find(d => d.id === driverSelect.value) : null;
+                const driverType = driver?.driverType;
+                let paidBy = 'company'; // Default for Company Drivers
+
+                if (driverType === 'owner_operator') {
+                    // For Owner Operators, get from form field
+                    paidBy = document.getElementById('paidBy').value || 'company';
+                } else {
+                    // For Company Drivers and Owner (Driver), always company
+                    paidBy = 'company';
+                }
+
+                const expenseId = document.getElementById('expenseId').value;
                 const expenseData = {
                     type: document.getElementById('expenseType').value,
+                    category: document.getElementById('expenseType').value, // Category same as type (fuel, insurance, maintenance, etc.)
                     amount: parseFloat(document.getElementById('amount').value),
                     description: document.getElementById('description').value,
                     driverId: driverSelect.value,
                     driverName: driverSelect.selectedIndex > 0 ? driverSelect.options[driverSelect.selectedIndex].text : '',
                     truckId: truckSelect.value,
                     truckNumber: truckSelect.selectedIndex > 0 ? truckSelect.options[truckSelect.selectedIndex].text : '',
-                    loadId: loadSelect?.value || null, // Link to specific load if selected
+                    loadId: loadSelect?.value || null, // Optional: Link to specific load if manually selected
                     vendor: document.getElementById('vendor').value,
-                    status: 'pending' // Default status
+                    paidBy: paidBy, // New field: "company", "owner_operator", or "tracked_only"
+                    status: expenseId ? (DataManager.expenses.find(e => e.id === expenseId)?.status || 'pending') : 'pending' // Keep existing status when editing
                 };
 
-                await DataManager.addExpense(expenseData);
+                if (expenseId) {
+                    // Update existing expense
+                    await DataManager.updateExpense(expenseId, expenseData);
+                    // Notification is shown in main.js updateExpense function
+                } else {
+                    // Add new expense
+                    await DataManager.addExpense(expenseData);
+                    Utils.showNotification('Expense added successfully', 'success');
+                }
+                
                 closeModal();
                 // renderExpenses() is called automatically by Firebase listener
                 // updateStats() will be called by the listener too
-                Utils.showNotification('Expense added successfully', 'success');
             } catch (error) {
                 console.error('Error saving expense:', error);
                 Utils.showNotification('Failed to save expense', 'error');

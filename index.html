@@ -40,15 +40,28 @@
 </head>
 
 <body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle Menu">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeMobileMenu()"></div>
+
     <!-- Sidebar Navigation -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div style="display: flex; align-items: center; gap: 12px;">
-                <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" style="height: 48px; width: auto;" id="companyLogo" onerror="this.style.display='none'; document.getElementById('companyLogoFallback').style.display='flex';">
-                <div style="width: 48px; height: 48px; background: #ffffff; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; color: #1f2937;" id="companyLogoFallback">ATS</div>
+                <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" style="height: 48px; width: auto;"
+                    id="companyLogo"
+                    onerror="this.style.display='none'; document.getElementById('companyLogoFallback').style.display='flex';">
+                <div style="width: 48px; height: 48px; background: #ffffff; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; color: #1f2937;"
+                    id="companyLogoFallback">ATS</div>
                 <div>
-                    <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ffffff;" id="companyName">ATS FREIGHT LLC</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.8);">Transportation Management System</p>
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ffffff;" id="companyName">ATS
+                        FREIGHT LLC</h2>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.8);">Transportation
+                        Management System</p>
                 </div>
             </div>
 
@@ -111,7 +124,8 @@
     <!-- Main Content -->
     <div class="main-content">
         <!-- Top Navigation -->
-        <div style="background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 16px 24px; margin: -24px -24px 24px -24px;">
+        <div
+            style="background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 16px 24px; margin: -24px -24px 24px -24px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h1 style="margin: 0; font-size: 20px; font-weight: 600; color: #111827;">Dashboard</h1>
@@ -144,8 +158,8 @@
                         </h3>
                         <ul id="expirationList" class="text-sm text-red-700 space-y-1"></ul>
                     </div>
-                    <button onclick="document.getElementById('complianceAlerts').classList.add('hidden')" 
-                            class="text-red-600 hover:text-red-800 ml-4">
+                    <button onclick="document.getElementById('complianceAlerts').classList.add('hidden')"
+                        class="text-red-600 hover:text-red-800 ml-4">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -186,7 +200,8 @@
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
-                                <dt class="text-sm font-medium text-gray-500 truncate" id="revenueLabel">Revenue This Month
+                                <dt class="text-sm font-medium text-gray-500 truncate" id="revenueLabel">Revenue This
+                                    Month
                                 </dt>
                                 <dd class="text-2xl font-semibold text-gray-900" id="weeklyRevenue">-</dd>
                             </dl>
@@ -248,7 +263,8 @@
             </div>
 
             <!-- Charts and Analytics -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 32px;">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 32px;">
                 <!-- Revenue Chart -->
                 <div class="card">
                     <h3 class="card-title" style="margin-bottom: 16px;">Revenue Trends</h3>
@@ -269,7 +285,8 @@
                     <div class="card-header">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <h3 class="card-title" style="margin: 0;">Recent Loads</h3>
-                            <button onclick="navigateTo('loads.html')" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;">
+                            <button onclick="navigateTo('loads.html')" class="btn btn-secondary"
+                                style="padding: 4px 12px; font-size: 12px;">
                                 View All
                             </button>
                         </div>
@@ -300,42 +317,44 @@
                             Add Customer
                         </button>
 
-                        <button onclick="populateMockData()" class="btn btn-secondary" style="width: 100%; background-color: #6b7280; border-color: #6b7280;">
+                        <button onclick="populateMockData()" class="btn btn-secondary"
+                            style="width: 100%; background-color: #6b7280; border-color: #6b7280;">
                             <i class="fas fa-database mr-2"></i>
                             Populate Mock Data
                         </button>
 
                         <button onclick="navigateTo('expenses.html')"
-                                class="w-full flex items-center justify-center px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
-                                <i class="fas fa-receipt mr-2"></i>
-                                Record Expense
-                            </button>
+                            class="w-full flex items-center justify-center px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                            <i class="fas fa-receipt mr-2"></i>
+                            Record Expense
+                        </button>
 
-                            <button onclick="navigateTo('settlements.html')"
-                                class="w-full flex items-center justify-center px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                                <i class="fas fa-calculator mr-2"></i>
-                                Driver Settlement
-                            </button>
+                        <button onclick="navigateTo('settlements.html')"
+                            class="w-full flex items-center justify-center px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                            <i class="fas fa-calculator mr-2"></i>
+                            Driver Settlement
+                        </button>
 
-                            <button onclick="navigateTo('ifta.html')"
-                                class="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                                <i class="fas fa-file-invoice-dollar mr-2"></i>
-                                IFTA Report
-                            </button>
-                        </div>
+                        <button onclick="navigateTo('ifta.html')"
+                            class="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="fas fa-file-invoice-dollar mr-2"></i>
+                            IFTA Report
+                        </button>
                     </div>
                 </div>
             </div>
-
-            <!-- Footer -->
-            <footer class="mt-12 py-8 border-t border-gray-200">
-                <div class="text-center">
-                    <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
-                    <p class="text-sm text-gray-500 mt-1">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT 3169186</p>
-                    <p class="text-sm text-gray-500 mt-2">Professional Transportation Management System</p>
-                </div>
-            </footer>
         </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 py-8 border-t border-gray-200">
+            <div class="text-center">
+                <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
+                <p class="text-sm text-gray-500 mt-1">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT
+                    3169186</p>
+                <p class="text-sm text-gray-500 mt-2">Professional Transportation Management System</p>
+            </div>
+        </footer>
+    </div>
     </div>
 
     <!-- Company Settings Modal -->
@@ -407,6 +426,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <script src="main.js"></script>
+    <script src="mobile-menu.js"></script>
     <!-- Mock Data Population Script (Remove in production) -->
     <script src="populate-mock-data.js"></script>
     <script>
@@ -436,33 +456,33 @@
         window.renderComplianceAlerts = (alerts) => {
             const box = document.getElementById('complianceAlerts');
             const list = document.getElementById('expirationList');
-            
+
             if (!box || !list) return;
-            
+
             // Group alerts by urgency
             const expired = alerts.filter(a => a.days < 0);
             const expiring = alerts.filter(a => a.days >= 0 && a.days <= 7);
             const upcoming = alerts.filter(a => a.days > 7);
-            
+
             let html = '';
-            
+
             if (expired.length > 0) {
                 html += '<div class="font-bold text-red-900 mb-2">⚠️ EXPIRED:</div>';
                 html += expired.map(a => `<li class="font-semibold">• ${a.message}</li>`).join('');
             }
-            
+
             if (expiring.length > 0) {
                 if (html) html += '<div class="mt-3"></div>';
                 html += '<div class="font-semibold text-red-800 mb-2">⚠️ Expiring This Week:</div>';
                 html += expiring.map(a => `<li>• ${a.message}</li>`).join('');
             }
-            
+
             if (upcoming.length > 0) {
                 if (html) html += '<div class="mt-3"></div>';
                 html += '<div class="font-medium text-red-700 mb-2">📅 Upcoming:</div>';
                 html += upcoming.map(a => `<li>• ${a.message}</li>`).join('');
             }
-            
+
             list.innerHTML = html;
             box.classList.remove('hidden');
         };
@@ -486,28 +506,28 @@
             // Count Active Drivers - check status field (case-insensitive)
             const activeDrivers = DataManager.drivers.filter(d => {
                 if (!d) return false;
-                
+
                 // Get status from driver object (check multiple possible locations)
                 const status = (d.status || d.employment?.status || '').toString().toLowerCase().trim();
-                
+
                 // If status is explicitly 'active', count it
                 if (status === 'active') return true;
-                
+
                 // If status is explicitly 'inactive' or 'terminated', don't count it
                 if (status === 'inactive' || status === 'terminated' || status === 'on_leave') return false;
-                
+
                 // If no status field exists but driver has basic info, count as active (default)
                 if (!status && (d.firstName || d.driverNumber)) return true;
-                
+
                 return false;
             });
-            
+
             console.log(`Active Drivers: ${activeDrivers.length} out of ${DataManager.drivers.length} total`);
-            console.log('Driver statuses:', DataManager.drivers.map(d => ({ 
-                name: `${d.firstName} ${d.lastName}`, 
-                status: d.status || 'no status' 
+            console.log('Driver statuses:', DataManager.drivers.map(d => ({
+                name: `${d.firstName} ${d.lastName}`,
+                status: d.status || 'no status'
             })));
-            
+
             document.getElementById('activeDriversCount').textContent = activeDrivers.length;
 
             // Calculate Revenue This Month (aligned with Miles This Month)

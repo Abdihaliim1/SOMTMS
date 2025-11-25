@@ -1149,13 +1149,6 @@
                 if (window.loadDriverExpenses) loadDriverExpenses();
                 renderSettlements();
                 updateSettlementStats();
-
-                // Prompt to send email notification
-                setTimeout(() => {
-                    if (confirm('Settlement created successfully! Send email notification to driver?')) {
-                        sendSettlementEmail(id);
-                    }
-                }, 500);
             } catch (e) {
                 Utils.showNotification('Error: ' + e.message, 'error');
             }
@@ -2039,12 +2032,6 @@
                 markPaidBtn.classList.remove('hidden');
                 markPaidBtn.onclick = () => {
                     markSettlementAsPaid(settlementId);
-                    // Prompt to send email after marking as paid
-                    setTimeout(() => {
-                        if (confirm('Settlement marked as PAID. Send email notification to driver?')) {
-                            sendSettlementEmail(settlementId);
-                        }
-                    }, 500);
                 };
                 markProcessedBtn.classList.add('hidden');
             } else {

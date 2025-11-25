@@ -1494,84 +1494,155 @@
                     ${isOwnerOperator && expenses.length > 0 ? `
                     <div class="section">
                         <h3 class="section-title">Itemized Deductions</h3>
-                        ${loads.map(l => {
-                const loadExpenses = getLoadExpenses(l.id);
-                if (loadExpenses.length === 0) return '';
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%;">Type</th>
+                                    <th style="width: 50%;">Description</th>
+                                    <th class="amount" style="width: 25%;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${(() => {
+                        let html = '';
 
-                // Group expenses by type
-                const fuelExpenses = loadExpenses.filter(e => (e.type || '').toLowerCase().includes('fuel'));
-                const maintenanceExpenses = loadExpenses.filter(e => (e.type || '').toLowerCase().includes('maintenance') || (e.type || '').toLowerCase().includes('repair'));
-                const otherExpenses = loadExpenses.filter(e => {
-                    const type = (e.type || '').toLowerCase();
-                    return !type.includes('fuel') && !type.includes('maintenance') && !type.includes('repair') && !type.includes('insurance');
-                });
+                        // Advances
+                        if (deductions.advances > 0) {
+                            html += `<tr>
+                                <td><strong>Advances</strong></td>
+                                <td>Cash advances taken</td>
+                                <td class="amount">-${formatCurrency(deductions.advances)}</td>
+                            </tr>`;
+                        }
 
-                let html = `<div style="margin-bottom: 15px;">
-                                <h4 style="color: #1f2937; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Load #${l.loadNumber || 'N/A'}</h4>
-                                <table style="margin-bottom: 10px;">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 30%;">Type</th>
-                                            <th style="width: 50%;">Description</th>
-                                            <th class="amount" style="width: 20%;">Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>`;
+                        // Lumper Fees
+                        if (deductions.lumperFees > 0) {
+                            html += `<tr>
+                                <td><strong>Lumper Fees</strong></td>
+                                <td>Loading/unloading fees</td>
+                                <td class="amount">-${formatCurrency(deductions.lumperFees)}</td>
+                            </tr>`;
+                        }
 
-                // Fuel deductions
-                if (deductionPrefs.fuel && fuelExpenses.length > 0) {
-                    fuelExpenses.forEach(e => {
-                        const expDesc = e.description || e.vendor?.name || 'Fuel';
-                        html += `<tr>
+                        // Fuel Expenses (itemized by load)
+                        loads.forEach(load => {
+                            const loadExpenses = getLoadExpenses(load.id);
+                            const fuelExpenses = loadExpenses.filter(e => (e.type || '').toLowerCase().includes('fuel'));
+
+                            if (deductionPrefs.fuel && fuelExpenses.length > 0) {
+                                fuelExpenses.forEach(e => {
+                                    const expDesc = e.description || e.vendor?.name || 'Fuel';
+                                    html += `<tr>
                                         <td>Fuel</td>
-                                        <td>${expDesc}</td>
+                                        <td>Load #${load.loadNumber || 'N/A'} - ${expDesc}</td>
                                         <td class="amount">-${formatCurrency(e.amount || 0)}</td>
                                     </tr>`;
-                    });
-                }
+                                });
+                            }
+                        });
 
-                // Maintenance deductions
-                if (deductionPrefs.maintenance && maintenanceExpenses.length > 0) {
-                    maintenanceExpenses.forEach(e => {
-                        const expDesc = e.description || e.vendor?.name || 'Maintenance';
-                        html += `<tr>
+                        // Insurance (if applicable)
+                        if (deductionPrefs.insurance && deductions.insurance > 0) {
+                            html += `<tr>
+                                <td><strong>Insurance</strong></td>
+                                <td>Monthly insurance (${loads.length} load${loads.length !== 1 ? 's' : ''})</td>
+                                <td class="amount">-${formatCurrency(deductions.insurance)}</td>
+                            </tr>`;
+                        }
+
+                        // Maintenance Expenses (itemized by load)
+                        loads.forEach(load => {
+                            const loadExpenses = getLoadExpenses(load.id);
+                            const maintenanceExpenses = loadExpenses.filter(e =>
+                                (e.type || '').toLowerCase().includes('maintenance') ||
+                                (e.type || '').toLowerCase().includes('repair')
+                            );
+
+                            if (deductionPrefs.maintenance && maintenanceExpenses.length > 0) {
+                                maintenanceExpenses.forEach(e => {
+                                    const expDesc = e.description || e.vendor?.name || 'Maintenance';
+                                    html += `<tr>
                                         <td>Maintenance</td>
-                                        <td>${expDesc}</td>
+                                        <td>Load #${load.loadNumber || 'N/A'} - ${expDesc}</td>
                                         <td class="amount">-${formatCurrency(e.amount || 0)}</td>
                                     </tr>`;
-                    });
-                }
+                                });
+                            }
+                        });
 
-                // Other deductions
-                if (deductionPrefs.other && otherExpenses.length > 0) {
-                    otherExpenses.forEach(e => {
-                        const expType = (e.type || 'other').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-                        const expDesc = e.description || e.vendor?.name || expType;
-                        html += `<tr>
+                        // Other Expenses (itemized by load)
+                        loads.forEach(load => {
+                            const loadExpenses = getLoadExpenses(load.id);
+                            const otherExpenses = loadExpenses.filter(e => {
+                                const type = (e.type || '').toLowerCase();
+                                return !type.includes('fuel') && !type.includes('maintenance') &&
+                                    !type.includes('repair') && !type.includes('insurance');
+                            });
+
+                            if (deductionPrefs.other && otherExpenses.length > 0) {
+                                otherExpenses.forEach(e => {
+                                    const expType = (e.type || 'other').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                    const expDesc = e.description || e.vendor?.name || expType;
+                                    html += `<tr>
                                         <td>${expType}</td>
-                                        <td>${expDesc}</td>
+                                        <td>Load #${load.loadNumber || 'N/A'} - ${expDesc}</td>
                                         <td class="amount">-${formatCurrency(e.amount || 0)}</td>
                                     </tr>`;
-                    });
-                }
+                                });
+                            }
+                        });
 
-                html += `</tbody></table></div>`;
-                return html;
-            }).join('')}
-                        
-                        ${deductionPrefs.insurance && deductions.insurance > 0 ? `
-                        <div style="margin-bottom: 10px;">
-                            <table>
-                                <tbody>
-                                    <tr>
-                                        <td style="width: 30%;"><strong>Insurance</strong></td>
-                                        <td style="width: 50%;">Monthly insurance (${loads.length} load${loads.length !== 1 ? 's' : ''})</td>
-                                        <td class="amount" style="width: 20%;">-${formatCurrency(deductions.insurance)}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        ` : ''}
+                        // Taxes Section Header (always show, even if $0)
+                        html += `<tr style="border-top: 2px solid #d1d5db;">
+                            <td colspan="3" style="padding-top: 12px; padding-bottom: 6px;"><strong>Taxes</strong></td>
+                        </tr>`;
+
+                        // Federal Tax
+                        const federalTax = taxes.federal || 0;
+                        const federalColor = federalTax > 0 ? 'color: #dc2626;' : 'color: #000;';
+                        html += `<tr>
+                            <td style="padding-left: 20px;">Federal Tax</td>
+                            <td>Federal income tax withholding</td>
+                            <td class="amount" style="${federalColor}">-${formatCurrency(federalTax)}</td>
+                        </tr>`;
+
+                        // State Tax
+                        const stateTax = taxes.state || 0;
+                        const stateColor = stateTax > 0 ? 'color: #dc2626;' : 'color: #000;';
+                        html += `<tr>
+                            <td style="padding-left: 20px;">State Tax</td>
+                            <td>State income tax withholding</td>
+                            <td class="amount" style="${stateColor}">-${formatCurrency(stateTax)}</td>
+                        </tr>`;
+
+                        // Social Security
+                        const ssTax = taxes.socialSecurity || 0;
+                        const ssColor = ssTax > 0 ? 'color: #dc2626;' : 'color: #000;';
+                        html += `<tr>
+                            <td style="padding-left: 20px;">Social Security</td>
+                            <td>FICA Social Security tax</td>
+                            <td class="amount" style="${ssColor}">-${formatCurrency(ssTax)}</td>
+                        </tr>`;
+
+                        // Medicare
+                        const medicareTax = taxes.medicare || 0;
+                        const medicareColor = medicareTax > 0 ? 'color: #dc2626;' : 'color: #000;';
+                        html += `<tr>
+                            <td style="padding-left: 20px;">Medicare</td>
+                            <td>FICA Medicare tax</td>
+                            <td class="amount" style="${medicareColor}">-${formatCurrency(medicareTax)}</td>
+                        </tr>`;
+
+                        // Total Deductions Row
+                        html += `<tr class="total" style="border-top: 2px solid #1f2937; background-color: #f9fafb;">
+                            <td colspan="2" style="font-weight: 600; color: #1f2937; padding-top: 12px;">TOTAL DEDUCTIONS</td>
+                            <td class="amount" style="font-weight: 600; color: #dc2626; padding-top: 12px;">-${formatCurrency(settlement.totalDeductions || 0)}</td>
+                        </tr>`;
+
+                        return html;
+                    })()}
+                            </tbody>
+                        </table>
                     </div>
                     ` : ''}
                     
@@ -1589,87 +1660,21 @@
                             </thead>
                             <tbody>
                                 ${expenses.map(e => {
-                const expDate = e.date || e.createdAt;
-                const expType = (e.type || 'other').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-                const expDesc = e.description || e.subcategory || e.vendor?.name || expType;
-                return `<tr>
+                        const expDate = e.date || e.createdAt;
+                        const expType = (e.type || 'other').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        const expDesc = e.description || e.subcategory || e.vendor?.name || expType;
+                        return `<tr>
                                         <td>${formatDate(expDate)}</td>
                                         <td>${expType}</td>
                                         <td>${expDesc}</td>
                                         <td class="amount">${formatCurrency(e.amount || 0)}</td>
                                     </tr>`;
-            }).join('')}
+                    }).join('')}
                             </tbody>
                         </table>
                         <p style="margin-top: 8px; font-size: 10px; color: #666; font-style: italic;">Note: Company drivers have no expense deductions. All expenses are paid by the company.</p>
                     </div>
                     ` : ''}
-
-                    <div class="section">
-                        <h3 class="section-title">Deductions Breakdown</h3>
-                        <div class="summary-box">
-                            ${deductions.advances > 0 ? `
-                            <div class="summary-row">
-                                <span class="summary-label">Advances</span>
-                                <span class="summary-value negative">-${formatCurrency(deductions.advances)}</span>
-                            </div>
-                            ` : ''}
-                            ${deductions.lumperFees > 0 ? `
-                            <div class="summary-row">
-                                <span class="summary-label">Lumper Fees</span>
-                                <span class="summary-value negative">-${formatCurrency(deductions.lumperFees)}</span>
-                            </div>
-                            ` : ''}
-                            ${deductions.expenses > 0 ? `
-                            <div class="summary-row">
-                                <span class="summary-label">Expenses</span>
-                                <span class="summary-value negative">-${formatCurrency(deductions.expenses)}</span>
-                            </div>
-                            ` : ''}
-                            ${deductions.fuel > 0 ? `
-                            <div class="summary-row">
-                                <span class="summary-label">Fuel Deduction</span>
-                                <span class="summary-value negative">-${formatCurrency(deductions.fuel)}</span>
-                            </div>
-                            ` : ''}
-                            ${deductions.insurance > 0 ? `
-                            <div class="summary-row">
-                                <span class="summary-label">Insurance</span>
-                                <span class="summary-value negative">-${formatCurrency(deductions.insurance)}</span>
-                            </div>
-                            ` : ''}
-                            ${deductions.other > 0 ? `
-                            <div class="summary-row">
-                                <span class="summary-label">Other Deductions</span>
-                                <span class="summary-value negative">-${formatCurrency(deductions.other)}</span>
-                            </div>
-                            ` : ''}
-                            <div class="summary-row" style="margin-top: 10px; padding-top: 15px; border-top: 1px solid #d1d5db;">
-                                <span class="summary-label" style="font-weight: 600;">Taxes:</span>
-                                <span></span>
-                            </div>
-                            <div class="summary-row" style="padding-left: 20px;">
-                                <span class="summary-label">Federal Tax</span>
-                                <span class="summary-value negative">-${formatCurrency(taxes.federal || 0)}</span>
-                            </div>
-                            <div class="summary-row" style="padding-left: 20px;">
-                                <span class="summary-label">State Tax</span>
-                                <span class="summary-value negative">-${formatCurrency(taxes.state || 0)}</span>
-                            </div>
-                            <div class="summary-row" style="padding-left: 20px;">
-                                <span class="summary-label">Social Security</span>
-                                <span class="summary-value negative">-${formatCurrency(taxes.socialSecurity || 0)}</span>
-                            </div>
-                            <div class="summary-row" style="padding-left: 20px;">
-                                <span class="summary-label">Medicare</span>
-                                <span class="summary-value negative">-${formatCurrency(taxes.medicare || 0)}</span>
-                            </div>
-                            <div class="summary-row total">
-                                <span class="summary-label" style="font-weight: 600; color: #1f2937;">Total Deductions</span>
-                                <span class="summary-value negative" style="font-weight: 600;">-${formatCurrency(settlement.totalDeductions || 0)}</span>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="net-pay-box">
                         <div class="net-pay-label">NET PAY</div>

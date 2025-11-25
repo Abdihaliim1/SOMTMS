@@ -772,7 +772,37 @@
                     } else {
                         companyDriverPay += finalPay;
                     }
-                }); \n\n                const totalDriverPay = companyDriverPay + ownerOperatorPay + ownerAsDriverPay; \n\n                // 5. Expenses (Break down by category)\n                let fuelExpenses = 0;\n                let insuranceExpenses = 0;\n                let maintenanceExpenses = 0;\n                let fixedExpenses = 0;\n                let truckPayments = 0;\n                let otherExpenses = 0;\n\n                companyExpenses.forEach(exp => {\n                    const amount = parseFloat(exp.amount) || 0;\n                    const category = (exp.category || exp.type || 'other').toLowerCase();\n\n                    if (category.includes('fuel')) {\n                        fuelExpenses += amount;\n                    } else if (category.includes('insurance')) {\n                        insuranceExpenses += amount;\n                    } else if (category.includes('maintenance') || category.includes('repair')) {\n                        maintenanceExpenses += amount;\n                    } else if (category === 'lease_payment' || category === 'loan_payment' || category === 'truck_payment') {\n                        truckPayments += amount;\n                    } else if (category === 'rent' || category === 'software' || category === 'salary' || category === 'overhead' || category === 'fixed' || category === 'office') {\n                        fixedExpenses += amount;\n                    } else {\n                        otherExpenses += amount;\n                    }\n                });\n
+                });
+
+                const totalDriverPay = companyDriverPay + ownerOperatorPay + ownerAsDriverPay;
+
+                // 5. Expenses (Break down by category)
+                let fuelExpenses = 0;
+                let insuranceExpenses = 0;
+                let maintenanceExpenses = 0;
+                let fixedExpenses = 0;
+                let truckPayments = 0;
+                let otherExpenses = 0;
+
+                companyExpenses.forEach(exp => {
+                    const amount = parseFloat(exp.amount) || 0;
+                    const category = (exp.category || exp.type || 'other').toLowerCase();
+
+                    if (category.includes('fuel')) {
+                        fuelExpenses += amount;
+                    } else if (category.includes('insurance')) {
+                        insuranceExpenses += amount;
+                    } else if (category.includes('maintenance') || category.includes('repair')) {
+                        maintenanceExpenses += amount;
+                    } else if (category === 'lease_payment' || category === 'loan_payment' || category === 'truck_payment') {
+                        truckPayments += amount;
+                    } else if (category === 'rent' || category === 'software' || category === 'salary' || category === 'overhead' || category === 'fixed' || category === 'office') {
+                        fixedExpenses += amount;
+                    } else {
+                        otherExpenses += amount;
+                    }
+                });
+
 
                 // Calculate truck payments (leases + loan payments)
                 // Note: For loan payments, ideally we'd calculate interest portion only,

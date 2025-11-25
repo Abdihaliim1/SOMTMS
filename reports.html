@@ -678,34 +678,18 @@
                 let companyDriverRevenue = 0;
                 let ownerOperatorRevenue = 0;
 
+                // 1. Total Revenue: GROSS REVENUE BASIS
+                // Always use full line haul (gross) for ALL loads, never commission-only
                 revenueLoads.forEach(load => {
                     const revenue = parseFloat(load.companyRevenue || load.rate?.total || load.rate || 0) || 0;
                     if (load.driverId) {
                         const driver = drivers.find(d => d.id === load.driverId);
                         if (driver) {
                             if (driver.driverType === 'owner_operator') {
-                                // For owner operators, company only keeps commission (revenue - driver pay)
-                                let driverPay = parseFloat(load.rate?.driverPay) || 0;
-
-                                // If driverPay not set on load, calculate it based on driver settings
-                                if (!driverPay && driver.payment) {
-                                    if (driver.payment.type === 'percentage') {
-                                        // Use driver.payPercentage (decimal 0-1)
-                                        let pct = parseFloat(driver.payPercentage) || 0.88;
-                                        if (pct > 1) pct = pct / 100;
-                                        driverPay = revenue * pct;
-                                    } else if (driver.payment.type === 'per_mile') {
-                                        const miles = parseFloat(load.mileage?.total || load.miles || 0) || 0;
-                                        const ratePerMile = parseFloat(driver.payment.perMileRate) || 0.65;
-                                        driverPay = miles * ratePerMile;
-                                    }
-                                }
-
-                                // Commission = Revenue - Driver Pay
-                                const commission = Math.max(0, revenue - driverPay);
-                                ownerOperatorRevenue += commission;
+                                // GROSS revenue, not commission
+                                ownerOperatorRevenue += revenue;
                             } else {
-                                // Company driver or owner (driver) - full revenue goes to company
+                                // Company driver or owner (driver) - GROSS revenue
                                 companyDriverRevenue += revenue;
                             }
                         } else {
@@ -731,121 +715,64 @@
                 const loadsCompleted = completedLoads.length;
 
                 // 4. Driver Pay (Break down by driver type)
-                // Calculate from revenueLoads (accrued expense) instead of settlements (cash basis)
+                // DYNAMIC FORMULA: Driver Pay = (Gross Load × Contract %) - Company-Paid Expenses
+                // This ensures Net Profit remains consistent whether expenses exist or not
                 let companyDriverPay = 0;
                 let ownerOperatorPay = 0;
                 let ownerAsDriverPay = 0;
 
-                revenueLoads.forEach(load => {
-                    let pay = parseFloat(load.rate?.driverPay) || 0;
-
-                    // If driverPay not set on load, estimate it based on driver settings
-                    if (!pay && load.driverId) {
-                        const driver = drivers.find(d => d.id === load.driverId);
-                        if (driver && driver.payment) {
-                            const totalRate = parseFloat(load.companyRevenue || load.rate?.total || load.rate || 0) || 0;
-                            const miles = parseFloat(load.mileage?.total || load.miles || 0) || 0;
-
-                            if (driver.payment.type === 'percentage') {
-                                // Use driver.payPercentage (decimal 0-1)
-                                // Handle case where it might be stored as whole number (e.g. 75 instead of 0.75)
-                                let pct = parseFloat(driver.payPercentage) || 0.75;
-                                if (pct > 1) pct = pct / 100;
-                                pay = totalRate * pct;
-                            } else if (driver.payment.type === 'per_mile') {
-                                const ratePerMile = parseFloat(driver.payment.perMileRate) || 0.65;
-                                pay = miles * ratePerMile;
-                            }
-                        }
-                    }
-
-                    if (load.driverId) {
-                        const driver = drivers.find(d => d.id === load.driverId);
-                        if (driver) {
-                            if (driver.driverType === 'owner_operator') {
-                                ownerOperatorPay += pay;
-                            } else if (driver.driverType === 'owner') {
-                                ownerAsDriverPay += pay;
-                            } else {
-                                companyDriverPay += pay;
-                            }
-                        } else {
-                            companyDriverPay += pay;
-                        }
-                    } else {
-                        companyDriverPay += pay;
-                    }
-                });
-
-                const totalDriverPay = companyDriverPay + ownerOperatorPay + ownerAsDriverPay;
-
-                // 5. Expenses (Break down by category - exclude O/O-paid expenses)
-                // Only count expenses paid by company or tracked_only (not owner_operator)
+                // First, get company expenses (needed for deductions)
                 const companyExpenses = expenses.filter(exp => {
-                    const paidBy = exp.paidBy || 'company'; // Default to company if not set
-                    return paidBy !== 'owner_operator'; // Exclude O/O-paid expenses from P&L
+                    const paidBy = exp.paidBy || 'company';
+                    return paidBy !== 'owner_operator';
                 });
 
-                // Break down expenses by category
-                let fuelExpenses = 0;
-                let insuranceExpenses = 0;
-                let maintenanceExpenses = 0;
-                let fixedExpenses = 0;
-                let truckPayments = 0;
-                let otherExpenses = 0;
+                revenueLoads.forEach(load => {
+                    if (!load.driverId) return;
 
-                companyExpenses.forEach(exp => {
-                    const amount = parseFloat(exp.amount) || 0;
-                    // Use category field if available, otherwise use type
-                    const category = (exp.category || exp.type || 'other').toLowerCase();
+                    const driver = drivers.find(d => d.id === load.driverId);
+                    if (!driver) return;
 
-                    if (category.includes('fuel')) {
-                        fuelExpenses += amount;
-                    } else if (category.includes('insurance')) {
-                        insuranceExpenses += amount;
-                    } else if (category.includes('maintenance') || category.includes('repair')) {
-                        maintenanceExpenses += amount;
-                    } else if (category === 'lease_payment' || category === 'loan_payment' || category === 'truck_payment') {
-                        // Truck payments - will be calculated separately to avoid double counting
-                        truckPayments += amount;
-                    } else if (category === 'rent' || category === 'software' || category === 'salary' || category === 'overhead' || category === 'fixed' || category === 'office') {
-                        fixedExpenses += amount;
+                    const totalRate = parseFloat(load.companyRevenue || load.rate?.total || load.rate || 0) || 0;
+                    const miles = parseFloat(load.mileage?.total || load.miles || 0) || 0;
+
+                    // Calculate BASE driver pay (before deductions)
+                    let basePay = parseFloat(load.rate?.driverPay) || 0;
+
+                    if (!basePay && driver.payment) {
+                        if (driver.payment.type === 'percentage') {
+                            let pct = parseFloat(driver.payPercentage) || 0.70;
+                            if (pct > 1) pct = pct / 100;
+                            basePay = totalRate * pct;
+                        } else if (driver.payment.type === 'per_mile') {
+                            const ratePerMile = parseFloat(driver.payment.perMileRate) || 0.65;
+                            basePay = miles * ratePerMile;
+                        }
+                    }
+
+                    // Apply DEDUCTIONS for owner operators
+                    // Deduction = Company-paid expenses for this load
+                    let deductions = 0;
+                    if (driver.driverType === 'owner_operator') {
+                        const loadExpenses = companyExpenses.filter(exp =>
+                            (exp.loadId === load.id || exp.driverId === load.driverId) &&
+                            exp.paidBy === 'company'
+                        );
+                        deductions = loadExpenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+                    }
+
+                    // FINAL DRIVER PAY = Base Pay - Deductions
+                    const finalPay = Math.max(0, basePay - deductions);
+
+                    // Categorize by driver type
+                    if (driver.driverType === 'owner_operator') {
+                        ownerOperatorPay += finalPay;
+                    } else if (driver.driverType === 'owner') {
+                        ownerAsDriverPay += finalPay;
                     } else {
-                        otherExpenses += amount;
+                        companyDriverPay += finalPay;
                     }
                 });
-
-                // DEDUCT COMPANY-PAID EXPENSES FROM OWNER OPERATOR PAY
-                // If company paid for fuel/insurance/etc for an Owner Operator, that amount 
-                // is an expense for the company, but it should be deducted from the driver's pay
-                // so that Net Profit = Commission.
-                // Math: Revenue - (DriverGrossPay - Deductions) - Expenses = Commission
-                //       Revenue - DriverGrossPay + Deductions - Expenses = Commission
-                //       (Revenue - DriverGrossPay - Expenses) + Deductions = Commission
-                // Since Expenses includes the Deductions amount, they cancel out if we don't deduct from pay.
-                // Wait: Revenue (3200) - DriverPay (2816) - Expenses (300) = 84. Commission is 384.
-                // We need Profit to be 384.
-                // So DriverPay needs to be 2816 - 300 = 2516.
-                // Then: 3200 - 2516 - 300 = 384. Correct.
-
-                let deductionsFromOOPay = 0;
-                companyExpenses.forEach(exp => {
-                    if (exp.driverId) {
-                        const driver = drivers.find(d => d.id === exp.driverId);
-                        if (driver && driver.driverType === 'owner_operator') {
-                            deductionsFromOOPay += parseFloat(exp.amount) || 0;
-                        }
-                    } else if (exp.truckId) {
-                        // Also check by truck if driver not set (e.g. insurance)
-                        const truck = DataManager.trucks.find(t => t.id === exp.truckId);
-                        if (truck && truck.ownership === 'owner_operator') {
-                            deductionsFromOOPay += parseFloat(exp.amount) || 0;
-                        }
-                    }
-                });
-
-                // Apply deductions
-                ownerOperatorPay = Math.max(0, ownerOperatorPay - deductionsFromOOPay);
 
                 // Calculate truck payments (leases + loan payments)
                 // Note: For loan payments, ideally we'd calculate interest portion only,

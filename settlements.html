@@ -1524,12 +1524,13 @@
                             </tr>`;
                         }
 
-                        // Fuel Expenses (itemized by load)
+                        // Fuel Expenses (itemized by load if available, otherwise show as summary)
+                        let fuelShown = false;
                         loads.forEach(load => {
                             const loadExpenses = getLoadExpenses(load.id);
                             const fuelExpenses = loadExpenses.filter(e => (e.type || '').toLowerCase().includes('fuel'));
 
-                            if (deductionPrefs.fuel && fuelExpenses.length > 0) {
+                            if (fuelExpenses.length > 0) {
                                 fuelExpenses.forEach(e => {
                                     const expDesc = e.description || e.vendor?.name || 'Fuel';
                                     html += `<tr>
@@ -1537,9 +1538,19 @@
                                         <td>Load #${load.loadNumber || 'N/A'} - ${expDesc}</td>
                                         <td class="amount">-${formatCurrency(e.amount || 0)}</td>
                                     </tr>`;
+                                    fuelShown = true;
                                 });
                             }
                         });
+
+                        // If no itemized fuel but there's a fuel deduction total, show as summary
+                        if (!fuelShown && deductions.fuel > 0) {
+                            html += `<tr>
+                                <td><strong>Fuel</strong></td>
+                                <td>Fuel expenses (${loads.length} load${loads.length !== 1 ? 's' : ''})</td>
+                                <td class="amount">-${formatCurrency(deductions.fuel)}</td>
+                            </tr>`;
+                        }
 
                         // Insurance (if applicable)
                         if (deductionPrefs.insurance && deductions.insurance > 0) {

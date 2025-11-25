@@ -684,9 +684,28 @@
                         const driver = drivers.find(d => d.id === load.driverId);
                         if (driver) {
                             if (driver.driverType === 'owner_operator') {
-                                ownerOperatorRevenue += revenue;
+                                // For owner operators, company only keeps commission (revenue - driver pay)
+                                let driverPay = parseFloat(load.rate?.driverPay) || 0;
+
+                                // If driverPay not set on load, calculate it based on driver settings
+                                if (!driverPay && driver.payment) {
+                                    if (driver.payment.type === 'percentage') {
+                                        // Use driver.payPercentage (decimal 0-1)
+                                        let pct = parseFloat(driver.payPercentage) || 0.88;
+                                        if (pct > 1) pct = pct / 100;
+                                        driverPay = revenue * pct;
+                                    } else if (driver.payment.type === 'per_mile') {
+                                        const miles = parseFloat(load.mileage?.total || load.miles || 0) || 0;
+                                        const ratePerMile = parseFloat(driver.payment.perMileRate) || 0.65;
+                                        driverPay = miles * ratePerMile;
+                                    }
+                                }
+
+                                // Commission = Revenue - Driver Pay
+                                const commission = Math.max(0, revenue - driverPay);
+                                ownerOperatorRevenue += commission;
                             } else {
-                                // Company driver or owner (driver)
+                                // Company driver or owner (driver) - full revenue goes to company
                                 companyDriverRevenue += revenue;
                             }
                         } else {

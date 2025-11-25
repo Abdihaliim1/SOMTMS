@@ -23,7 +23,8 @@
         }
 
         .gradient-bg {
-            background-color: #1f2937;  /* Dark gray/charcoal */
+            background-color: #1f2937;
+            /* Dark gray/charcoal */
         }
 
         .card-shadow {
@@ -31,11 +32,13 @@
         }
 
         .status-paid {
-            background-color: #059669;  /* Darker green */
+            background-color: #059669;
+            /* Darker green */
         }
 
         .status-pending {
-            background-color: #d97706;  /* Darker yellow/orange */
+            background-color: #d97706;
+            /* Darker yellow/orange */
         }
 
         .status-overdue {
@@ -51,7 +54,8 @@
         }
 
         .nav-item:hover {
-            background-color: rgba(255, 255, 255, 0.05);  /* Subtle */
+            background-color: rgba(255, 255, 255, 0.05);
+            /* Subtle */
         }
 
         .nav-item.active {
@@ -94,8 +98,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-4">
-                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="company-logo" style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1f2937;">ATS</div>
+                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain"
+                        onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
+                    <div
+                        class="company-logo hidden w-12 h-12 bg-white rounded-lg items-center justify-center font-bold text-gray-800">
+                        ATS</div>
                     <div>
                         <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
                         <p class="text-sm opacity-90">Transportation Management System</p>
@@ -274,7 +281,8 @@
     <footer class="mt-12 py-8 border-t border-gray-200">
         <div class="text-center">
             <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
-            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT 3169186</p>
+            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT
+                3169186</p>
             <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380</p>
         </div>
     </footer>
@@ -290,16 +298,16 @@
         document.addEventListener('DOMContentLoaded', async () => {
             Auth.init();
             await DataManager.init();
-            
+
             // Check for overdue invoices on page load
             await checkOverdueInvoices();
-            
+
             // Create invoices for any delivered loads that don't have invoices yet
             await createInvoicesForDeliveredLoads();
-            
+
             renderInvoices();
             updateStats();
-            
+
             // Check for overdue invoices every hour
             setInterval(async () => {
                 await checkOverdueInvoices();
@@ -312,7 +320,7 @@
         function updateStats() {
             // Check overdue invoices before updating stats
             checkOverdueInvoices();
-            
+
             const invoices = DataManager.invoices;
             document.getElementById('totalInvoices').textContent = invoices.length;
 
@@ -329,16 +337,16 @@
         async function checkOverdueInvoices() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            
+
             const overdueInvoices = DataManager.invoices.filter(invoice => {
                 // Only check invoices that are pending (not paid or already overdue)
                 if (invoice.status === 'paid' || invoice.status === 'overdue') {
                     return false;
                 }
-                
+
                 const dueDate = new Date(invoice.dueDate);
                 dueDate.setHours(0, 0, 0, 0);
-                
+
                 // If due date has passed, mark as overdue
                 return dueDate < today;
             });
@@ -346,7 +354,7 @@
             // Update overdue invoices
             for (const invoice of overdueInvoices) {
                 try {
-                    await DataManager.updateInvoice(invoice.id, { 
+                    await DataManager.updateInvoice(invoice.id, {
                         status: 'overdue',
                         updatedAt: new Date().toISOString()
                     });
@@ -371,7 +379,7 @@
 
             // Ask for payment date (default to today)
             const paymentDate = prompt('Enter payment date (YYYY-MM-DD) or leave blank for today:', new Date().toISOString().split('T')[0]);
-            
+
             if (paymentDate === null) {
                 return; // User cancelled
             }
@@ -410,7 +418,7 @@
                 console.error('Table body not found');
                 return;
             }
-            
+
             tbody.innerHTML = '';
 
             // Check if invoices are loaded
@@ -424,7 +432,7 @@
 
             DataManager.invoices.forEach(invoice => {
                 if (!invoice || !invoice.id) return; // Skip invalid invoices
-                
+
                 const statusClass = {
                     'paid': 'status-paid',
                     'pending': 'status-pending',
@@ -501,7 +509,7 @@
         }
 
         // Automatic invoice creation function (called from loads.html when load is delivered)
-        window.createInvoiceForLoad = async function(loadId) {
+        window.createInvoiceForLoad = async function (loadId) {
             try {
                 const load = DataManager.getLoad(loadId);
                 if (!load) {
@@ -544,9 +552,9 @@
                 }
 
                 // Check if invoice already exists for this customer with this load
-                const existingInvoice = DataManager.invoices.find(inv => 
-                    inv.customerId === load.customerId && 
-                    inv.loadIds && 
+                const existingInvoice = DataManager.invoices.find(inv =>
+                    inv.customerId === load.customerId &&
+                    inv.loadIds &&
                     inv.loadIds.includes(loadId)
                 );
 
@@ -639,7 +647,7 @@
                 const deliveryCity = load.delivery?.city || 'N/A';
                 const deliveryState = load.delivery?.state || '';
                 const rateTotal = parseFloat(load.rate?.total || load.rate || 0);
-                
+
                 return `
                     <tr>
                         <td>${loadNumber}</td>
@@ -733,7 +741,7 @@
                 </body>
                 </html>
             `);
-            
+
             printWindow.document.close();
         }
 
@@ -753,10 +761,10 @@
             }
 
             // Warn if invoice is paid
-            const confirmMessage = invoice.status === 'paid' 
+            const confirmMessage = invoice.status === 'paid'
                 ? 'Are you sure you want to delete this PAID invoice? This action cannot be undone and will unlink it from associated loads.'
                 : 'Are you sure you want to delete this invoice? This will also unlink it from associated loads.';
-            
+
             if (!confirm(confirmMessage)) {
                 return;
             }

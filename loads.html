@@ -99,9 +99,9 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-4">
                     <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="company-logo"
-                        style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1f2937;">
+                        onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
+                    <div
+                        class="company-logo hidden w-12 h-12 bg-white rounded-lg items-center justify-center font-bold text-gray-800">
                         ATS</div>
                     <div>
                         <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
@@ -145,8 +145,8 @@
         <div class="bg-white rounded-lg p-6 card-shadow mb-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select id="statusFilter"
+                    <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="statusFilter" aria-label="Filter by Status"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">All Statuses</option>
                         <option value="available">Available</option>
@@ -157,21 +157,21 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Driver</label>
-                    <select id="driverFilter"
+                    <label for="driverFilter" class="block text-sm font-medium text-gray-700 mb-2">Driver</label>
+                    <select id="driverFilter" aria-label="Filter by Driver"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">All Drivers</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
-                    <select id="customerFilter"
+                    <label for="customerFilter" class="block text-sm font-medium text-gray-700 mb-2">Customer</label>
+                    <select id="customerFilter" aria-label="Filter by Customer"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">All Customers</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-2">Search</label>
                     <input type="text" id="searchInput" placeholder="Load #, origin, destination..."
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
@@ -257,7 +257,7 @@
             <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4">
                 <div class="flex justify-between items-center">
                     <h3 id="modalTitle" class="text-xl font-semibold">Create New Load</h3>
-                    <button onclick="closeModal()" class="text-white hover:text-gray-200">
+                    <button onclick="closeModal()" class="text-white hover:text-gray-200" aria-label="Close Modal">
                         <i class="fas fa-times text-xl"></i>
                     </button>
                 </div>

@@ -21,7 +21,8 @@
         <!-- Upload Section -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Upload PDF Rate Confirmation</h2>
-            <input type="file" id="fileUpload" accept=".pdf" onchange="fileSelected()"
+            <label for="fileUpload" class="sr-only">Upload PDF File</label>
+            <input type="file" id="fileUpload" accept=".pdf" onchange="fileSelected()" aria-label="Upload PDF File"
                 class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 p-3">
             <p class="text-sm text-gray-500 mt-2">Upload a PDF rate confirmation document</p>
 

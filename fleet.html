@@ -260,11 +260,13 @@
                 <div class="px-6 py-4 border-b border-gray-200">
                     <div class="flex justify-between items-center">
                         <h2 class="text-lg font-semibold text-gray-900">Truck Profitability</h2>
-                        <div class="flex space-x-3">
-                            <input type="date" id="profitDateFrom" 
+                        <div class="flex space-x-3 items-center">
+                            <label for="profitDateFrom" class="sr-only">Profit Date From</label>
+                            <input type="date" id="profitDateFrom" aria-label="Profit Date From"
                                 class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <span class="self-center text-gray-500">to</span>
-                            <input type="date" id="profitDateTo" 
+                            <label for="profitDateTo" class="sr-only">Profit Date To</label>
+                            <input type="date" id="profitDateTo" aria-label="Profit Date To"
                                 class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <button onclick="FleetManager.calculateTruckProfitability()"
                                 class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
@@ -278,13 +280,20 @@
                         <table class="w-full">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Truck</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expenses</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Profit</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Miles</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Profit/Mile</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ROI %</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Truck
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expenses
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Profit
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Miles
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Profit/Mile</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ROI %
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="truckProfitabilityBody" class="bg-white divide-y divide-gray-200">
@@ -307,7 +316,7 @@
                         <div class="flex space-x-3">
                             <input type="text" id="truckSearch" placeholder="Search trucks..."
                                 class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <select id="statusFilter"
+                            <select id="statusFilter" aria-label="Filter by Truck Status"
                                 class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">All Status</option>
                                 <option value="available">Available</option>
@@ -360,9 +369,10 @@
     <div id="truckModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold" id="truckModalTitle">Add New Truck</h3>
-                <button onclick="FleetManager.closeTruckModal()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
+                <h3 id="modalTitle" class="text-xl font-semibold">Add New Vehicle</h3>
+                <button onclick="FleetManager.closeTruckModal()" class="text-gray-500 hover:text-gray-700"
+                    aria-label="Close Modal">
+                    <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
 
@@ -370,18 +380,20 @@
                 <input type="hidden" id="truckId">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Truck Number</label>
+                        <label for="truckNumber" class="block text-sm font-medium text-gray-700 mb-1">Truck
+                            Number</label>
                         <input type="text" id="truckNumber" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">License Plate</label>
+                        <label for="licensePlate" class="block text-sm font-medium text-gray-700 mb-1">License
+                            Plate</label>
                         <input type="text" id="licensePlate" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Make</label>
-                        <select id="truckMake" required
+                        <label for="truckMake" class="block text-sm font-medium text-gray-700 mb-1">Make</label>
+                        <select id="truckMake" required aria-label="Select Truck Make"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select Make</option>
                             <option value="Freightliner">Freightliner</option>
@@ -394,23 +406,23 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                        <label for="truckModel" class="block text-sm font-medium text-gray-700 mb-1">Model</label>
                         <input type="text" id="truckModel" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                        <label for="truckYear" class="block text-sm font-medium text-gray-700 mb-1">Year</label>
                         <input type="number" id="truckYear" min="1990" max="2030" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">VIN</label>
+                        <label for="truckVin" class="block text-sm font-medium text-gray-700 mb-1">VIN</label>
                         <input type="text" id="truckVin" maxlength="17" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select id="truckStatus" required
+                        <label for="truckStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="truckStatus" required aria-label="Select Truck Status"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="available">Available</option>
                             <option value="in_transit">In Transit</option>
@@ -420,8 +432,10 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Ownership Type <span class="text-red-500">*</span></label>
+                        <label for="truckOwnership" class="block text-sm font-medium text-gray-700 mb-1">Ownership Type
+                            <span class="text-red-500">*</span></label>
                         <select id="truckOwnership" required onchange="toggleOwnershipFields()"
+                            aria-label="Select Ownership Type"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select Ownership</option>
                             <option value="owned">Owned (Fully Paid)</option>
@@ -437,19 +451,22 @@
                         </p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Current Mileage</label>
+                        <label for="currentMileage" class="block text-sm font-medium text-gray-700 mb-1">Current
+                            Mileage</label>
                         <input type="number" id="currentMileage" min="0"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Assigned Driver</label>
-                        <select id="assignedDriver"
+                        <label for="assignedDriver" class="block text-sm font-medium text-gray-700 mb-1">Assigned
+                            Driver</label>
+                        <select id="assignedDriver" aria-label="Select Assigned Driver"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Unassigned</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Last Service Date</label>
+                        <label for="lastServiceDate" class="block text-sm font-medium text-gray-700 mb-1">Last Service
+                            Date</label>
                         <input type="date" id="lastServiceDate"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
@@ -460,8 +477,10 @@
                     <h4 class="text-lg font-semibold text-gray-900 mb-4">Insurance Configuration</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Insurance Paid By <span class="text-red-500">*</span></label>
+                            <label for="insurancePaidBy" class="block text-sm font-medium text-gray-700 mb-1">Insurance
+                                Paid By <span class="text-red-500">*</span></label>
                             <select id="insurancePaidBy" required onchange="toggleInsuranceFields()"
+                                aria-label="Select who pays for insurance"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Select</option>
                                 <option value="company">Company</option>
@@ -474,7 +493,8 @@
                         </div>
                         <!-- Company Insurance Fields -->
                         <div id="companyInsuranceFields" class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Insurance Cost</label>
+                            <label for="monthlyInsuranceCost"
+                                class="block text-sm font-medium text-gray-700 mb-1">Monthly Insurance Cost</label>
                             <input type="number" id="monthlyInsuranceCost" step="0.01" min="0"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="500.00">
@@ -482,7 +502,8 @@
                         </div>
                         <!-- Owner Operator Insurance Fields -->
                         <div id="ownerOperatorInsuranceFields" class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Insurance Expiration Date</label>
+                            <label for="insuranceExpirationDate"
+                                class="block text-sm font-medium text-gray-700 mb-1">Insurance Expiration Date</label>
                             <input type="date" id="insuranceExpirationDate"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <p class="text-xs text-gray-500 mt-1">O/O insurance certificate expiration</p>
@@ -490,12 +511,15 @@
                     </div>
                     <!-- Insurance Certificate Upload (O/O only) -->
                     <div id="insuranceCertificateSection" class="hidden mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Insurance Certificate</label>
+                        <label for="insuranceCertificate" class="block text-sm font-medium text-gray-700 mb-1">Insurance
+                            Certificate</label>
                         <input type="file" id="insuranceCertificate" accept=".pdf,.jpg,.jpeg,.png"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <p class="text-xs text-gray-500 mt-1">Upload O/O insurance certificate (PDF, JPG, PNG)</p>
                         <div id="insuranceCertificateDisplay" class="mt-2 hidden">
-                            <a id="insuranceCertificateLink" href="#" target="_blank" class="text-blue-600 hover:underline text-sm">
+                            <a id="insuranceCertificateLink" href="#" target="_blank"
+                                class="text-blue-600 hover:underline text-sm"
+                                aria-label="View Current Insurance Certificate">
                                 <i class="fas fa-file-pdf mr-1"></i>View Current Certificate
                             </a>
                         </div>
@@ -508,7 +532,8 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Monthly Payment (for leased/financed) -->
                         <div id="monthlyPaymentField" class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Payment <span class="text-red-500">*</span></label>
+                            <label for="monthlyPayment" class="block text-sm font-medium text-gray-700 mb-1">Monthly
+                                Payment <span class="text-red-500">*</span></label>
                             <input type="number" id="monthlyPayment" step="0.01" min="0"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="0.00">
@@ -516,7 +541,8 @@
                         </div>
                         <!-- Purchase Price (for owned/financed) -->
                         <div id="purchasePriceField" class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Purchase Price</label>
+                            <label for="purchasePrice" class="block text-sm font-medium text-gray-700 mb-1">Purchase
+                                Price</label>
                             <input type="number" id="purchasePrice" step="0.01" min="0"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="0.00">
@@ -524,14 +550,16 @@
                         </div>
                         <!-- Lease End Date (for leased) -->
                         <div id="leaseEndDateField" class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Lease End Date</label>
+                            <label for="leaseEndDate" class="block text-sm font-medium text-gray-700 mb-1">Lease End
+                                Date</label>
                             <input type="date" id="leaseEndDate"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <p class="text-xs text-gray-500 mt-1">When lease expires (return or buy out)</p>
                         </div>
                         <!-- Payoff Amount (for financed) -->
                         <div id="payoffAmountField" class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Remaining Payoff Amount</label>
+                            <label for="payoffAmount" class="block text-sm font-medium text-gray-700 mb-1">Remaining
+                                Payoff Amount</label>
                             <input type="number" id="payoffAmount" step="0.01" min="0"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="0.00">
@@ -544,8 +572,9 @@
                 <div id="ownerOperatorSection" class="border-t pt-4 mt-4 hidden">
                     <h4 class="text-lg font-semibold text-gray-900 mb-4">Owner Operator Information</h4>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Owner Operator Driver</label>
-                        <select id="ownerOperatorDriver"
+                        <label for="ownerOperatorDriver" class="block text-sm font-medium text-gray-700 mb-1">Owner
+                            Operator Driver</label>
+                        <select id="ownerOperatorDriver" aria-label="Select Owner Operator Driver"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select O/O Driver</option>
                         </select>
@@ -558,19 +587,22 @@
                     <h4 class="text-lg font-semibold text-gray-900 mb-4">Compliance & Expiration Dates</h4>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Registration Expiry</label>
-                            <input type="date" id="registrationExpiry"
+                            <label for="registrationExpiration"
+                                class="block text-sm font-medium text-gray-700 mb-1">Registration Expiry</label>
+                            <input type="date" id="registrationExpiration" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <p class="text-xs text-gray-500 mt-1">Vehicle registration expiration</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Annual Inspection Due</label>
-                            <input type="date" id="inspectionDueDate"
+                            <label for="inspectionExpiration"
+                                class="block text-sm font-medium text-gray-700 mb-1">Annual Inspection Due</label>
+                            <input type="date" id="inspectionExpiration" required
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <p class="text-xs text-gray-500 mt-1">Next annual inspection date</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Cab Card (IRP) Renewal</label>
+                            <label for="cabCardRenewalDate" class="block text-sm font-medium text-gray-700 mb-1">Cab
+                                Card (IRP) Renewal</label>
                             <input type="date" id="cabCardRenewalDate"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <p class="text-xs text-gray-500 mt-1">IRP cab card renewal date</p>
@@ -579,7 +611,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <label for="truckNotes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                     <textarea id="truckNotes" rows="3"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
@@ -625,7 +657,7 @@
                 FleetManager.loadDrivers();
                 loadOwnerOperatorDrivers(); // Load O/O drivers for truck assignment
                 FleetManager.setupEventListeners();
-                
+
                 // Set default date range (current month)
                 const today = new Date();
                 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -668,7 +700,7 @@
                 trucks.forEach(truck => {
                     const driver = truck.assignedDriver ? DataManager.getDriver(truck.assignedDriver) : null;
                     const driverName = driver ? `${driver.firstName} ${driver.lastName}` : 'Unassigned';
-                    
+
                     const ownershipLabel = {
                         'owned': 'Company Owned',
                         'leased': 'Company Leased',
@@ -839,7 +871,7 @@
                 endDate.setHours(23, 59, 59, 999);
 
                 // Filter only company-owned, leased, or financed trucks (skip O/O trucks)
-                const companyTrucks = DataManager.trucks.filter(t => 
+                const companyTrucks = DataManager.trucks.filter(t =>
                     t.ownership === 'owned' || t.ownership === 'leased' || t.ownership === 'financed'
                 );
 
@@ -855,7 +887,7 @@
                     // Get all loads for this truck in date range
                     const truckLoads = DataManager.loads.filter(load => {
                         if (String(load.truckId) !== String(truck.id)) return false;
-                        
+
                         const loadDate = new Date(load.delivery?.date || load.deliveredAt || load.createdAt);
                         return loadDate >= startDate && loadDate <= endDate;
                     });
@@ -907,8 +939,8 @@
                     // 3. Insurance Expenses (monthly allocation)
                     if (truck.insurancePaidBy === 'company' && truck.monthlyInsuranceCost) {
                         // Calculate number of months in date range
-                        const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
-                                         (endDate.getMonth() - startDate.getMonth()) + 1;
+                        const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+                            (endDate.getMonth() - startDate.getMonth()) + 1;
                         insuranceExpenses = truck.monthlyInsuranceCost * monthsDiff;
                     }
 
@@ -926,8 +958,8 @@
                     // 5. Lease/Loan Payment (for leased or financed trucks)
                     if ((truck.ownership === 'leased' || truck.ownership === 'financed') && truck.monthlyPayment) {
                         // Calculate number of months in date range
-                        const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
-                                         (endDate.getMonth() - startDate.getMonth()) + 1;
+                        const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+                            (endDate.getMonth() - startDate.getMonth()) + 1;
                         leasePayment = truck.monthlyPayment * monthsDiff;
                     }
 
@@ -1056,14 +1088,14 @@
                             inspectionDueDate: document.getElementById('inspectionDueDate').value || null,
                             cabCardRenewalDate: document.getElementById('cabCardRenewalDate').value || null,
                             // Financial fields (conditional based on ownership)
-                            monthlyPayment: (ownership === 'leased' || ownership === 'financed') 
-                                ? parseFloat(document.getElementById('monthlyPayment').value) || 0 
+                            monthlyPayment: (ownership === 'leased' || ownership === 'financed')
+                                ? parseFloat(document.getElementById('monthlyPayment').value) || 0
                                 : null,
                             purchasePrice: (ownership === 'owned' || ownership === 'financed')
                                 ? parseFloat(document.getElementById('purchasePrice').value) || 0
                                 : null,
-                            leaseEndDate: ownership === 'leased' 
-                                ? document.getElementById('leaseEndDate').value || null 
+                            leaseEndDate: ownership === 'leased'
+                                ? document.getElementById('leaseEndDate').value || null
                                 : null,
                             payoffAmount: ownership === 'financed'
                                 ? parseFloat(document.getElementById('payoffAmount').value) || 0
@@ -1109,19 +1141,19 @@
             const purchasePriceField = document.getElementById('purchasePriceField');
             const leaseEndDateField = document.getElementById('leaseEndDateField');
             const payoffAmountField = document.getElementById('payoffAmountField');
-            
+
             // Reset all fields
             monthlyPaymentField.classList.add('hidden');
             purchasePriceField.classList.add('hidden');
             leaseEndDateField.classList.add('hidden');
             payoffAmountField.classList.add('hidden');
             ownerOperatorSection.classList.add('hidden');
-            
+
             // Remove required attributes
             document.getElementById('monthlyPayment')?.removeAttribute('required');
             document.getElementById('leaseEndDate')?.removeAttribute('required');
             document.getElementById('payoffAmount')?.removeAttribute('required');
-            
+
             if (ownership === 'owned') {
                 financialSection.classList.remove('hidden');
                 purchasePriceField.classList.remove('hidden');
@@ -1154,10 +1186,10 @@
         function loadOwnerOperatorDrivers() {
             const select = document.getElementById('ownerOperatorDriver');
             if (!select) return;
-            
+
             select.innerHTML = '<option value="">Select O/O Driver</option>';
             const ooDrivers = DataManager.drivers.filter(d => d.driverType === 'owner_operator');
-            
+
             ooDrivers.forEach(driver => {
                 const option = document.createElement('option');
                 option.value = driver.id;
@@ -1172,7 +1204,7 @@
             const companyFields = document.getElementById('companyInsuranceFields');
             const ooFields = document.getElementById('ownerOperatorInsuranceFields');
             const certificateSection = document.getElementById('insuranceCertificateSection');
-            
+
             if (insurancePaidBy === 'company') {
                 companyFields.classList.remove('hidden');
                 ooFields.classList.add('hidden');

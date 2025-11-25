@@ -80,9 +80,9 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-4">
                     <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="company-logo"
-                        style="display:none; width:48px; height:48px; background:#fff; border-radius:8px; align-items:center; justify-content:center; font-weight:bold; color:#1f2937;">
+                        onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
+                    <div
+                        class="company-logo hidden w-12 h-12 bg-white rounded-lg items-center justify-center font-bold text-gray-800">
                         ATS</div>
                     <div>
                         <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>

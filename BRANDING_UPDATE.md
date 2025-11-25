@@ -77,3 +77,4 @@ If the logo file is missing, the system will automatically show "ATS" as a text 
 
 All pages, PDFs, and documents now display this information consistently.
 
+

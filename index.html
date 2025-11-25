@@ -51,16 +51,15 @@
     <!-- Sidebar Navigation -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" style="height: 48px; width: auto;"
-                    id="companyLogo"
+            <div class="flex items-center gap-3">
+                <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-auto" id="companyLogo"
                     onerror="this.style.display='none'; document.getElementById('companyLogoFallback').style.display='flex';">
-                <div style="width: 48px; height: 48px; background: #ffffff; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; color: #1f2937;"
+                <div class="w-12 h-12 bg-white rounded hidden items-center justify-center text-lg font-semibold text-gray-800"
                     id="companyLogoFallback">ATS</div>
                 <div>
-                    <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ffffff;" id="companyName">ATS
+                    <h2 class="m-0 text-lg font-semibold text-white" id="companyName">ATS
                         FREIGHT LLC</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.8);">Transportation
+                    <p class="mt-1 text-xs text-white/80">Transportation
                         Management System</p>
                 </div>
             </div>
@@ -113,8 +112,8 @@
             </nav>
         </div>
 
-        <div style="position: absolute; bottom: 24px; left: 20px; right: 20px;">
-            <button onclick="CompanySettings.openModal()" class="sidebar-item" style="width: 100%;">
+        <div class="absolute bottom-6 left-5 right-5">
+            <button onclick="CompanySettings.openModal()" class="sidebar-item w-full">
                 <i class="fas fa-cog"></i>
                 Company Settings
             </button>
@@ -124,17 +123,16 @@
     <!-- Main Content -->
     <div class="main-content">
         <!-- Top Navigation -->
-        <div
-            style="background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 16px 24px; margin: -24px -24px 24px -24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="bg-white border-b border-gray-200 px-6 py-4 -mx-6 -mt-6 mb-6">
+            <div class="flex justify-between items-center">
                 <div>
-                    <h1 style="margin: 0; font-size: 20px; font-weight: 600; color: #111827;">Dashboard</h1>
-                    <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Transportation Management System</p>
+                    <h1 class="m-0 text-xl font-semibold text-gray-900">Dashboard</h1>
+                    <p class="mt-1 text-sm text-gray-500">Transportation Management System</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <span style="font-size: 14px; color: #6b7280;">Welcome, Admin</span>
-                    <button onclick="logout()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 14px;">
-                        <i class="fas fa-sign-out-alt" style="margin-right: 6px;"></i>Logout
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-gray-500">Welcome, Admin</span>
+                    <button onclick="logout()" class="btn btn-secondary px-3 py-1.5 text-sm">
+                        <i class="fas fa-sign-out-alt mr-1.5"></i>Logout
                     </button>
                 </div>
             </div>
@@ -159,7 +157,7 @@
                         <ul id="expirationList" class="text-sm text-red-700 space-y-1"></ul>
                     </div>
                     <button onclick="document.getElementById('complianceAlerts').classList.add('hidden')"
-                        class="text-red-600 hover:text-red-800 ml-4">
+                        class="text-red-600 hover:text-red-800 ml-4" aria-label="Close Alerts">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -263,30 +261,28 @@
             </div>
 
             <!-- Charts and Analytics -->
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-bottom: 32px;">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <!-- Revenue Chart -->
                 <div class="card">
-                    <h3 class="card-title" style="margin-bottom: 16px;">Revenue Trends</h3>
-                    <div id="revenueChart" style="height: 256px;"></div>
+                    <h3 class="card-title mb-4">Revenue Trends</h3>
+                    <div id="revenueChart" class="h-64"></div>
                 </div>
 
                 <!-- Load Status Chart -->
                 <div class="card">
-                    <h3 class="card-title" style="margin-bottom: 16px;">Load Status Distribution</h3>
-                    <div id="loadStatusChart" style="height: 256px;"></div>
+                    <h3 class="card-title mb-4">Load Status Distribution</h3>
+                    <div id="loadStatusChart" class="h-64"></div>
                 </div>
             </div>
 
             <!-- Recent Loads and Quick Actions -->
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+            <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
                 <!-- Recent Loads -->
                 <div class="card">
                     <div class="card-header">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3 class="card-title" style="margin: 0;">Recent Loads</h3>
-                            <button onclick="navigateTo('loads.html')" class="btn btn-secondary"
-                                style="padding: 4px 12px; font-size: 12px;">
+                        <div class="flex justify-between items-center">
+                            <h3 class="card-title m-0">Recent Loads</h3>
+                            <button onclick="navigateTo('loads.html')" class="btn btn-secondary px-3 py-1 text-xs">
                                 View All
                             </button>
                         </div>
@@ -299,26 +295,26 @@
                 <!-- Quick Actions -->
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title" style="margin: 0;">Quick Actions</h3>
+                        <h3 class="card-title m-0">Quick Actions</h3>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <button onclick="navigateTo('loads.html')" class="btn btn-primary" style="width: 100%;">
-                            <i class="fas fa-plus" style="margin-right: 8px;"></i>
+                    <div class="flex flex-col gap-3">
+                        <button onclick="navigateTo('loads.html')" class="btn btn-primary w-full">
+                            <i class="fas fa-plus mr-2"></i>
                             Create New Load
                         </button>
 
-                        <button onclick="navigateTo('drivers.html')" class="btn btn-success" style="width: 100%;">
-                            <i class="fas fa-user-plus" style="margin-right: 8px;"></i>
+                        <button onclick="navigateTo('drivers.html')" class="btn btn-success w-full">
+                            <i class="fas fa-user-plus mr-2"></i>
                             Add Driver
                         </button>
 
-                        <button onclick="navigateTo('customers.html')" class="btn btn-secondary" style="width: 100%;">
+                        <button onclick="navigateTo('customers.html')" class="btn btn-secondary w-full">
                             <i class="fas fa-building mr-2"></i>
                             Add Customer
                         </button>
 
-                        <button onclick="populateMockData()" class="btn btn-secondary"
-                            style="width: 100%; background-color: #6b7280; border-color: #6b7280;">
+                        <button onclick="populateMockData()"
+                            class="btn btn-secondary w-full bg-gray-500 border-gray-500 text-white hover:bg-gray-600 hover:border-gray-600">
                             <i class="fas fa-database mr-2"></i>
                             Populate Mock Data
                         </button>
@@ -358,14 +354,14 @@
     </div>
 
     <!-- Company Settings Modal -->
-    <div id="companyModal" class="modal"
-        style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-        <div class="modal-content"
-            style="background-color: white; margin: auto; padding: 0; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
+    <div id="companyModal"
+        class="modal hidden fixed z-[1000] left-0 top-0 w-full h-full bg-black/50 items-center justify-center">
+        <div class="modal-content bg-white m-auto p-0 rounded-xl w-[90%] max-w-[600px] max-h-[90vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xl font-semibold">Company Settings</h3>
-                    <button onclick="closeCompanyModal()" class="text-white hover:text-gray-200">
+                    <button onclick="closeCompanyModal()" class="text-white hover:text-gray-200"
+                        aria-label="Close Modal">
                         <i class="fas fa-times text-xl"></i>
                     </button>
                 </div>
@@ -374,7 +370,8 @@
             <div class="p-6">
                 <form id="companyForm" class="space-y-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                        <label for="companyNameInput" class="block text-sm font-medium text-gray-700 mb-2">Company
+                            Name</label>
                         <input type="text" id="companyNameInput" value="ATS FREIGHT LLC"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
@@ -393,13 +390,14 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <label for="companyAddress" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
                         <textarea id="companyAddress" rows="3" placeholder="123 Main St, City, State 12345"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo Text (2
+                        <label for="companyLogoText" class="block text-sm font-medium text-gray-700 mb-2">Company Logo
+                            Text (2
                             letters)</label>
                         <input type="text" id="companyLogoText" value="ST" maxlength="2"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">

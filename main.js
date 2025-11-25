@@ -958,6 +958,17 @@ const DataManager = {
     deleteLoad: async (loadId) => {
         if (confirm('Are you sure you want to delete this load?')) {
             try {
+                // Cascade delete: Delete associated expenses
+                const expensesSnapshot = await db.collection('expenses').where('loadId', '==', loadId).get();
+                if (!expensesSnapshot.empty) {
+                    const batch = db.batch();
+                    expensesSnapshot.docs.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    await batch.commit();
+                    console.log(`Deleted ${expensesSnapshot.size} expenses associated with load ${loadId}`);
+                }
+
                 await db.collection('loads').doc(loadId).delete();
                 Utils.showNotification('Load deleted successfully!', 'success');
             } catch (e) {
@@ -1120,6 +1131,17 @@ const DataManager = {
     deleteTruck: async (truckId) => {
         if (confirm('Are you sure you want to delete this truck?')) {
             try {
+                // Cascade delete: Delete associated expenses
+                const expensesSnapshot = await db.collection('expenses').where('truckId', '==', truckId).get();
+                if (!expensesSnapshot.empty) {
+                    const batch = db.batch();
+                    expensesSnapshot.docs.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    await batch.commit();
+                    console.log(`Deleted ${expensesSnapshot.size} expenses associated with truck ${truckId}`);
+                }
+
                 await db.collection('trucks').doc(truckId).delete();
                 Utils.showNotification('Truck deleted successfully!', 'success');
             } catch (e) {

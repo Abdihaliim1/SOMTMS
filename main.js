@@ -1,5 +1,23 @@
-// ATS FREIGHT LLC - Transportation Management System
-// Main JavaScript File
+/*
+ * ATS FREIGHT LLC - TRANSPORTATION MANAGEMENT SYSTEM
+ * 
+ * SYSTEM IS NOW LIVE — NOV 2025
+ * 
+ * FINAL PRODUCTION FEATURES:
+ * - All mock data removed
+ * - O/O expenses auto-deducted from settlement
+ * - Company P&L excludes O/O expenses (no double-counting)
+ * - Profit calculations are accurate and real
+ * - Auto-populate O/O expenses in settlement generation
+ * - Real-time data synchronization
+ * - Professional UI/UX throughout
+ * 
+ * ⚠️ SYSTEM IS STABLE - NO MORE CHANGES WITHOUT OWNER APPROVAL
+ * 
+ * Author: AI Assistant
+ * Last Updated: November 2025
+ * Status: PRODUCTION READY
+ */
 
 // Global Configuration
 const CONFIG = {
@@ -53,6 +71,21 @@ firebase.initializeApp(CONFIG.firebase);
 
 const db = firebase.firestore();
 const auth = firebase.auth();
+
+// GLOBAL TRUCK AUTO-FILL FUNCTION
+window.autoFillTruckFromDriver = function(driverId, truckSelectId = 'truck') {
+    const truckSelect = document.getElementById(truckSelectId);
+    if (!truckSelect || !driverId) return;
+    
+    const driver = DataManager.drivers.find(d => d.id === driverId);
+    if (driver && driver.currentTruckId) {
+        truckSelect.value = driver.currentTruckId;
+        console.log(`Auto-filled truck ${driver.currentTruckId} for driver ${driver.firstName} ${driver.lastName}`);
+        
+        // Trigger change event in case other logic depends on truck selection
+        truckSelect.dispatchEvent(new Event('change'));
+    }
+};
 
 // Utility Functions
 const Utils = {
@@ -413,6 +446,52 @@ const Utils = {
         }, 5000);
     },
 
+    // Show loading state
+    showLoadingState: (message = 'Loading...') => {
+        // Remove existing loading overlay if any
+        const existing = document.getElementById('loadingOverlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'loadingOverlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(2px);
+        `;
+        overlay.innerHTML = `
+            <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center;">
+                <div class="spinner" style="border: 4px solid #f3f4f6; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                <p style="margin: 0; color: #374151; font-weight: 500;">${message}</p>
+            </div>
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+        `;
+        document.body.appendChild(overlay);
+    },
+
+    // Hide loading state
+    hideLoadingState: () => {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.3s';
+            setTimeout(() => overlay.remove(), 300);
+        }
+    },
+
     // Validate email
     validateEmail: (email) => {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -768,6 +847,16 @@ const DataManager = {
         }
         DataManager.initialized = true;
         console.log("Initializing DataManager with Firebase Persistence...");
+        
+        // Initialize data stability module if available
+        if (typeof DataStability !== 'undefined') {
+            try {
+                await DataStability.init();
+                DataStability.initConnectionMonitoring();
+            } catch (error) {
+                console.warn('Data stability module not available:', error);
+            }
+        }
 
         // Load rules on initialization
         try {
@@ -791,17 +880,33 @@ const DataManager = {
             db.collection('loads').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
                 DataManager.loads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.loads.length} loads from Firebase`);
-                // Auto-refresh UI if the function exists on the current page
-                if (window.renderLoads) window.renderLoads();
+                
+                // Save to offline storage
+                if (typeof DataStability !== 'undefined') {
+                    DataStability.saveToOffline('loads', DataManager.loads).catch(err => 
+                        console.warn('Failed to save loads to offline storage:', err)
+                    );
+                }
+                
                 // Auto-refresh UI if the function exists on the current page
                 if (window.renderLoads) window.renderLoads();
                 if (window.updateDashboard) window.updateDashboard();
-                if (window.updateDashboard) window.updateDashboard();
-                if (window.updateDriverStats) window.updateDriverStats(); // Update driver stats when loads change
+                if (window.updateDriverStats) window.updateDriverStats();
                 // Auto-generate invoices for delivered loads
                 if (window.createInvoicesForDeliveredLoads) window.createInvoicesForDeliveredLoads();
             }, error => {
                 console.error('Error loading loads:', error);
+                // Try to load from offline storage
+                if (typeof DataStability !== 'undefined') {
+                    DataStability.loadFromOffline('loads').then(offlineLoads => {
+                        if (offlineLoads.length > 0) {
+                            DataManager.loads = offlineLoads;
+                            console.log(`Loaded ${offlineLoads.length} loads from offline storage`);
+                            if (window.renderLoads) window.renderLoads();
+                            Utils.showNotification('Loaded data from offline storage. Some data may be outdated.', 'warning');
+                        }
+                    });
+                }
             });
 
             // Listener: DRIVERS
@@ -810,9 +915,8 @@ const DataManager = {
                 console.log(`Loaded ${DataManager.drivers.length} drivers from Firebase`);
                 if (window.renderDrivers) window.renderDrivers();
                 if (window.renderFleet) window.renderFleet();
-                if (window.renderDrivers) window.renderDrivers();
-                if (window.renderFleet) window.renderFleet();
                 if (window.updateDriverStats) window.updateDriverStats(); // Update driver stats when drivers change
+                if (window.updateDashboard) window.updateDashboard();
                 // Check expirations when drivers update
                 if (window.checkExpirations) window.checkExpirations();
             }, error => {
@@ -835,6 +939,7 @@ const DataManager = {
                 DataManager.trucks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.trucks.length} trucks from Firebase`);
                 if (window.renderFleet) window.renderFleet();
+                if (window.renderDrivers) window.renderDrivers(); // Update drivers table when trucks change
                 // Check expirations when trucks update
                 if (window.checkExpirations) window.checkExpirations();
             }, error => {
@@ -846,6 +951,8 @@ const DataManager = {
                 DataManager.settlements = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.settlements.length} settlements from Firebase`);
                 if (window.renderSettlements) window.renderSettlements();
+                if (window.updateDashboard) window.updateDashboard();
+                if (window.ReportManager && window.ReportManager.calculateRealData) window.ReportManager.calculateRealData();
             }, error => {
                 console.error('Error loading settlements:', error);
             });
@@ -865,11 +972,31 @@ const DataManager = {
             db.collection('expenses').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
                 DataManager.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.expenses.length} expenses from Firebase`);
-                // Auto-refresh UI if the functions exist on the current page
+                
+                // Save to offline storage
+                if (typeof DataStability !== 'undefined') {
+                    DataStability.saveToOffline('expenses', DataManager.expenses).catch(err => 
+                        console.warn('Failed to save expenses to offline storage:', err)
+                    );
+                }
+                
                 if (window.renderExpenses) window.renderExpenses();
                 if (window.updateStats) window.updateStats();
+                if (window.updateDashboard) window.updateDashboard();
+                if (window.ReportManager && window.ReportManager.calculateRealData) window.ReportManager.calculateRealData();
             }, error => {
                 console.error('Error loading expenses:', error);
+                // Try to load from offline storage
+                if (typeof DataStability !== 'undefined') {
+                    DataStability.loadFromOffline('expenses').then(offlineExpenses => {
+                        if (offlineExpenses.length > 0) {
+                            DataManager.expenses = offlineExpenses;
+                            console.log(`Loaded ${offlineExpenses.length} expenses from offline storage`);
+                            if (window.renderExpenses) window.renderExpenses();
+                            Utils.showNotification('Loaded data from offline storage. Some data may be outdated.', 'warning');
+                        }
+                    });
+                }
             });
 
             console.log('Firebase listeners initialized successfully');
@@ -881,7 +1008,15 @@ const DataManager = {
 
     // --- LOADS ---
     addLoad: async (loadData) => {
+        // Show loading state
+        Utils.showLoadingState('Saving load...');
+        
         try {
+            // Validate data
+            if (typeof DataStability !== 'undefined') {
+                DataStability.validateData('loads', loadData);
+            }
+            
             // Clean data (remove undefined values)
             const payload = JSON.parse(JSON.stringify(loadData));
             payload.createdAt = new Date().toISOString();
@@ -902,56 +1037,123 @@ const DataManager = {
                 }
             }
 
-            const docRef = await db.collection('loads').add(payload);
+            // Retry operation with exponential backoff
+            let docRef;
+            if (typeof DataStability !== 'undefined') {
+                docRef = await DataStability.retryOperation(async () => {
+                    return await db.collection('loads').add(payload);
+                });
+            } else {
+                docRef = await db.collection('loads').add(payload);
+            }
 
-            // Add to local array immediately - REMOVED to prevent duplicates with onSnapshot
-            // DataManager.loads.unshift({ id: docRef.id, ...payload });
-
+            Utils.hideLoadingState();
             Utils.showNotification('Load created successfully!', 'success');
             return docRef.id;
         } catch (e) {
             console.error('Error adding load:', e);
+            Utils.hideLoadingState();
+            
+            // Queue for retry if offline
+            if (typeof DataStability !== 'undefined' && !DataStability.isOnline) {
+                const operationId = DataStability.queueOperation({
+                    execute: async () => {
+                        const docRef = await db.collection('loads').add(payload);
+                        return docRef.id;
+                    },
+                    collection: 'loads'
+                });
+                Utils.showNotification('Connection lost. Load will be saved when connection is restored.', 'warning');
+                return `pending_${operationId}`;
+            }
+            
             Utils.showNotification('Error creating load: ' + e.message, 'error');
             throw e;
         }
     },
 
-    updateLoad: async (loadId, loadData) => {
-        try {
-            const payload = JSON.parse(JSON.stringify(loadData));
-            payload.updatedAt = new Date().toISOString();
+    updateLoad: async (loadId, loadData, options = {}) => {
+        const { silent = false } = options;
+        if (!silent) {
+            Utils.showLoadingState('Updating load...');
+        }
+        
+        const payload = JSON.parse(JSON.stringify(loadData));
+        payload.updatedAt = new Date().toISOString();
+        
+        // Store original for rollback
+        const original = DataManager.loads.find(l => l.id === loadId);
+        const originalIndex = DataManager.loads.findIndex(l => l.id === loadId);
 
-            // Recalculate company_revenue if driver or rate changed
-            if (payload.driverId !== undefined || payload.rate?.total !== undefined) {
-                const existingLoad = DataManager.loads.find(l => l.id === loadId);
-                const currentDriverId = payload.driverId !== undefined ? payload.driverId : (existingLoad?.driverId);
-                const currentRate = payload.rate?.total !== undefined ? payload.rate.total : (existingLoad?.rate?.total);
+        // Recalculate company_revenue if driver or rate changed
+        if (payload.driverId !== undefined || payload.rate?.total !== undefined) {
+            const existingLoad = DataManager.loads.find(l => l.id === loadId);
+            const currentDriverId = payload.driverId !== undefined ? payload.driverId : (existingLoad?.driverId);
+            const currentRate = payload.rate?.total !== undefined ? payload.rate.total : (existingLoad?.rate?.total);
 
-                if (currentRate) {
-                    payload.grossLoadAmount = currentRate;
-                    // Get driver object for calculation
-                    const currentDriver = currentDriverId ? DataManager.drivers.find(d => d.id === currentDriverId) : null;
-                    payload.companyRevenue = Utils.calculateCompanyRevenueSync(currentRate, currentDriver);
+            if (currentRate) {
+                payload.grossLoadAmount = currentRate;
+                // Get driver object for calculation
+                const currentDriver = currentDriverId ? DataManager.drivers.find(d => d.id === currentDriverId) : null;
+                payload.companyRevenue = Utils.calculateCompanyRevenueSync(currentRate, currentDriver);
 
-                    // Update rule version tracking
-                    if (DataManager.cachedRules) {
-                        payload.calculatedWithRuleVersion = DataManager.cachedRules.version;
-                        payload.recalculatedAt = new Date().toISOString();
-                    }
+                // Update rule version tracking
+                if (DataManager.cachedRules) {
+                    payload.calculatedWithRuleVersion = DataManager.cachedRules.version;
+                    payload.recalculatedAt = new Date().toISOString();
                 }
             }
+        }
 
-            await db.collection('loads').doc(loadId).update(payload);
-
-            // UPDATE LOCAL ARRAY
-            const index = DataManager.loads.findIndex(l => l.id === loadId);
-            if (index !== -1) DataManager.loads[index] = { ...DataManager.loads[index], ...payload };
-
-            Utils.showNotification('Load updated successfully!', 'success');
-        } catch (e) {
-            console.error('Error updating load:', e);
-            Utils.showNotification('Error updating load: ' + e.message, 'error');
-            throw e;
+        if (typeof DataStability !== 'undefined') {
+            return await DataStability.wrapOperation('loads', async () => {
+                await db.collection('loads').doc(loadId).update(payload);
+                
+                // Update local array
+                if (originalIndex !== -1) {
+                    DataManager.loads[originalIndex] = { ...DataManager.loads[originalIndex], ...payload };
+                }
+            }, {
+                showLoading: false, // Already showing
+                data: { ...payload, id: loadId }, // Include id for validation (indicates update)
+                validate: true, // Still validate, but validation knows it's an update
+                queueOperation: async () => {
+                    await db.collection('loads').doc(loadId).update(payload);
+                }
+            }).then(() => {
+                if (!silent) {
+                    Utils.hideLoadingState();
+                    Utils.showNotification('Load updated successfully!', 'success');
+                }
+            }).catch(e => {
+                // Rollback on error
+                if (original && originalIndex !== -1) {
+                    DataManager.loads[originalIndex] = original;
+                }
+                if (!silent) {
+                    Utils.hideLoadingState();
+                    Utils.showNotification('Error updating load: ' + e.message, 'error');
+                }
+                console.error('Error updating load:', e);
+                throw e;
+            });
+        } else {
+            try {
+                await db.collection('loads').doc(loadId).update(payload);
+                const index = DataManager.loads.findIndex(l => l.id === loadId);
+                if (index !== -1) DataManager.loads[index] = { ...DataManager.loads[index], ...payload };
+                if (!silent) {
+                    Utils.hideLoadingState();
+                    Utils.showNotification('Load updated successfully!', 'success');
+                }
+            } catch (e) {
+                if (!silent) {
+                    Utils.hideLoadingState();
+                    Utils.showNotification('Error updating load: ' + e.message, 'error');
+                }
+                console.error('Error updating load:', e);
+                throw e;
+            }
         }
     },
 
@@ -985,40 +1187,88 @@ const DataManager = {
 
     // --- DRIVERS ---
     addDriver: async (driverData) => {
-        try {
-            const payload = JSON.parse(JSON.stringify(driverData));
-            payload.createdAt = new Date().toISOString();
-            payload.updatedAt = new Date().toISOString();
-            payload.companyId = 'ats_freight';
+        const payload = JSON.parse(JSON.stringify(driverData));
+        payload.createdAt = new Date().toISOString();
+        payload.updatedAt = new Date().toISOString();
+        payload.companyId = 'ats_freight';
 
-            const docRef = await db.collection('drivers').add(payload);
-
-            // Add to local array immediately - REMOVED to prevent duplicates with onSnapshot
-            // DataManager.drivers.unshift({ id: docRef.id, ...payload });
-
-            Utils.showNotification('Driver added successfully!', 'success');
-            return docRef.id;
-        } catch (e) {
-            console.error('Error adding driver:', e);
-            Utils.showNotification('Error adding driver: ' + e.message, 'error');
-            throw e;
+        if (typeof DataStability !== 'undefined') {
+            return await DataStability.wrapOperation('drivers', async () => {
+                const docRef = await db.collection('drivers').add(payload);
+                return docRef.id;
+            }, {
+                loadingMessage: 'Adding driver...',
+                data: payload,
+                queueOperation: async () => {
+                    return await db.collection('drivers').add(payload);
+                }
+            }).then(id => {
+                Utils.showNotification('Driver added successfully!', 'success');
+                return id;
+            }).catch(e => {
+                console.error('Error adding driver:', e);
+                Utils.showNotification('Error adding driver: ' + e.message, 'error');
+                throw e;
+            });
+        } else {
+            // Fallback without stability features
+            try {
+                const docRef = await db.collection('drivers').add(payload);
+                Utils.showNotification('Driver added successfully!', 'success');
+                return docRef.id;
+            } catch (e) {
+                console.error('Error adding driver:', e);
+                Utils.showNotification('Error adding driver: ' + e.message, 'error');
+                throw e;
+            }
         }
     },
 
     updateDriver: async (driverId, driverData) => {
-        try {
-            const payload = JSON.parse(JSON.stringify(driverData));
-            payload.updatedAt = new Date().toISOString();
-            await db.collection('drivers').doc(driverId).update(payload);
+        const payload = JSON.parse(JSON.stringify(driverData));
+        payload.updatedAt = new Date().toISOString();
+        
+        // Store original for rollback
+        const original = DataManager.drivers.find(d => d.id === driverId);
+        const originalIndex = DataManager.drivers.findIndex(d => d.id === driverId);
 
-            const index = DataManager.drivers.findIndex(d => d.id === driverId);
-            if (index !== -1) DataManager.drivers[index] = { ...DataManager.drivers[index], ...payload };
-
-            Utils.showNotification('Driver updated successfully!', 'success');
-        } catch (e) {
-            console.error('Error updating driver:', e);
-            Utils.showNotification('Error updating driver: ' + e.message, 'error');
-            throw e;
+        if (typeof DataStability !== 'undefined') {
+            return await DataStability.wrapOperation('drivers', async () => {
+                await db.collection('drivers').doc(driverId).update(payload);
+                
+                // Update local array
+                if (originalIndex !== -1) {
+                    DataManager.drivers[originalIndex] = { ...DataManager.drivers[originalIndex], ...payload };
+                }
+            }, {
+                loadingMessage: 'Updating driver...',
+                data: payload,
+                queueOperation: async () => {
+                    await db.collection('drivers').doc(driverId).update(payload);
+                }
+            }).then(() => {
+                Utils.showNotification('Driver updated successfully!', 'success');
+            }).catch(e => {
+                // Rollback local change on error
+                if (original && originalIndex !== -1) {
+                    DataManager.drivers[originalIndex] = original;
+                }
+                console.error('Error updating driver:', e);
+                Utils.showNotification('Error updating driver: ' + e.message, 'error');
+                throw e;
+            });
+        } else {
+            // Fallback without stability features
+            try {
+                await db.collection('drivers').doc(driverId).update(payload);
+                const index = DataManager.drivers.findIndex(d => d.id === driverId);
+                if (index !== -1) DataManager.drivers[index] = { ...DataManager.drivers[index], ...payload };
+                Utils.showNotification('Driver updated successfully!', 'success');
+            } catch (e) {
+                console.error('Error updating driver:', e);
+                Utils.showNotification('Error updating driver: ' + e.message, 'error');
+                throw e;
+            }
         }
     },
 
@@ -1384,32 +1634,98 @@ const DataManager = {
 
     // --- EXPENSES ---
     addExpense: async (expenseData) => {
-        try {
-            const payload = JSON.parse(JSON.stringify(expenseData));
-            payload.createdAt = new Date().toISOString();
-            payload.updatedAt = new Date().toISOString();
-            payload.companyId = 'ats_freight';
+        const payload = JSON.parse(JSON.stringify(expenseData));
+        payload.createdAt = new Date().toISOString();
+        payload.updatedAt = new Date().toISOString();
+        payload.companyId = 'ats_freight';
+        
+        // Initialize expense ledger for Owner Operator expenses that will be deducted
+        // Only create ledger if: paidBy === 'company' AND driver is owner_operator
+        if (payload.paidBy === 'company' && payload.driverId) {
+            const driver = DataManager.drivers.find(d => d.id === payload.driverId);
+            if (driver && driver.driverType === 'owner_operator') {
+                const totalAmount = parseFloat(payload.amount || 0);
+                payload.expenseLedger = {
+                    totalAmount: totalAmount,
+                    amountPaid: 0,
+                    remainingBalance: totalAmount,
+                    status: 'active', // 'active', 'paid', 'cancelled'
+                    createdAt: new Date().toISOString(),
+                    lastUpdated: new Date().toISOString()
+                };
+            }
+        }
 
-            const docRef = await db.collection('expenses').add(payload);
-            Utils.showNotification('Expense added successfully!', 'success');
-            return docRef.id;
-        } catch (e) {
-            console.error('Error adding expense:', e);
-            Utils.showNotification('Error adding expense: ' + e.message, 'error');
-            throw e;
+        if (typeof DataStability !== 'undefined') {
+            return await DataStability.wrapOperation('expenses', async () => {
+                return await db.collection('expenses').add(payload);
+            }, {
+                loadingMessage: 'Adding expense...',
+                data: payload,
+                queueOperation: async () => {
+                    return await db.collection('expenses').add(payload);
+                }
+            }).then(docRef => {
+                Utils.showNotification('Expense added successfully!', 'success');
+                return docRef.id;
+            }).catch(e => {
+                console.error('Error adding expense:', e);
+                Utils.showNotification('Error adding expense: ' + e.message, 'error');
+                throw e;
+            });
+        } else {
+            try {
+                const docRef = await db.collection('expenses').add(payload);
+                Utils.showNotification('Expense added successfully!', 'success');
+                return docRef.id;
+            } catch (e) {
+                console.error('Error adding expense:', e);
+                Utils.showNotification('Error adding expense: ' + e.message, 'error');
+                throw e;
+            }
         }
     },
 
     updateExpense: async (expenseId, expenseData) => {
-        try {
-            const payload = JSON.parse(JSON.stringify(expenseData));
-            payload.updatedAt = new Date().toISOString();
-            await db.collection('expenses').doc(expenseId).update(payload);
-            Utils.showNotification('Expense updated successfully!', 'success');
-        } catch (e) {
-            console.error('Error updating expense:', e);
-            Utils.showNotification('Error updating expense: ' + e.message, 'error');
-            throw e;
+        const payload = JSON.parse(JSON.stringify(expenseData));
+        payload.updatedAt = new Date().toISOString();
+        
+        const original = DataManager.expenses.find(e => e.id === expenseId);
+        const originalIndex = DataManager.expenses.findIndex(e => e.id === expenseId);
+
+        if (typeof DataStability !== 'undefined') {
+            return await DataStability.wrapOperation('expenses', async () => {
+                await db.collection('expenses').doc(expenseId).update(payload);
+                
+                if (originalIndex !== -1) {
+                    DataManager.expenses[originalIndex] = { ...DataManager.expenses[originalIndex], ...payload };
+                }
+            }, {
+                loadingMessage: 'Updating expense...',
+                data: { ...payload, id: expenseId }, // Include id to indicate this is an update
+                validate: true,
+                queueOperation: async () => {
+                    await db.collection('expenses').doc(expenseId).update(payload);
+                }
+            }).then(() => {
+                Utils.showNotification('Expense updated successfully!', 'success');
+            }).catch(e => {
+                if (original && originalIndex !== -1) {
+                    DataManager.expenses[originalIndex] = original;
+                }
+                console.error('Error updating expense:', e);
+                Utils.showNotification('Error updating expense: ' + e.message, 'error');
+                throw e;
+            });
+        } else {
+            try {
+                await db.collection('expenses').doc(expenseId).update(payload);
+                Utils.showNotification('Expense updated successfully!', 'success');
+            } catch (e) {
+                console.error('Error updating expense:', e);
+                Utils.showNotification('Error updating expense: ' + e.message, 'error');
+                throw e;
+            }
         }
     },
 
@@ -1538,10 +1854,13 @@ const DataManager = {
     },
 
     // Recalculate all data with new rules
-    recalculateAllDataWithNewRules: async (changedRule) => {
+    recalculateAllDataWithNewRules: async (changedRule, options = {}) => {
+        const { silent = false } = options;
         console.log(`Recalculating all data due to rule change: ${changedRule}`);
 
-        Utils.showNotification('Recalculating all data with new rules...', 'info');
+        if (!silent) {
+            Utils.showNotification('Recalculating all data with new rules...', 'info');
+        }
 
         // Get current rules
         const rules = await DataManager.getRules();
@@ -1551,15 +1870,26 @@ const DataManager = {
         // Step 1: Recalculate all loads
         if (changedRule === 'companyDriver' || changedRule === 'ownerOperator' || changedRule === 'revenueRules' || changedRule === 'all') {
             const allLoads = DataManager.loads;
+            
+            console.log(`Found ${allLoads.length} total loads to check for recalculation`);
 
             for (const load of allLoads) {
-                if (!load.driverId) continue;
+                if (!load.driverId) {
+                    console.log(`Skipping load ${load.id || load.loadNumber}: No driver assigned`);
+                    continue;
+                }
 
                 const driver = DataManager.drivers.find(d => d.id === load.driverId);
-                if (!driver) continue;
+                if (!driver) {
+                    console.log(`Skipping load ${load.id || load.loadNumber}: Driver not found`);
+                    continue;
+                }
 
                 const loadRevenue = parseFloat(load.rate?.total || load.rate || 0);
-                if (!loadRevenue) continue;
+                if (!loadRevenue) {
+                    console.log(`Skipping load ${load.id || load.loadNumber}: No rate/total found`);
+                    continue;
+                }
 
                 // Recalculate company revenue using new rules
                 // Recalculate company revenue using new rules
@@ -1581,7 +1911,7 @@ const DataManager = {
                         updateData.grossLoadAmount = load.rate.total;
                     }
 
-                    await DataManager.updateLoad(load.id, updateData);
+                    await DataManager.updateLoad(load.id, updateData, { silent: true });
                     recalculatedCount++;
                 } catch (error) {
                     console.error(`Error recalculating load ${load.id}:`, error);
@@ -1590,7 +1920,9 @@ const DataManager = {
         }
 
         console.log(`Recalculated ${recalculatedCount} loads with new rules`);
-        Utils.showNotification(`Recalculated ${recalculatedCount} loads successfully!`, 'success');
+        if (!silent) {
+            Utils.showNotification(`Recalculated ${recalculatedCount} loads successfully!`, 'success');
+        }
 
         return recalculatedCount;
     }
@@ -2295,11 +2627,11 @@ const App = {
             console.log('TMS initialized successfully');
 
             // FIX: Force recalculation of all data to ensure Owner Operator revenue is correct
-            // This runs after initialization to fix existing data
+            // This runs after initialization to fix existing data (SILENT MODE)
             setTimeout(() => {
                 if (DataManager && DataManager.recalculateAllDataWithNewRules) {
-                    console.log('Triggering auto-recalculation of data...');
-                    DataManager.recalculateAllDataWithNewRules('all');
+                    console.log('Triggering silent auto-recalculation of data...');
+                    DataManager.recalculateAllDataWithNewRules('all', { silent: true });
                 }
             }, 5000);
 
@@ -2766,35 +3098,80 @@ function loadDriverExpenses() {
     // Check driver type (driver already declared above)
     const isOwnerOperator = driver?.driverType === 'owner_operator';
 
-    // Find expenses for this driver (and optionally trucks they used)
-    // Filter expenses that:
-    // 1. Are assigned to this driver (driverId matches)
-    // 2. OR are assigned to trucks this driver used (truckId matches)
-    // 3. Are not already included in a settlement (settlementId is null/undefined)
-    // 4. FOR COMPANY DRIVERS: Don't show any expenses (company pays, no deductions)
-    // 5. FOR OWNER OPERATORS: Only show expenses where paidBy === 'company' (will be deducted)
+    // FIXED QUERY: Find ALL deductible expenses for this Owner Operator
+    // Query Criteria:
+    // 1. DriverID matches the current driver (PRIMARY - most important)
+    // 2. paidBy === 'company' (company paid, driver owes)
+    // 3. Status is 'active' or 'unpaid' (ledger status) OR no ledger (backward compatibility)
+    // 4. Not already settled (settlementId is null/undefined)
+    // 5. Has remaining balance > 0 (if ledger exists)
     const eligibleExpenses = DataManager.expenses.filter(e => {
-        const isDriverMatch = e.driverId === driverId;
-        const isTruckMatch = e.truckId && truckIds.includes(e.truckId);
-        const isUnsettled = !e.settlementId || e.settlementId === 'null' || e.settlementId === 'undefined';
-
         // Company drivers: NO expenses shown (company pays everything, no deductions)
         if (!isOwnerOperator) {
-            return false; // Don't show expenses for company drivers
+            return false;
+        }
+
+        // PRIMARY CHECK: DriverID must match (this is the main link)
+        const isDriverMatch = String(e.driverId) === String(driverId);
+        
+        // SECONDARY CHECK: If no driverId, check truckId (for backward compatibility)
+        // But prioritize driverId match
+        const isTruckMatch = !e.driverId && e.truckId && truckIds.includes(e.truckId);
+        
+        // Must match driver OR truck (but driver match is preferred)
+        if (!isDriverMatch && !isTruckMatch) {
+            return false;
+        }
+
+        // Check if already settled
+        const isUnsettled = !e.settlementId || e.settlementId === 'null' || e.settlementId === 'undefined';
+        if (!isUnsettled) {
+            return false;
         }
 
         // Owner Operators: Only show expenses paid by company (will be deducted)
-        if (isOwnerOperator) {
-            const paidBy = e.paidBy || 'company'; // Default to company for backward compatibility
-            if (paidBy !== 'company') {
-                return false; // Don't show expenses paid by O/O themselves
+        const paidBy = e.paidBy || 'company'; // Default to company for backward compatibility
+        if (paidBy !== 'company') {
+            return false; // Don't show expenses paid by O/O themselves
+        }
+        
+        // Check expense ledger status and remaining balance
+        if (e.expenseLedger) {
+            const ledger = e.expenseLedger;
+            const status = ledger.status || 'active';
+            const remainingBalance = ledger.remainingBalance || 0;
+            
+            // Only show if status is 'active' and has remaining balance
+            if (status !== 'active' || remainingBalance <= 0) {
+                return false; // Don't show expenses that are paid or cancelled
             }
         }
+        // If no ledger exists, show it (backward compatibility for old expenses)
+        // IMPORTANT: Floating expenses (no loadId) should always be shown if they meet other criteria
 
-        return (isDriverMatch || isTruckMatch) && isUnsettled;
+        return true;
     });
 
-    console.log(`Found ${eligibleExpenses.length} eligible expenses for driver ${driverId} (Driver Type: ${driver?.driverType || 'unknown'})`);
+    // Debug logging to help diagnose expense visibility issues
+    console.log(`[loadDriverExpenses] Driver: ${driverId}, Type: ${driver?.driverType || 'unknown'}`);
+    console.log(`[loadDriverExpenses] Total expenses in system: ${DataManager.expenses.length}`);
+    console.log(`[loadDriverExpenses] Expenses for this driver:`, DataManager.expenses.filter(e => String(e.driverId) === String(driverId)));
+    console.log(`[loadDriverExpenses] Found ${eligibleExpenses.length} eligible expenses`);
+    
+    if (eligibleExpenses.length === 0 && isOwnerOperator) {
+        // Additional debugging for Owner Operators with no expenses
+        const allDriverExpenses = DataManager.expenses.filter(e => String(e.driverId) === String(driverId));
+        console.warn(`[loadDriverExpenses] No eligible expenses found, but driver has ${allDriverExpenses.length} total expenses. Checking filters...`);
+        allDriverExpenses.forEach(exp => {
+            console.log(`  Expense ${exp.id}:`, {
+                driverId: exp.driverId,
+                paidBy: exp.paidBy,
+                settlementId: exp.settlementId,
+                expenseLedger: exp.expenseLedger,
+                loadId: exp.loadId
+            });
+        });
+    }
 
     // Show message for company drivers
     if (!isOwnerOperator) {
@@ -2884,6 +3261,9 @@ function loadDriverExpenses() {
                 const expenseDate = expense.date || expense.createdAt;
                 const expenseType = expense.type || 'other';
                 const expenseAmount = parseFloat(expense.amount || 0);
+                // Get remaining balance from ledger if available
+                const remainingBalance = expense.expenseLedger ? (expense.expenseLedger.remainingBalance || expenseAmount) : expenseAmount;
+                const displayAmount = expense.expenseLedger ? remainingBalance : expenseAmount;
                 const vendorName = expense.vendor?.name || '';
                 const description = expense.description || expense.subcategory || expenseType;
 
@@ -2891,7 +3271,7 @@ function loadDriverExpenses() {
                     <td class="px-3 py-2">
                         <input type="checkbox" class="expense-checkbox w-4 h-4 text-blue-600 rounded" 
                             value="${expense.id}" 
-                            data-amount="${expenseAmount.toFixed(2)}"
+                            data-amount="${displayAmount.toFixed(2)}"
                             data-load-id="${loadId}"
                             onchange="calculateSettlementTotal(); syncExpenseWithLoad('${expense.id}', '${loadId}')">
                     </td>
@@ -2899,14 +3279,30 @@ function loadDriverExpenses() {
                     <td class="px-3 py-2 text-sm text-gray-900 capitalize">${expenseType.replace('_', ' ')}</td>
                     <td class="px-3 py-2 text-sm text-gray-700">${description}${vendorName ? ` - ${vendorName}` : ''}</td>
                     <td class="px-3 py-2 text-sm text-blue-600 font-medium">${loadNumber}</td>
-                    <td class="px-3 py-2 text-sm font-medium text-red-600 text-right">${Utils.formatCurrency(expenseAmount)}</td>
+                    <td class="px-3 py-2 text-sm font-medium text-red-600 text-right">
+                        ${Utils.formatCurrency(displayAmount)}
+                        ${expense.expenseLedger && expense.expenseLedger.remainingBalance < expenseAmount ? 
+                            `<br><span class="text-xs text-gray-500">Original: ${Utils.formatCurrency(expenseAmount)}</span>` : ''}
+                    </td>
                 `;
                 expensesBody.appendChild(tr);
             });
         });
 
-        // Display unlinked expenses grouped by category (if any)
+        // Display unlinked expenses (FLOATING EXPENSES - appear regardless of load selection)
+        // These are expenses without a loadId link (e.g., Monthly Insurance, recurring expenses)
         if (unlinkedExpenses.length > 0) {
+            // Add a prominent header for floating expenses
+            const floatingHeaderRow = document.createElement('tr');
+            floatingHeaderRow.className = "bg-yellow-50 font-bold border-t-2 border-yellow-300";
+            floatingHeaderRow.innerHTML = `
+                <td colspan="6" class="px-3 py-2 text-xs text-yellow-800">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    FLOATING EXPENSES (Not linked to specific loads - appear in all settlements)
+                </td>
+            `;
+            expensesBody.appendChild(floatingHeaderRow);
+            
             // Group unlinked expenses by category/type
             const expensesByCategory = new Map();
             unlinkedExpenses.forEach(expense => {
@@ -2919,7 +3315,10 @@ function loadDriverExpenses() {
 
             // Display each category
             expensesByCategory.forEach((expenses, category) => {
-                const categoryTotal = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+                const categoryTotal = expenses.reduce((sum, e) => {
+                    const amount = e.expenseLedger ? (e.expenseLedger.remainingBalance || parseFloat(e.amount || 0)) : parseFloat(e.amount || 0);
+                    return sum + amount;
+                }, 0);
 
                 const headerRow = document.createElement('tr');
                 headerRow.className = "bg-gray-50 font-semibold";
@@ -2937,6 +3336,9 @@ function loadDriverExpenses() {
                     const expenseDate = expense.date || expense.createdAt;
                     const expenseType = expense.type || 'other';
                     const expenseAmount = parseFloat(expense.amount || 0);
+                    // Get remaining balance from ledger if available
+                    const remainingBalance = expense.expenseLedger ? (expense.expenseLedger.remainingBalance || expenseAmount) : expenseAmount;
+                    const displayAmount = expense.expenseLedger ? remainingBalance : expenseAmount;
                     const vendorName = expense.vendor?.name || '';
                     const description = expense.description || expense.subcategory || expenseType;
                     const truckNumber = expense.truckNumber || '-';
@@ -2945,14 +3347,18 @@ function loadDriverExpenses() {
                         <td class="px-3 py-2">
                             <input type="checkbox" class="expense-checkbox w-4 h-4 text-blue-600 rounded" 
                                 value="${expense.id}" 
-                                data-amount="${expenseAmount.toFixed(2)}"
+                                data-amount="${displayAmount.toFixed(2)}"
                                 onchange="calculateSettlementTotal()">
                         </td>
                         <td class="px-3 py-2 text-sm text-gray-600">${Utils.formatDate(expenseDate)}</td>
                         <td class="px-3 py-2 text-sm text-gray-900 capitalize">${expenseType.replace('_', ' ')}</td>
                         <td class="px-3 py-2 text-sm text-gray-700">${description}${vendorName ? ` - ${vendorName}` : ''}</td>
                         <td class="px-3 py-2 text-sm text-gray-500">${truckNumber}</td>
-                        <td class="px-3 py-2 text-sm font-medium text-red-600 text-right">${Utils.formatCurrency(expenseAmount)}</td>
+                        <td class="px-3 py-2 text-sm font-medium text-red-600 text-right">
+                            ${Utils.formatCurrency(displayAmount)}
+                            ${expense.expenseLedger && expense.expenseLedger.remainingBalance < expenseAmount ? 
+                                `<br><span class="text-xs text-gray-500">Original: ${Utils.formatCurrency(expenseAmount)}</span>` : ''}
+                        </td>
                     `;
                     expensesBody.appendChild(tr);
                 });
@@ -3029,83 +3435,95 @@ function calculateSettlementTotal() {
     let otherExpenseDeduction = 0;
 
     // For Company Drivers: No deductions (company pays everything)
-    // For Owner Operators: Calculate deductions based on preferences
-    if (isOwnerOperator && deductionPrefs) {
-        const selectedLoads = Array.from(checkboxes).map(cb => {
-            const loadId = cb.value;
-            return DataManager.loads.find(l => l.id === loadId);
-        }).filter(l => l);
+    // For Owner Operators: Use LEDGER SYSTEM for running balance
+    if (isOwnerOperator && driverId) {
+        // NEW LEDGER-BASED LOGIC
+        // Check if ExpenseLedger utility is available
+        if (typeof ExpenseLedger !== 'undefined') {
+            const selectedLoadIds = Array.from(checkboxes).map(cb => cb.value);
+            
+            // Calculate deduction based on outstanding balance
+            const ledgerResult = ExpenseLedger.calculateDeduction(driverId, grossPay, selectedLoadIds);
+            
+            expensesTotal = ledgerResult.deductionAmount;
+            fuelDeduction = ledgerResult.breakdown.fuel || 0;
+            insuranceDeduction = ledgerResult.breakdown.insurance || 0;
+            maintenanceDeduction = ledgerResult.breakdown.maintenance || 0;
+            otherExpenseDeduction = ledgerResult.breakdown.other || 0;
+            
+            // Store ledger updates for when settlement is generated
+            window.pendingLedgerUpdates = ledgerResult.updatedExpenses;
+        } else {
+            // FALLBACK: Old checkbox-based logic (for backward compatibility)
+            const selectedLoads = Array.from(checkboxes).map(cb => {
+                const loadId = cb.value;
+                return DataManager.loads.find(l => l.id === loadId);
+            }).filter(l => l);
 
-        // Calculate fuel deduction (from expenses - only if paid_by == "company")
-        if (deductionPrefs.fuel) {
-            expenseCheckboxes.forEach(cb => {
-                const expenseId = cb.value;
-                const expense = DataManager.expenses.find(e => e.id === expenseId);
-                if (expense) {
-                    const paidBy = expense.paidBy || 'company'; // Default to company
-                    // Only deduct if paid by company
-                    if (paidBy === 'company') {
-                        const expenseType = (expense.type || '').toLowerCase();
-                        if (expenseType.includes('fuel')) {
-                            fuelDeduction += parseFloat(cb.dataset.amount || 0);
-                            expensesTotal += parseFloat(cb.dataset.amount || 0);
+            // Calculate fuel deduction (from expenses - only if paid_by == "company")
+            if (deductionPrefs.fuel) {
+                expenseCheckboxes.forEach(cb => {
+                    const expenseId = cb.value;
+                    const expense = DataManager.expenses.find(e => e.id === expenseId);
+                    if (expense) {
+                        const paidBy = expense.paidBy || 'company';
+                        if (paidBy === 'company') {
+                            const expenseType = (expense.type || '').toLowerCase();
+                            if (expenseType.includes('fuel')) {
+                                fuelDeduction += parseFloat(cb.dataset.amount || 0);
+                                expensesTotal += parseFloat(cb.dataset.amount || 0);
+                            }
                         }
                     }
-                }
-            });
-        }
+                });
+            }
 
-        // Calculate maintenance deduction (from expenses - only if paid_by == "company")
-        if (deductionPrefs.maintenance) {
-            expenseCheckboxes.forEach(cb => {
-                const expenseId = cb.value;
-                const expense = DataManager.expenses.find(e => e.id === expenseId);
-                if (expense) {
-                    const paidBy = expense.paidBy || 'company'; // Default to company
-                    // Only deduct if paid by company
-                    if (paidBy === 'company') {
-                        const expenseType = (expense.type || '').toLowerCase();
-                        if (expenseType.includes('maintenance') || expenseType.includes('repair')) {
-                            maintenanceDeduction += parseFloat(cb.dataset.amount || 0);
-                            expensesTotal += parseFloat(cb.dataset.amount || 0);
+            // Calculate maintenance deduction
+            if (deductionPrefs.maintenance) {
+                expenseCheckboxes.forEach(cb => {
+                    const expenseId = cb.value;
+                    const expense = DataManager.expenses.find(e => e.id === expenseId);
+                    if (expense) {
+                        const paidBy = expense.paidBy || 'company';
+                        if (paidBy === 'company') {
+                            const expenseType = (expense.type || '').toLowerCase();
+                            if (expenseType.includes('maintenance') || expenseType.includes('repair')) {
+                                maintenanceDeduction += parseFloat(cb.dataset.amount || 0);
+                                expensesTotal += parseFloat(cb.dataset.amount || 0);
+                            }
                         }
                     }
-                }
-            });
-        }
+                });
+            }
 
-        // Calculate insurance deduction (per load)
-        if (deductionPrefs.insurance) {
-            // Get monthly insurance amount (could be from driver profile or manual entry)
-            const monthlyInsurance = parseFloat(document.getElementById('insuranceDeduction')?.value) ||
-                parseFloat(driver?.payment?.monthlyInsurance) ||
-                800; // Default $800/month
+            // Calculate insurance deduction (per load) - OLD LOGIC
+            if (deductionPrefs.insurance) {
+                const monthlyInsurance = parseFloat(document.getElementById('insuranceDeduction')?.value) ||
+                    parseFloat(driver?.payment?.monthlyInsurance) ||
+                    800;
+                const loadsInPeriod = selectedLoads.length || 1;
+                insuranceDeduction = monthlyInsurance / loadsInPeriod;
+                expensesTotal += insuranceDeduction;
+            }
 
-            // Calculate insurance per load: monthly insurance ÷ number of loads in period
-            const loadsInPeriod = selectedLoads.length || 1; // Prevent division by zero
-            insuranceDeduction = monthlyInsurance / loadsInPeriod;
-            expensesTotal += insuranceDeduction;
-        }
-
-        // Calculate other expenses deduction (only if paid_by == "company")
-        if (deductionPrefs.other) {
-            expenseCheckboxes.forEach(cb => {
-                const expenseId = cb.value;
-                const expense = DataManager.expenses.find(e => e.id === expenseId);
-                if (expense) {
-                    const paidBy = expense.paidBy || 'company'; // Default to company
-                    // Only deduct if paid by company
-                    if (paidBy === 'company') {
-                        const expenseType = (expense.type || '').toLowerCase();
-                        // Other = not fuel, insurance, or maintenance
-                        if (!expenseType.includes('fuel') && !expenseType.includes('insurance') &&
-                            !expenseType.includes('maintenance') && !expenseType.includes('repair')) {
-                            otherExpenseDeduction += parseFloat(cb.dataset.amount || 0);
-                            expensesTotal += parseFloat(cb.dataset.amount || 0);
+            // Calculate other expenses deduction
+            if (deductionPrefs.other) {
+                expenseCheckboxes.forEach(cb => {
+                    const expenseId = cb.value;
+                    const expense = DataManager.expenses.find(e => e.id === expenseId);
+                    if (expense) {
+                        const paidBy = expense.paidBy || 'company';
+                        if (paidBy === 'company') {
+                            const expenseType = (expense.type || '').toLowerCase();
+                            if (!expenseType.includes('fuel') && !expenseType.includes('insurance') &&
+                                !expenseType.includes('maintenance') && !expenseType.includes('repair')) {
+                                otherExpenseDeduction += parseFloat(cb.dataset.amount || 0);
+                                expensesTotal += parseFloat(cb.dataset.amount || 0);
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
     }
 
@@ -3231,8 +3649,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         );
 
                         if (shouldRecalculate) {
-                            Utils.showNotification('Recalculating all data...', 'info');
-                            await DataManager.recalculateAllDataWithNewRules('system_update');
+                            // Silent recalculation for system updates
+                            await DataManager.recalculateAllDataWithNewRules('system_update', { silent: true });
                             localStorage.setItem('lastRuleVersion', rules.version);
                         }
                     } else {

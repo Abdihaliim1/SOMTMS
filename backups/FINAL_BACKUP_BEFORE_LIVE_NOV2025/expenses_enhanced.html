@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracking - ATS FREIGHT LLC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar { width: 250px; background-color: #1f2937; }
+        .sidebar-item:hover { background-color: rgba(255,255,255,0.1); }
+        .sidebar-item.active { background-color: rgba(255,255,255,0.1); border-left: 4px solid #ffffff; }
+        .main-content { margin-left: 250px; }
+        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
+        .metric-card { transition: transform 0.2s ease-in-out; }
+        .metric-card:hover { transform: translateY(-2px); }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background-color: white; border-radius: 12px; width: 90%; max-width: 900px; max-height: 95vh; overflow-y: auto; }
+        .receipt-preview { max-width: 100%; max-height: 400px; object-fit: contain; }
+        .expense-type-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-pending { background-color: #fef3c7; color: #d97706; }
+        .status-approved { background-color: #d1fae5; color: #059669; }
+        .status-rejected { background-color: #fee2e2; color: #dc2626; }
+        .filter-section { background: white; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+        .expense-row { transition: background-color 0.2s; }
+        .expense-row:hover { background-color: #f9fafb; }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div class="sidebar fixed left-0 top-0 h-full text-white z-50">
+        <div class="p-6">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center text-2xl font-bold text-gray-800">ATS</div>
+                <div>
+                    <h2 class="text-xl font-bold">ATS FREIGHT LLC</h2>
+                    <p class="text-sm opacity-75">TMS</p>
+                </div>
+            </div>
+            <nav class="space-y-2">
+                <a href="index.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-tachometer-alt mr-3 w-5"></i>Dashboard
+                </a>
+                <a href="loads.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-truck mr-3 w-5"></i>Loads
+                </a>
+                <a href="drivers.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-users mr-3 w-5"></i>Drivers
+                </a>
+                <a href="fleet.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-truck-monster mr-3 w-5"></i>Fleet
+                </a>
+                <a href="customers.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-building mr-3 w-5"></i>Customers
+                </a>
+                <a href="expenses.html" class="sidebar-item active flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-receipt mr-3 w-5"></i>Expenses
+                </a>
+                <a href="invoices.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-file-invoice mr-3 w-5"></i>Invoices
+                </a>
+                <a href="settlements.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-calculator mr-3 w-5"></i>Settlements
+                </a>
+                <a href="reports.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-chart-bar mr-3 w-5"></i>Reports
+                </a>
+                <a href="import.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-upload mr-3 w-5"></i>Import
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content p-6">
+        <!-- Header -->
+        <div class="bg-white shadow-sm border-b mb-6">
+            <div class="px-6 py-4 flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Expense Tracking</h1>
+                    <p class="text-gray-600">Track fuel, maintenance, lumper fees, and all receipts</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="ExpenseManager.exportCSV()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Export CSV
+                    </button>
+                    <button onclick="ExpenseManager.openModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add Expense
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div class="bg-white rounded-lg p-6 card-shadow metric-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Fuel This Month</p>
+                        <p id="fuelExpenses" class="text-2xl font-bold text-red-600">$0</p>
+                        <p class="text-sm text-gray-500 mt-1">+12% from last month</p>
+                    </div>
+                    <div class="expense-type-icon bg-red-100">
+                        <i class="fas fa-gas-pump text-red-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 card-shadow metric-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Maintenance</p>
+                        <p id="maintenanceExpenses" class="text-2xl font-bold text-blue-600">$0</p>
+                        <p class="text-sm text-gray-500 mt-1">-5% from last month</p>
+                    </div>
+                    <div class="expense-type-icon bg-blue-100">
+                        <i class="fas fa-tools text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 card-shadow metric-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total This Month</p>
+                        <p id="totalExpenses" class="text-2xl font-bold text-gray-900">$0</p>
+                        <p class="text-sm text-gray-500 mt-1">All categories</p>
+                    </div>
+                    <div class="expense-type-icon bg-gray-100">
+                        <i class="fas fa-dollar-sign text-gray-900 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 card-shadow metric-card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Pending Approval</p>
+                        <p id="pendingCount" class="text-2xl font-bold text-yellow-600">0</p>
+                        <p class="text-sm text-gray-500 mt-1">Awaiting review</p>
+                    </div>
+                    <div class="expense-type-icon bg-yellow-100">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-section card-shadow">
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm font-medium text-gray-700">Filter by:</label>
+                </div>
+                <select id="typeFilter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Types</option>
+                    <option value="fuel">Fuel</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="insurance">Insurance</option>
+                    <option value="toll">Tolls</option>
+                    <option value="lumper">Lumper Fees</option>
+                    <option value="permit">Permits</option>
+                    <option value="lodging">Lodging</option>
+                    <option value="other">Other</option>
+                </select>
+                <select id="driverFilter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Drivers</option>
+                </select>
+                <select id="statusFilter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <input type="date" id="dateFromFilter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="date" id="dateToFilter" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="ExpenseManager.applyFilters()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                    <i class="fas fa-filter mr-2"></i>Apply
+                </button>
+                <button onclick="ExpenseManager.clearFilters()" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm">
+                    <i class="fas fa-times mr-2"></i>Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Expense Table -->
+        <div class="bg-white rounded-lg card-shadow overflow-hidden">
+            <div class="px-6 py-4 border-b flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Recent Expenses</h3>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-600">
+                        Showing <span id="expenseCount">0</span> expenses
+                    </span>
+                    <div class="flex space-x-2">
+                        <button onclick="ExpenseManager.bulkApprove()" class="text-green-600 hover:text-green-800 text-sm font-medium">
+                            <i class="fas fa-check mr-1"></i>Bulk Approve
+                        </button>
+                        <button onclick="ExpenseManager.bulkReject()" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                            <i class="fas fa-times mr-1"></i>Bulk Reject
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left">
+                                <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver/Truck</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expensesTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Expenses will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="expenseModal" class="modal">
+        <div class="modal-content">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4 rounded-t-lg">
+                <div class="flex justify-between items-center">
+                    <h3 id="modalTitle" class="text-xl font-semibold">Add New Expense</h3>
+                    <button onclick="ExpenseManager.closeModal()" class="text-white hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <form id="expenseForm" class="space-y-6">
+                    <input type="hidden" id="expenseId">
+                    
+                    <!-- Basic Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Expense Type *</label>
+                            <select id="expenseType" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select type</option>
+                                <option value="fuel">Fuel</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="insurance">Insurance</option>
+                                <option value="toll">Tolls</option>
+                                <option value="lumper">Lumper Fees</option>
+                                <option value="permit">Permits</option>
+                                <option value="lodging">Lodging</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Amount *</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2 text-gray-500">$</span>
+                                <input type="number" id="amount" step="0.01" required 
+                                       class="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                       placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <input type="text" id="description" 
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                               placeholder="e.g., Fuel at Pilot #432">
+                    </div>
+
+                    <!-- Assignment -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Driver</label>
+                            <select id="driver" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    onchange="ExpenseManager.updateLoadOptions(); ExpenseManager.togglePaidBy(); ExpenseManager.showExpenseWarning()">
+                                <option value="">Select driver</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Truck</label>
+                            <select id="truck" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select truck</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Link to Load (Optional)</label>
+                        <select id="loadId" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">No specific load</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Vendor/Location</label>
+                        <input type="text" id="vendor" 
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                               placeholder="e.g., Pilot, TA, Love's">
+                    </div>
+
+                    <!-- Expense Warning -->
+                    <div id="expenseWarning" class="hidden"></div>
+
+                    <!-- Payment Information -->
+                    <div id="paidBySection" class="hidden bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Who Paid This Expense? *</label>
+                        <select id="paidBy" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="company">Company (Will be deducted from driver settlement)</option>
+                            <option value="owner_operator">Owner Operator (Personal expense, no deduction)</option>
+                        </select>
+                        <p class="text-xs text-gray-600 mt-2">
+                            <strong>Company:</strong> Expense appears in P&L reports and will be deducted from O/O settlement<br>
+                            <strong>Owner Operator:</strong> Personal expense, tracked for records only, no deduction
+                        </p>
+                    </div>
+
+                    <!-- Receipt Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Receipt Upload</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                            <input type="file" id="receiptFile" accept=".pdf,.jpg,.jpeg,.png" class="hidden">
+                            <button type="button" onclick="document.getElementById('receiptFile').click()" 
+                                    class="text-blue-600 hover:text-blue-800 font-medium">
+                                <i class="fas fa-cloud-upload-alt text-2xl mb-2"></i><br>
+                                Click to upload receipt
+                            </button>
+                            <p class="text-sm text-gray-500 mt-2">PDF, JPG, PNG up to 10MB</p>
+                        </div>
+                        <div id="receiptPreview" class="mt-4 hidden">
+                            <img id="previewImg" class="receipt-preview rounded-lg border shadow-sm" alt="Receipt preview">
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                        <button type="button" onclick="ExpenseManager.closeModal()" 
+                                class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" id="saveBtn" 
+                                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            Save Expense
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Viewer Modal -->
+    <div id="receiptViewerModal" class="modal">
+        <div class="modal-content max-w-4xl">
+            <div class="bg-gray-800 text-white px-6 py-4 rounded-t-lg">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold">Receipt Viewer</h3>
+                    <button onclick="ExpenseManager.closeReceiptViewer()" class="text-white hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 text-center">
+                <iframe id="receiptFrame" class="w-full h-96 border rounded-lg"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase + Storage -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <script src="main.js"></script>
+    <script src="populate-mock-data.js"></script>
+
+    <script>
+        const ExpenseManager = {
+            currentExpenseId: null,
+            filteredExpenses: [],
+
+            async init() {
+                await DataManager.init();
+                this.populateSelects();
+                this.setupEventListeners();
+                this.renderTable();
+                this.updateStats();
+            },
+
+            setupEventListeners() {
+                // Filter event listeners
+                ['typeFilter', 'driverFilter', 'statusFilter', 'dateFromFilter', 'dateToFilter'].forEach(id => {
+                    document.getElementById(id).addEventListener('change', () => this.applyFilters());
+                });
+
+                // Select all checkbox
+                document.getElementById('selectAll').addEventListener('change', (e) => {
+                    const checkboxes = document.querySelectorAll('input[name="expenseSelect"]');
+                    checkboxes.forEach(cb => cb.checked = e.target.checked);
+                });
+
+                // Receipt file preview
+                document.getElementById('receiptFile').addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        if (file.type.startsWith('image/')) {
+                            const preview = document.getElementById('previewImg');
+                            preview.src = URL.createObjectURL(file);
+                            document.getElementById('receiptPreview').classList.remove('hidden');
+                        } else {
+                            document.getElementById('receiptPreview').classList.add('hidden');
+                        }
+                    }
+                });
+
+                // Form submission
+                document.getElementById('expenseForm').addEventListener('submit', (e) => this.saveExpense(e));
+            },
+
+            populateSelects() {
+                const driverEl = document.getElementById('driver');
+                const truckEl = document.getElementById('truck');
+                const driverFilterEl = document.getElementById('driverFilter');
+                
+                // Clear existing options
+                driverEl.innerHTML = '<option value="">Select driver</option>';
+                truckEl.innerHTML = '<option value="">Select truck</option>';
+                driverFilterEl.innerHTML = '<option value="">All Drivers</option>';
+
+                // Populate drivers
+                (DataManager.drivers || []).forEach(d => {
+                    const fullName = `${d.firstName} ${d.lastName}`;
+                    driverEl.innerHTML += `<option value="${d.id}">${fullName}</option>`;
+                    driverFilterEl.innerHTML += `<option value="${d.id}">${fullName}</option>`;
+                });
+
+                // Populate trucks
+                (DataManager.trucks || []).forEach(t => {
+                    const truckInfo = `${t.number} - ${t.make} ${t.model}`;
+                    truckEl.innerHTML += `<option value="${t.id}">${truckInfo}</option>`;
+                });
+            },
+
+            async updateLoadOptions() {
+                const driverId = document.getElementById('driver')?.value;
+                const loadEl = document.getElementById('loadId');
+                if (!loadEl) return;
+
+                loadEl.innerHTML = '<option value="">No specific load</option>';
+                if (!driverId) return;
+
+                const driverLoads = (DataManager.loads || [])
+                    .filter(l => String(l.driverId) === String(driverId))
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                    .slice(0, 10);
+
+                driverLoads.forEach(load => {
+                    const route = `${load.pickup?.city || ''} → ${load.delivery?.city || ''}`.trim();
+                    const text = `${load.loadNumber} ${route ? `- ${route}` : ''}`.trim();
+                    loadEl.innerHTML += `<option value="${load.id}">${text}</option>`;
+                });
+            },
+
+            togglePaidBy() {
+                const driverId = document.getElementById('driver')?.value;
+                const section = document.getElementById('paidBySection');
+                if (!driverId || !section) return;
+
+                const driver = DataManager.drivers.find(d => d.id === driverId);
+                const isOwnerOperator = driver?.driverType === 'owner_operator';
+                
+                section.classList.toggle('hidden', !isOwnerOperator);
+                
+                // Set default value for company drivers
+                if (!isOwnerOperator) {
+                    document.getElementById('paidBy').value = 'company';
+                }
+            },
+
+            showExpenseWarning() {
+                const driverId = document.getElementById('driver')?.value;
+                const warningDiv = document.getElementById('expenseWarning');
+                
+                if (!driverId) {
+                    warningDiv.classList.add('hidden');
+                    return;
+                }
+
+                const driver = DataManager.drivers.find(d => d.id === driverId);
+                if (!driver) {
+                    warningDiv.classList.add('hidden');
+                    return;
+                }
+
+                if (driver.driverType === 'company' || driver.driverType === 'owner') {
+                    warningDiv.innerHTML = `
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                            This is a <strong>${driver.driverType === 'company' ? 'company driver' : 'owner'}</strong>. 
+                            This expense will be paid by the company and will NOT be deducted from driver's pay. 
+                            It will appear in company expense reports only.
+                        </div>
+                    `;
+                    warningDiv.classList.remove('hidden');
+                } else if (driver.driverType === 'owner_operator') {
+                    warningDiv.innerHTML = `
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                            This is an <strong>owner operator</strong>. Please specify who paid this expense below.
+                        </div>
+                    `;
+                    warningDiv.classList.remove('hidden');
+                } else {
+                    warningDiv.classList.add('hidden');
+                }
+            },
+
+            openModal(expense = null) {
+                this.currentExpenseId = expense?.id || null;
+                document.getElementById('modalTitle').textContent = expense ? 'Edit Expense' : 'Add New Expense';
+                document.getElementById('expenseForm').reset();
+                document.getElementById('receiptPreview').classList.add('hidden');
+                document.getElementById('expenseId').value = expense?.id || '';
+                document.getElementById('expenseWarning').classList.add('hidden');
+                document.getElementById('paidBySection').classList.add('hidden');
+
+                if (expense) {
+                    document.getElementById('expenseType').value = expense.type || '';
+                    document.getElementById('amount').value = expense.amount || '';
+                    document.getElementById('description').value = expense.description || '';
+                    document.getElementById('vendor').value = expense.vendor?.name || expense.vendor || '';
+                    document.getElementById('driver').value = expense.driverId || '';
+                    document.getElementById('truck').value = expense.truckId || '';
+                    document.getElementById('loadId').value = expense.loadId || '';
+                    if (expense.paidBy) document.getElementById('paidBy').value = expense.paidBy;
+
+                    this.updateLoadOptions();
+                    this.togglePaidBy();
+                    this.showExpenseWarning();
+                }
+
+                document.getElementById('expenseModal').classList.add('show');
+            },
+
+            closeModal() {
+                document.getElementById('expenseModal').classList.remove('show');
+            },
+
+            async saveExpense(e) {
+                e.preventDefault();
+                const btn = document.getElementById('saveBtn');
+                const originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Saving...';
+
+                try {
+                    const file = document.getElementById('receiptFile').files[0];
+                    let receiptUrl = null;
+                    
+                    if (file) {
+                        Utils.showNotification('Uploading receipt...', 'info');
+                        const ref = firebase.storage().ref(`receipts/${Date.now()}_${file.name}`);
+                        await ref.put(file);
+                        receiptUrl = await ref.getDownloadURL();
+                    }
+
+                    const driverId = document.getElementById('driver').value || null;
+                    const driver = driverId ? DataManager.drivers.find(d => d.id === driverId) : null;
+                    
+                    // Determine payment responsibility
+                    let paidBy = 'company';
+                    let deductFromDriver = false;
+                    
+                    if (driver) {
+                        if (driver.driverType === 'owner_operator') {
+                            paidBy = document.getElementById('paidBy').value || 'company';
+                            deductFromDriver = paidBy === 'company';
+                        } else {
+                            // Company driver or owner - company always pays, never deduct
+                            paidBy = 'company';
+                            deductFromDriver = false;
+                        }
+                    }
+
+                    const expenseData = {
+                        type: document.getElementById('expenseType').value,
+                        category: document.getElementById('expenseType').value, // For compatibility
+                        amount: parseFloat(document.getElementById('amount').value),
+                        description: document.getElementById('description').value,
+                        vendor: {
+                            name: document.getElementById('vendor').value
+                        },
+                        driverId: driverId,
+                        truckId: document.getElementById('truck').value || null,
+                        loadId: document.getElementById('loadId').value || null,
+                        paidBy: paidBy,
+                        deductFromDriver: deductFromDriver,
+                        receiptUrl: receiptUrl,
+                        status: 'pending',
+                        date: new Date().toISOString()
+                    };
+
+                    // Initialize expense ledger for Owner Operator expenses paid by company
+                    if (driver && driver.driverType === 'owner_operator' && paidBy === 'company') {
+                        const totalAmount = parseFloat(document.getElementById('amount').value);
+                        expenseData.expenseLedger = {
+                            totalAmount: totalAmount,
+                            amountPaid: 0,
+                            remainingBalance: totalAmount,
+                            status: 'active', // 'active', 'paid', 'cancelled'
+                            createdAt: new Date().toISOString(),
+                            lastUpdated: new Date().toISOString()
+                        };
+                    }
+
+                    if (this.currentExpenseId) {
+                        await DataManager.updateExpense(this.currentExpenseId, expenseData);
+                        Utils.showNotification('Expense updated successfully!', 'success');
+                    } else {
+                        await DataManager.addExpense(expenseData);
+                        Utils.showNotification('Expense added successfully!', 'success');
+                    }
+
+                    this.closeModal();
+                    this.renderTable();
+                    this.updateStats();
+                } catch (err) {
+                    console.error('Error saving expense:', err);
+                    Utils.showNotification('Failed to save expense: ' + err.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            },
+
+            applyFilters() {
+                const typeFilter = document.getElementById('typeFilter').value;
+                const driverFilter = document.getElementById('driverFilter').value;
+                const statusFilter = document.getElementById('statusFilter').value;
+                const dateFrom = document.getElementById('dateFromFilter').value;
+                const dateTo = document.getElementById('dateToFilter').value;
+
+                this.filteredExpenses = (DataManager.expenses || []).filter(expense => {
+                    // Type filter
+                    if (typeFilter && expense.type !== typeFilter) return false;
+                    
+                    // Driver filter
+                    if (driverFilter && expense.driverId !== driverFilter) return false;
+                    
+                    // Status filter
+                    if (statusFilter && expense.status !== statusFilter) return false;
+                    
+                    // Date range filter
+                    const expenseDate = new Date(expense.date || expense.createdAt);
+                    if (dateFrom && expenseDate < new Date(dateFrom)) return false;
+                    if (dateTo && expenseDate > new Date(dateTo + 'T23:59:59')) return false;
+                    
+                    return true;
+                });
+
+                this.renderTable();
+            },
+
+            clearFilters() {
+                document.getElementById('typeFilter').value = '';
+                document.getElementById('driverFilter').value = '';
+                document.getElementById('statusFilter').value = '';
+                document.getElementById('dateFromFilter').value = '';
+                document.getElementById('dateToFilter').value = '';
+                this.filteredExpenses = [];
+                this.renderTable();
+            },
+
+            renderTable() {
+                const tbody = document.getElementById('expensesTableBody');
+                tbody.innerHTML = '';
+                
+                const expenses = this.filteredExpenses.length > 0 ? this.filteredExpenses : 
+                    [...(DataManager.expenses || [])].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                document.getElementById('expenseCount').textContent = expenses.length;
+
+                expenses.forEach(exp => {
+                    const driver = DataManager.drivers.find(d => d.id === exp.driverId);
+                    const truck = DataManager.trucks.find(t => t.id === exp.truckId);
+                    
+                    const typeIcons = {
+                        fuel: { icon: 'fa-gas-pump', color: 'text-red-600', bg: 'bg-red-100' },
+                        maintenance: { icon: 'fa-tools', color: 'text-blue-600', bg: 'bg-blue-100' },
+                        insurance: { icon: 'fa-shield-alt', color: 'text-green-600', bg: 'bg-green-100' },
+                        toll: { icon: 'fa-road', color: 'text-yellow-600', bg: 'bg-yellow-100' },
+                        lumper: { icon: 'fa-users', color: 'text-purple-600', bg: 'bg-purple-100' },
+                        permit: { icon: 'fa-id-card', color: 'text-indigo-600', bg: 'bg-indigo-100' },
+                        lodging: { icon: 'fa-bed', color: 'text-pink-600', bg: 'bg-pink-100' },
+                        other: { icon: 'fa-dollar-sign', color: 'text-gray-600', bg: 'bg-gray-100' }
+                    };
+                    
+                    const typeConfig = typeIcons[exp.type] || typeIcons.other;
+
+                    const row = document.createElement('tr');
+                    row.className = 'expense-row';
+                    row.innerHTML = `
+                        <td class="px-6 py-4">
+                            <input type="checkbox" name="expenseSelect" value="${exp.id}" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            ${Utils.formatDate(exp.date || exp.createdAt)}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 ${typeConfig.bg} rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas ${typeConfig.icon} ${typeConfig.color} text-sm"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900 capitalize">${exp.type}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">${exp.description || '-'}</div>
+                            ${exp.vendor?.name ? `<div class="text-xs text-gray-500">${exp.vendor.name}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            <div class="text-gray-900">${driver ? `${driver.firstName} ${driver.lastName}` : '-'}</div>
+                            ${truck ? `<div class="text-xs text-gray-500">${truck.number}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-semibold text-gray-900">${Utils.formatCurrency(exp.amount)}</div>
+                            ${exp.expenseLedger ? `<div class="text-xs text-gray-500">Balance: ${Utils.formatCurrency(exp.expenseLedger.remainingBalance || 0)}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="status-badge status-${exp.status || 'pending'}">${(exp.status || 'pending').toUpperCase()}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            ${exp.receiptUrl ? 
+                                `<button onclick="ExpenseManager.viewReceipt('${exp.receiptUrl}')" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                                    <i class="fas fa-file-invoice mr-1"></i>View
+                                </button>` : 
+                                '<span class="text-gray-400 text-sm">No receipt</span>'
+                            }
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-2">
+                                <button onclick="ExpenseManager.openModal(DataManager.expenses.find(e => e.id === '${exp.id}'))" 
+                                        class="text-blue-600 hover:text-blue-900" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="ExpenseManager.approveExpense('${exp.id}')" 
+                                        class="text-green-600 hover:text-green-900" title="Approve">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button onclick="ExpenseManager.rejectExpense('${exp.id}')" 
+                                        class="text-red-600 hover:text-red-900" title="Reject">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <button onclick="ExpenseManager.deleteExpense('${exp.id}')" 
+                                        class="text-gray-600 hover:text-gray-900" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                if (expenses.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="px-6 py-12 text-center text-gray-500">
+                                <i class="fas fa-receipt text-4xl mb-4 text-gray-300"></i>
+                                <div class="text-lg font-medium">No expenses found</div>
+                                <div class="text-sm">Add your first expense to get started</div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            },
+
+            updateStats() {
+                const now = new Date();
+                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+                const monthExpenses = (DataManager.expenses || []).filter(e => 
+                    new Date(e.date || e.createdAt) >= monthStart
+                );
+
+                const totals = { fuel: 0, maintenance: 0, total: 0, pending: 0 };
+                
+                (DataManager.expenses || []).forEach(e => {
+                    const amount = parseFloat(e.amount) || 0;
+                    if (e.status === 'pending') totals.pending++;
+                });
+
+                monthExpenses.forEach(e => {
+                    const amount = parseFloat(e.amount) || 0;
+                    totals.total += amount;
+                    if (e.type === 'fuel') totals.fuel += amount;
+                    if (e.type === 'maintenance') totals.maintenance += amount;
+                });
+
+                document.getElementById('fuelExpenses').textContent = Utils.formatCurrency(totals.fuel);
+                document.getElementById('maintenanceExpenses').textContent = Utils.formatCurrency(totals.maintenance);
+                document.getElementById('totalExpenses').textContent = Utils.formatCurrency(totals.total);
+                document.getElementById('pendingCount').textContent = totals.pending;
+            },
+
+            async approveExpense(expenseId) {
+                try {
+                    await DataManager.updateExpense(expenseId, { status: 'approved' });
+                    Utils.showNotification('Expense approved', 'success');
+                    this.renderTable();
+                } catch (err) {
+                    Utils.showNotification('Failed to approve expense', 'error');
+                }
+            },
+
+            async rejectExpense(expenseId) {
+                try {
+                    await DataManager.updateExpense(expenseId, { status: 'rejected' });
+                    Utils.showNotification('Expense rejected', 'success');
+                    this.renderTable();
+                } catch (err) {
+                    Utils.showNotification('Failed to reject expense', 'error');
+                }
+            },
+
+            async deleteExpense(expenseId) {
+                if (!confirm('Are you sure you want to delete this expense? This action cannot be undone.')) {
+                    return;
+                }
+                
+                try {
+                    await DataManager.deleteExpense(expenseId);
+                    Utils.showNotification('Expense deleted successfully', 'success');
+                    this.renderTable();
+                    this.updateStats();
+                } catch (err) {
+                    Utils.showNotification('Failed to delete expense', 'error');
+                }
+            },
+
+            bulkApprove() {
+                const selected = Array.from(document.querySelectorAll('input[name="expenseSelect"]:checked')).map(cb => cb.value);
+                if (selected.length === 0) {
+                    Utils.showNotification('Please select expenses to approve', 'warning');
+                    return;
+                }
+                
+                if (confirm(`Approve ${selected.length} selected expenses?`)) {
+                    selected.forEach(id => this.approveExpense(id));
+                }
+            },
+
+            bulkReject() {
+                const selected = Array.from(document.querySelectorAll('input[name="expenseSelect"]:checked')).map(cb => cb.value);
+                if (selected.length === 0) {
+                    Utils.showNotification('Please select expenses to reject', 'warning');
+                    return;
+                }
+                
+                if (confirm(`Reject ${selected.length} selected expenses?`)) {
+                    selected.forEach(id => this.rejectExpense(id));
+                }
+            },
+
+            viewReceipt(receiptUrl) {
+                const modal = document.getElementById('receiptViewerModal');
+                const frame = document.getElementById('receiptFrame');
+                frame.src = receiptUrl;
+                modal.classList.add('show');
+            },
+
+            closeReceiptViewer() {
+                document.getElementById('receiptViewerModal').classList.remove('show');
+                document.getElementById('receiptFrame').src = '';
+            },
+
+            exportCSV() {
+                const expenses = this.filteredExpenses.length > 0 ? this.filteredExpenses : DataManager.expenses || [];
+                
+                let csv = 'Date,Type,Description,Driver,Truck,Amount,Vendor,Status,Receipt URL\n';
+                expenses.forEach(e => {
+                    const driver = DataManager.drivers.find(d => d.id === e.driverId);
+                    const truck = DataManager.trucks.find(t => t.id === e.truckId);
+                    const driverName = driver ? `${driver.firstName} ${driver.lastName}` : '';
+                    const truckInfo = truck ? truck.number : '';
+                    
+                    csv += `${Utils.formatDate(e.date || e.createdAt)},${e.type},"${e.description || ''}","${driverName}","${truckInfo}",${e.amount},"${e.vendor?.name || ''}",${e.status || 'pending'},"${e.receiptUrl || '"}"\n`;
+                });
+                
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `ATS_Expenses_${new Date().toISOString().slice(0, 10)}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                Utils.showNotification('Expenses exported successfully!', 'success');
+            }
+        };
+
+        // Auto-refresh when data changes
+        window.renderExpenses = () => {
+            ExpenseManager.renderTable();
+            ExpenseManager.updateStats();
+        };
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            ExpenseManager.init();
+        });
+    </script>
+</body>
+</html>

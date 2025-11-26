@@ -1,0 +1,48 @@
+{
+  "name": "ats-freight-tms",
+  "version": "2.0.0",
+  "description": "ATS FREIGHT LLC Transportation Management System - Professional freight operations management",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8001",
+    "test": "echo \"Run: runFinalTest() in browser console\"",
+    "cleanup": "echo \"Run: cleanupMockData() in browser console\"",
+    "deploy": "echo \"Upload to Netlify or run: firebase deploy\""
+  },
+  "keywords": [
+    "transportation",
+    "management",
+    "system",
+    "freight",
+    "logistics",
+    "tms",
+    "trucking",
+    "fleet",
+    "settlements",
+    "expenses",
+    "reporting"
+  ],
+  "author": "ATS FREIGHT LLC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/ats-freight-tms.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/ats-freight-tms/issues"
+  },
+  "homepage": "https://github.com/yourusername/ats-freight-tms#readme",
+  "dependencies": {
+    "firebase": "^9.22.1"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

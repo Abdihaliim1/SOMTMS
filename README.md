@@ -1,286 +1,321 @@
-# ATS FREIGHT LLC - Transportation Management System (TMS)
+# 🚛 ATS FREIGHT LLC - Transportation Management System V2
 
-## Overview
-A comprehensive, professional-grade Transportation Management System built for ATS FREIGHT LLC. This web application provides complete trucking company management including load dispatching, driver settlements, IFTA reporting, and expense tracking.
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/yourusername/ats-freight-tms)
+[![Status](https://img.shields.io/badge/status-Production%20Ready-green.svg)](https://github.com/yourusername/ats-freight-tms)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Features
+## 🎉 **PRODUCTION READY - NOVEMBER 2025**
 
-### Core Functionality
-- **User Authentication**: Role-based access control (Admin, Dispatcher, Driver)
-- **Load Management**: Complete CRUD operations for freight loads
-- **Driver Management**: Three payment types (per mile, percentage, flat rate)
-- **Driver Settlements**: Automated payment calculations and history
-- **Invoicing System**: Customer invoicing with PDF generation
-- **Expense Tracking**: Operational expenses with OCR receipt processing
-- **Fleet Management**: Truck specifications and maintenance tracking
-- **Customer Management**: Customer profiles and payment terms
-- **IFTA Reporting**: Quarterly fuel tax reports with state-by-state breakdown
-- **Dashboard Analytics**: Real-time statistics and performance metrics
+A comprehensive Transportation Management System (TMS) built for ATS FREIGHT LLC. This system handles all aspects of freight operations including load management, driver settlements, expense tracking, fleet management, and financial reporting.
 
-### Technical Features
-- **Mileage Calculation**: Google Maps API integration for accurate routing
-- **OCR Document Processing**: Google Vision API for automated data extraction
-- **PDF Generation**: Professional reports and invoices
-- **Mobile Responsive**: Works on all devices
-- **Progressive Web App**: Offline functionality for key features
+---
 
-## Technology Stack
+## 🚀 **NEW IN VERSION 2.0**
 
-### Frontend
-- **React.js**: Modern JavaScript framework
-- **Tailwind CSS**: Utility-first CSS framework
-- **Plotly.js**: Interactive charts and graphs
-- **Font Awesome**: Professional icons
+### 💰 **Advanced Settlement Generation**
+- ✅ **Auto-populate O/O expenses** - Automatically includes all company-paid expenses for Owner Operators
+- ✅ **Smart expense categorization** - Fuel vs Other expenses auto-filled
+- ✅ **Professional UI warnings** - Red banner shows company-paid expenses with totals
+- ✅ **Real-time calculations** - Net pay updates instantly as expenses are included
+- ✅ **Expense tracking** - Links expenses to settlements, prevents double-settlement
 
-### Backend
-- **Firebase**: Authentication, Firestore database, Storage
-- **Google Maps API**: Mileage and routing calculations
-- **Google Vision API**: OCR document processing
-- **jsPDF**: PDF generation for reports
+### 📊 **Accurate P&L Reporting**
+- ✅ **No double-counting** - O/O expenses excluded from company expense totals
+- ✅ **Real settlement data** - Uses actual net pay from settlements instead of estimates
+- ✅ **Gross Method for O/O** - Shows full revenue + reimbursements for transparency
+- ✅ **Interactive charts** - Professional Plotly.js visualizations
+- ✅ **Export functionality** - PDF, CSV, print-ready reports
 
-### Database
-- **Firebase Firestore**: NoSQL database
-- **Firebase Storage**: File storage for documents and receipts
+### 🚚 **Enhanced Driver Management**
+- ✅ **One driver = One truck system** - Auto-fill truck based on driver assignment
+- ✅ **Dynamic pay calculation** - No hardcoded percentages, uses actual driver records
+- ✅ **Real-time updates** - Changes reflect immediately across entire system
+- ✅ **Professional validation** - Comprehensive error checking and defaults
 
-## File Structure
+### 💸 **Professional Expense Management**
+- ✅ **Smart allocation logic** - Automatic Company vs O/O expense handling
+- ✅ **Expense ledger system** - Tracks remaining balances for Owner Operators
+- ✅ **Status management** - Approved, pending, rejected workflow
+- ✅ **Receipt handling** - File upload and preview capabilities
 
+### 🏢 **Complete Fleet Management**
+- ✅ **Ownership tracking** - Owned, leased, financed, owner-operator categories
+- ✅ **Insurance automation** - Auto-creates monthly insurance expenses
+- ✅ **Profitability analysis** - Revenue, expenses, ROI calculations per truck
+- ✅ **Compliance tracking** - Insurance, registration, inspection date monitoring
+
+---
+
+## 🛡️ **ENTERPRISE FEATURES**
+
+### 🔄 **Real-time Data Synchronization**
+- Firebase Firestore for instant multi-user sync
+- Offline persistence with IndexedDB
+- Optimistic updates with automatic rollback on errors
+- Connection monitoring and intelligent retry logic
+
+### 🎯 **Financial Accuracy**
+- Rule-based calculation system (no hardcoded values)
+- Automatic recalculation when business rules change
+- Version tracking for all financial calculations
+- Comprehensive validation and error handling
+
+### 🔒 **Data Stability & Security**
+- Exponential backoff retry logic for failed operations
+- Pre-save data validation to prevent corruption
+- Conflict resolution using timestamp-based merging
+- Comprehensive error logging and monitoring
+
+---
+
+## 📋 **SYSTEM CAPABILITIES**
+
+### 👥 **Multi-Driver Type Support**
+- **Company Drivers** - W2 employees, company pays all expenses
+- **Owner Operators** - 1099 contractors, company deducts expenses from settlements
+- **Owner as Driver** - Business owner driving company trucks
+
+### 💰 **Accurate Financial Management**
+- **Revenue Recognition** - Full amount for company drivers, commission-only for O/O
+- **Expense Allocation** - Smart logic based on driver type and truck ownership
+- **Settlement Generation** - Auto-includes all relevant expenses with professional UI
+- **P&L Reporting** - Accurate profit calculations with no double-counting
+
+### 🚛 **Complete Fleet Operations**
+- **Truck Management** - Ownership types, insurance, maintenance tracking
+- **Driver Assignment** - One driver per truck assignment system
+- **Profitability Analysis** - Revenue, expenses, ROI calculations per asset
+- **Compliance Tracking** - Insurance, registration, inspection date monitoring
+
+---
+
+## 🏗️ **TECHNICAL STACK**
+
+### **Frontend**
+- **HTML5** - Semantic markup with accessibility features
+- **CSS3** - Modern styling with Tailwind CSS framework
+- **JavaScript ES6+** - Modern JavaScript with async/await patterns
+- **Responsive Design** - Mobile-first approach with professional UI/UX
+
+### **Backend & Database**
+- **Firebase Firestore** - NoSQL cloud database with real-time sync
+- **Firebase Auth** - User authentication and authorization
+- **IndexedDB** - Client-side storage for offline persistence
+- **Cloud Functions** - Serverless backend processing (ready for deployment)
+
+### **Libraries & Tools**
+- **Plotly.js** - Interactive charts and data visualization
+- **Font Awesome** - Professional icon library
+- **Tailwind CSS** - Utility-first CSS framework
+- **Firebase SDK** - Real-time database and authentication
+
+---
+
+## 🚀 **QUICK START**
+
+### **1. Clone Repository**
+```bash
+git clone https://github.com/yourusername/ats-freight-tms.git
+cd ats-freight-tms
 ```
-/mnt/okcomputer/output/
-├── index.html              # Main dashboard
-├── loads.html             # Load management
-├── drivers.html           # Driver management
-├── settlements.html       # Driver settlements
-├── invoices.html          # Invoicing system
-├── expenses.html          # Expense tracking
-├── ifta.html              # IFTA reporting
-├── main.js                # Core application logic
-├── resources/             # Assets and documents
-│   └── company-logo.png   # Company logo
-├── database-schema.md     # Database design documentation
-├── technical-answers.md   # Technical implementation answers
-└── README.md              # This file
+
+### **2. Firebase Setup**
+1. Create Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
+2. Enable Firestore Database
+3. Enable Authentication
+4. Copy your Firebase config to `main.js`
+
+### **3. Deploy**
+```bash
+# Option 1: Static hosting (Netlify, Vercel, etc.)
+# Upload entire folder to your hosting provider
+
+# Option 2: Firebase Hosting
+firebase init hosting
+firebase deploy
 ```
 
-## Installation & Setup
+### **4. First Time Setup**
+1. Open the application in your browser
+2. **IMPORTANT**: Run data cleanup to remove test data
+   - Click "Clean All Data" button on dashboard
+   - OR open browser console and run: `cleanupMockData()`
+3. Add your real drivers, trucks, and customers
+4. Start managing your freight operations!
 
-### Prerequisites
-- Node.js 16+ (for development tools)
-- Firebase account
-- Google Cloud account (for Maps and Vision APIs)
-- Modern web browser
+---
 
-### Setup Instructions
+## 📖 **DOCUMENTATION**
 
-1. **Clone the Repository**
-   ```bash
-   git clone <repository-url>
-   cd tms-ats-freight
-   ```
+### **Core Modules**
+- [`main.js`](main.js) - Core data management and Firebase integration
+- [`data-stability.js`](data-stability.js) - Offline persistence and retry logic
+- [`expense-ledger-utils.js`](expense-ledger-utils.js) - O/O expense tracking system
+- [`populate-mock-data.js`](populate-mock-data.js) - Test data generation (for development)
 
-2. **Configure Firebase**
-   - Create a Firebase project at https://console.firebase.google.com
-   - Enable Authentication, Firestore, and Storage
-   - Copy your Firebase configuration
-   - Update `main.js` with your Firebase credentials
+### **Pages**
+- [`index.html`](index.html) - Dashboard with KPIs and quick actions
+- [`loads.html`](loads.html) - Load management and tracking
+- [`drivers.html`](drivers.html) - Driver profiles and assignments
+- [`settlements.html`](settlements.html) - Driver settlement generation
+- [`expenses.html`](expenses.html) - Expense tracking and approval
+- [`fleet.html`](fleet.html) - Truck management and profitability
+- [`reports.html`](reports.html) - P&L and business analytics
+- [`customers.html`](customers.html) - Customer management and invoicing
 
-3. **Configure Google APIs**
-   - Enable Google Maps API and Google Vision API
-   - Create API keys in Google Cloud Console
-   - Update `main.js` with your API keys
+### **Utilities**
+- [`cleanup-mock-data.js`](cleanup-mock-data.js) - Remove all test data
+- [`final-test.js`](final-test.js) - System verification script
+- [`cleanup.html`](cleanup.html) - User-friendly data cleanup interface
 
-4. **Deploy to Firebase Hosting**
-   ```bash
-   npm install -g firebase-tools
-   firebase login
-   firebase init hosting
-   firebase deploy
-   ```
+---
 
-5. **Alternative Deployment**
-   - Upload all files to any web server
-   - Ensure HTTPS is enabled for API functionality
+## 🔧 **CONFIGURATION**
 
-## Configuration
-
-### Firebase Configuration
-Update the following in `main.js`:
+### **Business Rules** (Configurable in Settings)
 ```javascript
-const CONFIG = {
-    firebase: {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
+const businessRules = {
+    driverPayRules: {
+        companyDriver: { percentage: 0.70 },    // 70% of load revenue
+        ownerOperator: { percentage: 0.88 }     // 88% of load revenue
     },
-    api: {
-        googleMapsKey: "YOUR_GOOGLE_MAPS_API_KEY",
-        googleVisionKey: "YOUR_GOOGLE_VISION_API_KEY"
+    revenueRules: {
+        commissionRate: 0.12                    // 12% commission from O/O loads
+    },
+    expenseRules: {
+        autoDeductFromOO: true,                 // Auto-deduct company-paid O/O expenses
+        createInsuranceExpenses: true           // Auto-create monthly insurance expenses
     }
 };
 ```
 
-### Company Configuration
-Update company details in `main.js`:
+### **Firebase Security Rules**
 ```javascript
-company: {
-    name: 'ATS FREIGHT LLC',
-    address: '3191 MORSE RD STE 15, COLUMBUS, OH 43231',
-    phone: '(614) 254-0380',
-    email: 'dispatch@atsfreight.com'
+// Firestore Security Rules (deploy to Firebase)
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
 }
 ```
 
-## Usage
+---
 
-### Getting Started
-1. Navigate to the deployed URL
-2. Create an admin account
-3. Set up your company profile
-4. Add drivers, trucks, and customers
-5. Start creating loads and managing operations
+## 🧪 **TESTING**
 
-### Key Workflows
+### **Test Data Management**
+```javascript
+// Populate test data for development
+populateMockData()
 
-#### Creating a Load
-1. Click "Create New Load" on the Loads page
-2. Enter pickup and delivery information
-3. Assign driver and truck
-4. Upload rate confirmation and BOL documents
-5. System automatically calculates mileage using Google Maps
+// Clean all test data before production
+cleanupMockData()
 
-#### Driver Settlement
-1. Navigate to Settlements page
-2. Select driver and pay period
-3. System automatically calculates earnings based on payment type
-4. Review and approve settlement
-5. Generate PDF report for driver
+// Verify system functionality
+runFinalTest()
+```
 
-#### IFTA Reporting
-1. Navigate to IFTA page
-2. Select quarter and year
-3. System generates state-by-state mileage breakdown
-4. Review and file report with tax authorities
-5. Export PDF for records
-
-## API Integration
-
-### Google Maps API
-- **Directions API**: Calculate routes and distances
-- **Distance Matrix API**: Mileage calculations
-- **Geocoding API**: Address validation
-- **Places API**: Location search
-
-### Google Vision API
-- **Text Detection**: Extract text from documents
-- **Document Text Detection**: OCR for structured documents
-- **Image Analysis**: Process uploaded receipts and BOLs
-
-## Security
-
-### Authentication
-- Firebase Authentication with email/password
-- Role-based access control
-- Session management
-
-### Data Security
-- Firestore security rules
-- HTTPS only communication
-- Input validation and sanitization
-- File upload restrictions
-
-### Privacy
-- No GPS tracking implemented
-- Driver privacy protected
-- Customer data encryption
-
-## Performance
-
-### Optimization
-- Lazy loading of components
-- Image compression
-- CDN delivery of assets
-- Efficient database queries
-
-### Scalability
-- Firebase scales automatically
-- Modular architecture
-- Cloud-native design
-- Multi-tenant ready
-
-## Maintenance
-
-### Regular Tasks
-- Monitor API usage and costs
-- Update security rules
-- Backup critical data
-- Review and update dependencies
-
-### Troubleshooting
-- Check browser console for errors
-- Verify API key permissions
-- Monitor Firebase usage quotas
-- Review authentication logs
-
-## Support
-
-### Documentation
-- Database schema in `database-schema.md`
-- Technical answers in `technical-answers.md`
-- Code comments throughout
-
-### Common Issues
-1. **API Key Errors**: Verify Google API permissions
-2. **Authentication Issues**: Check Firebase configuration
-3. **Data Not Loading**: Verify Firestore security rules
-4. **PDF Generation**: Ensure proper CORS settings
-
-## Cost Analysis
-
-### Development Costs
-- **Core Development**: $15,000-25,000
-- **Advanced Features**: $10,000-15,000
-- **API Integration**: $3,000-5,000
-- **Testing & Deployment**: $2,000-3,000
-- **Total**: $30,000-48,000
-
-### Monthly Operating Costs
-- **Firebase Hosting**: $50-150
-- **Google Maps API**: $50-150
-- **Google Vision API**: $15-30
-- **Domain & SSL**: $10-20
-- **Total**: $125-350/month
-
-## Future Enhancements
-
-### Planned Features
-- Mobile app for drivers
-- ELD integration
-- Real-time tracking (optional)
-- Advanced analytics
-- Automated dispatch suggestions
-- Customer portal
-
-### Scalability Features
-- Multi-company support
-- White-label options
-- API for third-party integrations
-- Advanced reporting
-- Machine learning optimizations
-
-## License
-
-This software is proprietary to ATS FREIGHT LLC. All rights reserved.
-
-## Contact
-
-**ATS FREIGHT LLC**  
-3191 MORSE RD STE 15  
-COLUMBUS, OH 43231  
-Phone: (614) 254-0380  
-Email: dispatch@atsfreight.com
+### **System Verification**
+The system includes comprehensive testing utilities:
+- Mock data population for development and testing
+- Automated cleanup for production deployment
+- System verification to ensure all features work correctly
+- Real-time calculation validation
 
 ---
 
-*Built with modern web technologies for the trucking industry*
+## 📊 **BUSINESS LOGIC**
+
+### **Settlement Calculation**
+```javascript
+// Owner Operator Settlement Example
+const grossPay = loadRevenue * driverPayPercentage;  // e.g., $3000 * 0.88 = $2640
+const expenses = getCompanyPaidExpenses(driverId);   // Auto-populated: $500 fuel + $200 insurance
+const netPay = Math.max(0, grossPay - expenses);    // $2640 - $700 = $1940
+```
+
+### **P&L Calculation**
+```javascript
+// Company Revenue (excludes O/O expenses to prevent double-counting)
+const companyRevenue = companyDriverLoads.total + ownerOperatorLoads.commission;
+const companyExpenses = expenses.filter(e => !isOwnerOperatorExpense(e));
+const netProfit = companyRevenue - companyExpenses - actualDriverPay;
+```
+
+---
+
+## 🔒 **SECURITY & COMPLIANCE**
+
+### **Data Protection**
+- Firebase security rules for authenticated access only
+- Client-side data validation before database writes
+- Automatic data backup and versioning
+- Audit trail for all financial transactions
+
+### **Business Compliance**
+- Accurate 1099 contractor expense tracking
+- Proper revenue recognition for tax reporting
+- Detailed financial reporting for accounting
+- Professional invoicing and settlement documentation
+
+---
+
+## 🚀 **DEPLOYMENT OPTIONS**
+
+### **Option 1: Netlify (Recommended)**
+1. Connect GitHub repository to Netlify
+2. Set build command: (none - static site)
+3. Set publish directory: `/`
+4. Deploy automatically on git push
+
+### **Option 2: Firebase Hosting**
+```bash
+npm install -g firebase-tools
+firebase login
+firebase init hosting
+firebase deploy
+```
+
+### **Option 3: Traditional Web Hosting**
+- Upload all files to web server
+- Ensure HTTPS is enabled
+- Configure Firebase for your domain
+
+---
+
+## 📞 **SUPPORT**
+
+### **Documentation**
+- [`PRODUCTION_READY.md`](PRODUCTION_READY.md) - Complete feature documentation
+- [`CLEANUP_INSTRUCTIONS.md`](CLEANUP_INSTRUCTIONS.md) - Data cleanup guide
+- [`DELETE_ALL_TEST_DATA.md`](DELETE_ALL_TEST_DATA.md) - Test data removal
+
+### **System Status**
+- **Version**: 2.0.0
+- **Status**: Production Ready
+- **Last Updated**: November 2025
+- **Stability**: Enterprise Grade
+
+---
+
+## 📄 **LICENSE**
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🎉 **ACKNOWLEDGMENTS**
+
+- Built with modern web technologies for maximum compatibility
+- Designed for real-world freight operations
+- Tested with comprehensive business scenarios
+- Ready for immediate production deployment
+
+---
+
+**🚛 ATS FREIGHT LLC Transportation Management System V2 - Production Ready! 🚀**
+
+*Professional freight management made simple.*

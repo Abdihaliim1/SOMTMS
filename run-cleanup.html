@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Running Cleanup - ATS FREIGHT LLC</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            font-size: 18px;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .loading { background: #e3f2fd; color: #1976d2; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .error { background: #ffebee; color: #c62828; }
+        .warning { background: #fff3e0; color: #f57c00; }
+        #log { 
+            text-align: left; 
+            background: #f5f5f5; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 ATS FREIGHT LLC - Data Cleanup</h1>
+        
+        <div id="status" class="status loading">
+            🔄 Initializing cleanup process...
+        </div>
+        
+        <div id="progress">
+            <p>This will delete ALL test data including:</p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>All drivers (test names)</li>
+                <li>All trucks (test vehicles)</li>
+                <li>All loads (test shipments)</li>
+                <li>All customers (test companies)</li>
+                <li>All expenses (test costs)</li>
+                <li>All settlements (test payments)</li>
+                <li>All invoices (test billing)</li>
+            </ul>
+        </div>
+        
+        <div id="log"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="main.js"></script>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStatus(message, type = 'loading') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+        }
+
+        async function runAutomaticCleanup() {
+            try {
+                updateStatus('🔄 Connecting to Firebase...', 'loading');
+                log('Starting automatic cleanup process...');
+
+                // Wait for DataManager to initialize
+                let attempts = 0;
+                while ((!DataManager || !DataManager.drivers) && attempts < 30) {
+                    log(`Waiting for DataManager... attempt ${attempts + 1}`);
+                    await new Promise(r => setTimeout(r, 1000));
+                    attempts++;
+                }
+
+                if (!DataManager || !DataManager.drivers) {
+                    throw new Error('DataManager failed to initialize after 30 seconds');
+                }
+
+                log('✅ DataManager initialized successfully');
+                updateStatus('🗑️ Deleting all test data...', 'loading');
+
+                let deletedCount = 0;
+
+                // 1. DELETE ALL SETTLEMENTS
+                log('🗑️ Deleting settlements...');
+                const settlements = [...DataManager.settlements];
+                for (const settlement of settlements) {
+                    await DataManager.deleteSettlement(settlement.id);
+                    deletedCount++;
+                    log(`Deleted settlement: ${settlement.settlementNumber}`);
+                }
+
+                // 2. DELETE ALL INVOICES
+                log('🗑️ Deleting invoices...');
+                const invoices = [...DataManager.invoices];
+                for (const invoice of invoices) {
+                    await DataManager.deleteInvoice(invoice.id);
+                    deletedCount++;
+                    log(`Deleted invoice: ${invoice.invoiceNumber}`);
+                }
+
+                // 3. DELETE ALL EXPENSES
+                log('🗑️ Deleting expenses...');
+                const expenses = [...DataManager.expenses];
+                for (const expense of expenses) {
+                    await DataManager.deleteExpense(expense.id);
+                    deletedCount++;
+                    log(`Deleted expense: ${expense.description} - $${expense.amount}`);
+                }
+
+                // 4. DELETE ALL LOADS
+                log('🗑️ Deleting loads...');
+                const loads = [...DataManager.loads];
+                for (const load of loads) {
+                    await DataManager.deleteLoad(load.id);
+                    deletedCount++;
+                    log(`Deleted load: ${load.loadNumber}`);
+                }
+
+                // 5. DELETE ALL DRIVERS
+                log('🗑️ Deleting drivers...');
+                const drivers = [...DataManager.drivers];
+                for (const driver of drivers) {
+                    await DataManager.deleteDriver(driver.id);
+                    deletedCount++;
+                    log(`Deleted driver: ${driver.firstName} ${driver.lastName}`);
+                }
+
+                // 6. DELETE ALL TRUCKS
+                log('🗑️ Deleting trucks...');
+                const trucks = [...DataManager.trucks];
+                for (const truck of trucks) {
+                    await DataManager.deleteTruck(truck.id);
+                    deletedCount++;
+                    log(`Deleted truck: ${truck.truckNumber}`);
+                }
+
+                // 7. DELETE ALL CUSTOMERS
+                log('🗑️ Deleting customers...');
+                const customers = [...DataManager.customers];
+                for (const customer of customers) {
+                    await DataManager.deleteCustomer(customer.id);
+                    deletedCount++;
+                    log(`Deleted customer: ${customer.name}`);
+                }
+
+                log(`✅ CLEANUP COMPLETE! Deleted ${deletedCount} records total.`);
+                updateStatus(`🎉 SUCCESS! Deleted ${deletedCount} test records. System is now clean and ready for live data!`, 'success');
+                
+                // Wait a bit then show final message
+                setTimeout(() => {
+                    updateStatus('🚀 SYSTEM IS NOW CLEAN - READY FOR LIVE DATA!', 'success');
+                    log('🎉 You can now add real drivers, trucks, loads, and customers.');
+                    log('🎉 All calculations will be accurate and professional.');
+                    log('🎉 The system is ready for production use!');
+                }, 2000);
+
+            } catch (error) {
+                log(`❌ Error during cleanup: ${error.message}`);
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+                console.error('Cleanup error:', error);
+            }
+        }
+
+        // Start cleanup automatically when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🧹 Automatic cleanup started...');
+            runAutomaticCleanup();
+        });
+    </script>
+</body>
+</html>

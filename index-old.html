@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS FREIGHT LLC - Transportation Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="design-system.css">
+    <style>
+        /* Override Tailwind with professional styles */
+        .status-available {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-dispatched {
+            background-color: #fed7aa;
+            color: #9a3412;
+        }
+
+        .status-in-transit {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-delivered {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .status-cancelled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle Menu">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeMobileMenu()"></div>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="flex items-center gap-3">
+                <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-auto" id="companyLogo"
+                    onerror="this.style.display='none'; document.getElementById('companyLogoFallback').style.display='flex';">
+                <div class="w-12 h-12 bg-white rounded hidden items-center justify-center text-lg font-semibold text-gray-800"
+                    id="companyLogoFallback">ATS</div>
+                <div>
+                    <h2 class="m-0 text-lg font-semibold text-white" id="companyName">ATS
+                        FREIGHT LLC</h2>
+                    <p class="mt-1 text-xs text-white/80">Transportation
+                        Management System</p>
+                </div>
+            </div>
+
+            <nav>
+                <a href="index.html" class="sidebar-item active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+                <a href="loads.html" class="sidebar-item">
+                    <i class="fas fa-truck"></i>
+                    Loads
+                </a>
+                <a href="drivers.html" class="sidebar-item">
+                    <i class="fas fa-users"></i>
+                    Drivers
+                </a>
+                <a href="fleet.html" class="sidebar-item">
+                    <i class="fas fa-truck-monster"></i>
+                    Fleet
+                </a>
+                <a href="customers.html" class="sidebar-item">
+                    <i class="fas fa-building"></i>
+                    Customers
+                </a>
+                <a href="expenses.html" class="sidebar-item">
+                    <i class="fas fa-receipt"></i>
+                    Expenses
+                </a>
+                <a href="invoices.html" class="sidebar-item">
+                    <i class="fas fa-file-invoice"></i>
+                    Invoices
+                </a>
+                <a href="settlements.html" class="sidebar-item">
+                    <i class="fas fa-calculator"></i>
+                    Settlements
+                </a>
+                <a href="reports.html" class="sidebar-item">
+                    <i class="fas fa-chart-bar"></i>
+                    Reports
+                </a>
+                <a href="import.html" class="sidebar-item">
+                    <i class="fas fa-upload"></i>
+                    Import
+                </a>
+                <a href="settings.html" class="sidebar-item">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+            </nav>
+        </div>
+
+        <div class="absolute bottom-6 left-5 right-5">
+            <button onclick="CompanySettings.openModal()" class="sidebar-item w-full">
+                <i class="fas fa-cog"></i>
+                Company Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <div class="bg-white border-b border-gray-200 px-6 py-4 -mx-6 -mt-6 mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="m-0 text-xl font-semibold text-gray-900">Dashboard</h1>
+                    <p class="mt-1 text-sm text-gray-500">Transportation Management System</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-gray-500">Welcome, Admin</span>
+                    <button onclick="logout()" class="btn btn-secondary px-3 py-1.5 text-sm">
+                        <i class="fas fa-sign-out-alt mr-1.5"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Dashboard Header -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Dashboard Overview</h2>
+                <p class="text-gray-600 mt-2">Real-time insights into your trucking operations</p>
+            </div>
+
+            <!-- Compliance Alerts -->
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 hidden" id="complianceAlerts">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-red-800 mb-2 flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Upcoming Expirations (Next 30 Days)
+                        </h3>
+                        <ul id="expirationList" class="text-sm text-red-700 space-y-1"></ul>
+                    </div>
+                    <button onclick="document.getElementById('complianceAlerts').classList.add('hidden')"
+                        class="text-red-600 hover:text-red-800 ml-4" aria-label="Close Alerts">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div onclick="navigateTo('loads.html')"
+                    class="metric-card bg-white rounded-lg p-6 card-shadow cursor-pointer hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-truck text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Active Loads</dt>
+                                <dd class="text-2xl font-semibold text-gray-900" id="activeLoadsCount">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-green-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            +12% from last week
+                        </div>
+                    </div>
+                </div>
+
+                <div onclick="navigateToMonthlyLoads()"
+                    class="metric-card bg-white rounded-lg p-6 card-shadow cursor-pointer hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-dollar-sign text-green-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate" id="revenueLabel">Revenue This
+                                    Month
+                                </dt>
+                                <dd class="text-2xl font-semibold text-gray-900" id="weeklyRevenue">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-green-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            +8% from last week
+                        </div>
+                    </div>
+                </div>
+
+                <div onclick="navigateToActiveDrivers()"
+                    class="metric-card bg-white rounded-lg p-6 card-shadow cursor-pointer hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-users text-yellow-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Active Drivers</dt>
+                                <dd class="text-2xl font-semibold text-gray-900" id="activeDriversCount">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-minus mr-1"></i>
+                            No change
+                        </div>
+                    </div>
+                </div>
+
+                <div onclick="navigateTo('reports.html')"
+                    class="metric-card bg-white rounded-lg p-6 card-shadow cursor-pointer hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-route text-purple-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Miles This Month</dt>
+                                <dd class="text-2xl font-semibold text-gray-900" id="monthlyMiles">-</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex items-center text-sm text-blue-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            +15% from last month
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Analytics -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Revenue Chart -->
+                <div class="card">
+                    <h3 class="card-title mb-4">Revenue Trends</h3>
+                    <div id="revenueChart" class="h-64"></div>
+                </div>
+
+                <!-- Load Status Chart -->
+                <div class="card">
+                    <h3 class="card-title mb-4">Load Status Distribution</h3>
+                    <div id="loadStatusChart" class="h-64"></div>
+                </div>
+            </div>
+
+            <!-- Recent Loads and Quick Actions -->
+            <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+                <!-- Recent Loads -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="flex justify-between items-center">
+                            <h3 class="card-title m-0">Recent Loads</h3>
+                            <button onclick="navigateTo('loads.html')" class="btn btn-secondary px-3 py-1 text-xs">
+                                View All
+                            </button>
+                        </div>
+                    </div>
+                    <div id="recentLoadsContainer">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title m-0">Quick Actions</h3>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        <button onclick="navigateTo('loads.html')" class="btn btn-primary w-full">
+                            <i class="fas fa-plus mr-2"></i>
+                            Create New Load
+                        </button>
+
+                        <button onclick="navigateTo('drivers.html')" class="btn btn-success w-full">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Add Driver
+                        </button>
+
+                        <button onclick="navigateTo('customers.html')" class="btn btn-secondary w-full">
+                            <i class="fas fa-building mr-2"></i>
+                            Add Customer
+                        </button>
+
+                        <button onclick="populateMockData()"
+                            class="btn btn-secondary w-full bg-gray-500 border-gray-500 text-white hover:bg-gray-600 hover:border-gray-600">
+                            <i class="fas fa-database mr-2"></i>
+                            Populate Mock Data
+                        </button>
+
+                        <button onclick="navigateTo('expenses.html')"
+                            class="w-full flex items-center justify-center px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                            <i class="fas fa-receipt mr-2"></i>
+                            Record Expense
+                        </button>
+
+                        <button onclick="navigateTo('settlements.html')"
+                            class="w-full flex items-center justify-center px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                            <i class="fas fa-calculator mr-2"></i>
+                            Driver Settlement
+                        </button>
+
+                        <button onclick="navigateTo('ifta.html')"
+                            class="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="fas fa-file-invoice-dollar mr-2"></i>
+                            IFTA Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 py-8 border-t border-gray-200">
+            <div class="text-center">
+                <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
+                <p class="text-sm text-gray-500 mt-1">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT
+                    3169186</p>
+                <p class="text-sm text-gray-500 mt-2">Professional Transportation Management System</p>
+            </div>
+        </footer>
+    </div>
+    </div>
+
+    <!-- Company Settings Modal -->
+    <div id="companyModal"
+        class="modal hidden fixed z-[1000] left-0 top-0 w-full h-full bg-black/50 items-center justify-center">
+        <div class="modal-content bg-white m-auto p-0 rounded-xl w-[90%] max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold">Company Settings</h3>
+                    <button onclick="closeCompanyModal()" class="text-white hover:text-gray-200"
+                        aria-label="Close Modal">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <form id="companyForm" class="space-y-6">
+                    <div>
+                        <label for="companyNameInput" class="block text-sm font-medium text-gray-700 mb-2">Company
+                            Name</label>
+                        <input type="text" id="companyNameInput" value="ATS FREIGHT LLC"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                            <input type="tel" id="companyPhone" placeholder="(555) 123-4567"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" id="companyEmail" placeholder="dispatch@company.com"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="companyAddress" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <textarea id="companyAddress" rows="3" placeholder="123 Main St, City, State 12345"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="companyLogoText" class="block text-sm font-medium text-gray-700 mb-2">Company Logo
+                            Text (2
+                            letters)</label>
+                        <input type="text" id="companyLogoText" value="ST" maxlength="2"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+
+                    <div class="border-t pt-6 flex justify-end space-x-4">
+                        <button type="button" onclick="closeCompanyModal()"
+                            class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="button" onclick="saveCompanySettings()"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script src="data-stability.js"></script>
+    <script src="main.js"></script>
+    <script src="expense-ledger-utils.js"></script>
+    <script src="mobile-menu.js"></script>
+    <!-- Mock Data Population Script (Remove in production) -->
+    <script src="populate-mock-data.js"></script>
+    <script>
+        // Navigation functions
+        function navigateToMonthlyLoads() {
+            // Store filter in localStorage to apply when loads page loads
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0, 0, 0, 0);
+            localStorage.setItem('loadsFilter', JSON.stringify({
+                dateFrom: startOfMonth.toISOString(),
+                dateTo: new Date().toISOString(),
+                status: 'all' // Show all loads from this month
+            }));
+            window.location.href = 'loads.html';
+        }
+
+        function navigateToActiveDrivers() {
+            // Store filter in localStorage to apply when drivers page loads
+            localStorage.setItem('driversFilter', JSON.stringify({
+                status: 'active'
+            }));
+            window.location.href = 'drivers.html';
+        }
+
+        // Compliance alerts renderer
+        window.renderComplianceAlerts = (alerts) => {
+            const box = document.getElementById('complianceAlerts');
+            const list = document.getElementById('expirationList');
+
+            if (!box || !list) return;
+
+            // Group alerts by urgency
+            const expired = alerts.filter(a => a.days < 0);
+            const expiring = alerts.filter(a => a.days >= 0 && a.days <= 7);
+            const upcoming = alerts.filter(a => a.days > 7);
+
+            let html = '';
+
+            if (expired.length > 0) {
+                html += '<div class="font-bold text-red-900 mb-2">⚠️ EXPIRED:</div>';
+                html += expired.map(a => `<li class="font-semibold">• ${a.message}</li>`).join('');
+            }
+
+            if (expiring.length > 0) {
+                if (html) html += '<div class="mt-3"></div>';
+                html += '<div class="font-semibold text-red-800 mb-2">⚠️ Expiring This Week:</div>';
+                html += expiring.map(a => `<li>• ${a.message}</li>`).join('');
+            }
+
+            if (upcoming.length > 0) {
+                if (html) html += '<div class="mt-3"></div>';
+                html += '<div class="font-medium text-red-700 mb-2">📅 Upcoming:</div>';
+                html += upcoming.map(a => `<li>• ${a.message}</li>`).join('');
+            }
+
+            list.innerHTML = html;
+            box.classList.remove('hidden');
+        };
+
+        // Initialize dashboard charts
+        document.addEventListener('DOMContentLoaded', function () {
+            DataManager.init().then(() => {
+                updateDashboard();
+                // Check for expirations after data is loaded
+                checkExpirations();
+            });
+        });
+
+        function updateDashboard() {
+            console.log('Updating Dashboard...');
+
+            // 1. Update Metrics
+            const activeLoads = DataManager.loads.filter(l => ['dispatched', 'in_transit', 'picked_up'].includes((l.status || '').toLowerCase()));
+            document.getElementById('activeLoadsCount').textContent = activeLoads.length;
+
+            // Count Active Drivers - check status field (case-insensitive)
+            const activeDrivers = DataManager.drivers.filter(d => {
+                if (!d) return false;
+
+                // Get status from driver object (check multiple possible locations)
+                const status = (d.status || d.employment?.status || '').toString().toLowerCase().trim();
+
+                // If status is explicitly 'active', count it
+                if (status === 'active') return true;
+
+                // If status is explicitly 'inactive' or 'terminated', don't count it
+                if (status === 'inactive' || status === 'terminated' || status === 'on_leave') return false;
+
+                // If no status field exists but driver has basic info, count as active (default)
+                if (!status && (d.firstName || d.driverNumber)) return true;
+
+                return false;
+            });
+
+            console.log(`Active Drivers: ${activeDrivers.length} out of ${DataManager.drivers.length} total`);
+            console.log('Driver statuses:', DataManager.drivers.map(d => ({
+                name: `${d.firstName} ${d.lastName}`,
+                status: d.status || 'no status'
+            })));
+
+            document.getElementById('activeDriversCount').textContent = activeDrivers.length;
+
+            // Calculate Revenue This Month (aligned with Miles This Month)
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0, 0, 0, 0);
+
+            const monthlyRevenue = DataManager.loads
+                .filter(l => {
+                    const date = new Date(l.delivery?.date || l.updatedAt || l.createdAt);
+                    const status = (l.status || '').toLowerCase();
+                    return date >= startOfMonth && (status === 'delivered' || status === 'completed');
+                })
+                .reduce((sum, l) => sum + (parseFloat(l.companyRevenue || l.rate?.total) || 0), 0);
+            document.getElementById('weeklyRevenue').textContent = Utils.formatCurrency(monthlyRevenue);
+            // Update label to match logic
+            document.getElementById('revenueLabel').textContent = 'Revenue This Month';
+
+            // Calculate monthly miles
+            const monthlyMiles = DataManager.loads
+                .filter(l => {
+                    const date = new Date(l.delivery?.date || l.updatedAt || l.createdAt);
+                    const status = (l.status || '').toLowerCase();
+                    return date >= startOfMonth && (status === 'delivered' || status === 'completed');
+                })
+                .reduce((sum, l) => sum + (parseFloat(l.mileage?.total || l.totalMiles) || 0), 0);
+            document.getElementById('monthlyMiles').textContent = monthlyMiles.toLocaleString();
+
+            // 2. Update Recent Loads
+            const recentContainer = document.getElementById('recentLoadsContainer');
+            recentContainer.innerHTML = '';
+
+            const sortedLoads = [...DataManager.loads]
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 5);
+
+            sortedLoads.forEach(load => {
+                const statusColors = {
+                    'available': 'bg-gray-400',
+                    'dispatched': 'bg-yellow-500',
+                    'in_transit': 'bg-blue-500',
+                    'delivered': 'bg-green-500',
+                    'cancelled': 'bg-red-500'
+                };
+                const color = statusColors[load.status] || 'bg-gray-400';
+
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg';
+                div.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <div class="w-3 h-3 ${color} rounded-full"></div>
+                        <div>
+                            <p class="font-medium text-gray-900">${load.loadNumber}</p>
+                            <p class="text-sm text-gray-600">${load.pickup?.city || 'Unknown'}, ${load.pickup?.state || ''} → ${load.delivery?.city || 'Unknown'}, ${load.delivery?.state || ''}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-medium text-gray-900">${Utils.formatCurrency(load.companyRevenue || load.rate?.total || 0)}</p>
+                        <p class="text-sm text-gray-600 capitalize">${(load.status || '').replace('_', ' ')}</p>
+                    </div>
+                `;
+                recentContainer.appendChild(div);
+            });
+
+            // 3. Update Charts
+            updateCharts();
+        }
+
+        function updateCharts() {
+            // Revenue Chart Data (Monthly)
+            const monthlyRevenue = Array(6).fill(0);
+            const months = [];
+            const today = new Date();
+
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                months.push(d.toLocaleString('default', { month: 'short' }));
+            }
+
+            // Use DataManager.loads instead of invoices
+            DataManager.loads.forEach(l => {
+                const status = (l.status || '').toLowerCase();
+                if (status === 'delivered' || status === 'completed') {
+                    const d = new Date(l.delivery?.date || l.updatedAt || l.createdAt);
+                    const monthDiff = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
+                    if (monthDiff >= 0 && monthDiff < 6) {
+                        monthlyRevenue[5 - monthDiff] += (parseFloat(l.companyRevenue || l.rate?.total) || 0);
+                    }
+                }
+            });
+
+            const revenueData = {
+                x: months,
+                y: monthlyRevenue,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#3b82f6', width: 3 },
+                marker: { color: '#3b82f6', size: 8 }
+            };
+
+            const revenueLayout = {
+                margin: { t: 20, r: 20, b: 40, l: 60 },
+                xaxis: { title: 'Month' },
+                yaxis: { title: 'Revenue ($)' },
+                showlegend: false,
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot('revenueChart', [revenueData], revenueLayout, { responsive: true, displayModeBar: false });
+
+            // Load Status Chart
+            const statusCounts = {
+                'available': 0,
+                'dispatched': 0,
+                'in_transit': 0,
+                'delivered': 0,
+                'cancelled': 0
+            };
+
+            DataManager.loads.forEach(l => {
+                const s = l.status.toLowerCase();
+                if (statusCounts[s] !== undefined) statusCounts[s]++;
+                else if (s === 'completed') statusCounts['delivered']++;
+                else if (s === 'pending') statusCounts['available']++;
+            });
+
+            const loadStatusData = [{
+                values: [
+                    statusCounts['available'],
+                    statusCounts['dispatched'],
+                    statusCounts['in_transit'],
+                    statusCounts['delivered'],
+                    statusCounts['cancelled']
+                ],
+                labels: ['Available', 'Dispatched', 'In Transit', 'Delivered', 'Cancelled'],
+                type: 'pie',
+                marker: {
+                    colors: ['#6b7280', '#f59e0b', '#3b82f6', '#10b981', '#ef4444']
+                },
+                textinfo: 'label+percent',
+                textposition: 'outside'
+            }];
+
+            const loadStatusLayout = {
+                margin: { t: 20, r: 20, b: 20, l: 20 },
+                showlegend: false,
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot('loadStatusChart', loadStatusData, loadStatusLayout, { responsive: true, displayModeBar: false });
+        }
+
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        function openCompanySettings() {
+            document.getElementById('companyModal').style.display = 'flex';
+        }
+
+        function closeCompanyModal() {
+            document.getElementById('companyModal').style.display = 'none';
+        }
+
+        function saveCompanySettings() {
+            const companyName = document.getElementById('companyNameInput').value;
+            const logoText = document.getElementById('companyLogoText').value;
+
+            // Update company name throughout the application
+            document.getElementById('companyName').textContent = companyName;
+            document.querySelector('.main-content .gradient-bg h1').textContent = companyName;
+
+            // Update logo
+            document.getElementById('companyLogo').textContent = logoText.toUpperCase();
+
+            // Save to localStorage for persistence
+            localStorage.setItem('companyName', companyName);
+            localStorage.setItem('companyLogo', logoText.toUpperCase());
+
+            Utils.showNotification('Company settings saved successfully!', 'success');
+            closeCompanyModal();
+        }
+
+        // Load saved company settings
+        window.addEventListener('load', function () {
+            const savedName = localStorage.getItem('companyName');
+            const savedLogo = localStorage.getItem('companyLogo');
+
+            if (savedName) {
+                document.getElementById('companyName').textContent = savedName;
+                document.querySelector('.main-content .gradient-bg h1').textContent = savedName;
+                document.getElementById('companyNameInput').value = savedName;
+            }
+
+            if (savedLogo) {
+                document.getElementById('companyLogo').textContent = savedLogo;
+                document.getElementById('companyLogoText').value = savedLogo;
+            }
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('companyModal');
+            if (event.target === modal) {
+                closeCompanyModal();
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify Ledger System</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .info { color: blue; }
+        .loading { color: orange; }
+    </style>
+</head>
+<body>
+    <h1>Expense Ledger System Verification</h1>
+    <div id="results">
+        <div class="loading">Loading scripts...</div>
+    </div>
+    
+    <!-- Load scripts FIRST -->
+    <script src="expense-ledger-utils.js"></script>
+    <script src="main.js"></script>
+    
+    <!-- Then run checks AFTER scripts load -->
+    <script>
+        // Wait for scripts to load
+        window.addEventListener('DOMContentLoaded', function() {
+            // Give scripts a moment to execute
+            setTimeout(runChecks, 100);
+        });
+        
+        function runChecks() {
+            const results = document.getElementById('results');
+            results.innerHTML = ''; // Clear loading message
+            
+            function check(name, condition, message) {
+                const div = document.createElement('div');
+                div.style.marginBottom = '10px';
+                div.innerHTML = `<strong>${name}:</strong> <span class="${condition ? 'success' : 'error'}">${condition ? '✓' : '✗'}</span> ${message}`;
+                results.appendChild(div);
+                return condition;
+            }
+            
+            // Check 1: Files loaded
+            const ledgerLoaded = typeof ExpenseLedger !== 'undefined';
+            check('expense-ledger-utils.js', ledgerLoaded, 
+                ledgerLoaded ? 'Loaded successfully' : 'NOT LOADED - Check script tag and file path');
+            
+            const mainLoaded = typeof DataManager !== 'undefined';
+            check('main.js (DataManager)', mainLoaded, 
+                mainLoaded ? 'Loaded successfully' : 'NOT LOADED');
+            
+            const calcLoaded = typeof calculateSettlementTotal === 'function';
+            check('calculateSettlementTotal function', calcLoaded, 
+                calcLoaded ? 'Function exists' : 'Function not found');
+            
+            // Check 2: Functions exist
+            if (ledgerLoaded) {
+                check('getActiveExpenses', typeof ExpenseLedger.getActiveExpenses === 'function', 'Function exists');
+                check('calculateDeduction', typeof ExpenseLedger.calculateDeduction === 'function', 'Function exists');
+                check('updateLedgers', typeof ExpenseLedger.updateLedgers === 'function', 'Function exists');
+                
+                // Check 3: Test calculation
+                try {
+                    const testResult = ExpenseLedger.calculateDeduction('test-driver-id', 1000, []);
+                    check('calculateDeduction works', testResult && testResult.deductionAmount !== undefined, 
+                        `Returns: ${JSON.stringify(testResult)}`);
+                } catch (e) {
+                    check('calculateDeduction works', false, `Error: ${e.message}`);
+                }
+            } else {
+                check('ExpenseLedger functions', false, 'Cannot check - ExpenseLedger not loaded');
+            }
+            
+            // Summary
+            const allChecks = Array.from(results.querySelectorAll('div'));
+            const passed = allChecks.filter(d => d.innerHTML.includes('✓')).length;
+            const total = allChecks.length;
+            
+            const summary = document.createElement('div');
+            summary.style.marginTop = '20px';
+            summary.style.padding = '15px';
+            summary.style.borderRadius = '5px';
+            summary.style.backgroundColor = passed === total ? '#d4edda' : '#f8d7da';
+            summary.style.border = `2px solid ${passed === total ? '#28a745' : '#dc3545'}`;
+            summary.innerHTML = `<strong style="font-size: 18px;">Summary: ${passed}/${total} checks passed</strong>`;
+            results.appendChild(summary);
+            
+            // Additional info
+            if (!ledgerLoaded) {
+                const info = document.createElement('div');
+                info.style.marginTop = '20px';
+                info.style.padding = '10px';
+                info.style.backgroundColor = '#fff3cd';
+                info.style.border = '1px solid #ffc107';
+                info.innerHTML = `
+                    <strong>Debugging Info:</strong><br>
+                    - Check browser console (F12) for script loading errors<br>
+                    - Verify expense-ledger-utils.js exists in the same directory<br>
+                    - Check Network tab to see if script is being loaded<br>
+                    - Make sure you're accessing via http://localhost:8000 (not file://)
+                `;
+                results.appendChild(info);
+            }
+        }
+    </script>
+</body>
+</html>
+

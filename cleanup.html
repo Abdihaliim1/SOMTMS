@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Cleanup - ATS FREIGHT LLC</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-trash-alt text-red-600 text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Final System Cleanup</h1>
+            <p class="text-gray-600">Delete all mock/test data before going live</p>
+        </div>
+
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-red-600 mt-1 mr-2"></i>
+                <div>
+                    <p class="text-sm font-medium text-red-800">⚠️ WARNING</p>
+                    <p class="text-xs text-red-600 mt-1">This will permanently delete ALL data in the system including drivers, trucks, loads, expenses, settlements, invoices, and customers.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <button onclick="runCleanup()" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors">
+                <i class="fas fa-trash-alt mr-2"></i>
+                DELETE ALL MOCK DATA
+            </button>
+            
+            <a href="index.html" class="block w-full bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium text-center transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to Dashboard
+            </a>
+        </div>
+
+        <div id="status" class="mt-6 text-center text-sm text-gray-600"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="main.js"></script>
+    <script src="cleanup-mock-data.js"></script>
+
+    <script>
+        async function runCleanup() {
+            const confirmed = confirm(
+                '⚠️ FINAL WARNING ⚠️\n\n' +
+                'This will DELETE ALL DATA in the system!\n\n' +
+                'This includes:\n' +
+                '• All drivers\n' +
+                '• All trucks\n' +
+                '• All loads\n' +
+                '• All expenses\n' +
+                '• All settlements\n' +
+                '• All invoices\n' +
+                '• All customers\n\n' +
+                'This action CANNOT be undone!\n\n' +
+                'Type "DELETE" to confirm:'
+            );
+
+            if (!confirmed) return;
+
+            const doubleConfirm = prompt('Type "DELETE" to confirm:');
+            if (doubleConfirm !== 'DELETE') {
+                alert('Cleanup cancelled.');
+                return;
+            }
+
+            document.getElementById('status').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Cleaning up data...';
+            
+            try {
+                await cleanupMockData();
+                document.getElementById('status').innerHTML = '<i class="fas fa-check text-green-600 mr-2"></i>Cleanup complete! System is ready for live data.';
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000);
+            } catch (error) {
+                document.getElementById('status').innerHTML = '<i class="fas fa-times text-red-600 mr-2"></i>Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

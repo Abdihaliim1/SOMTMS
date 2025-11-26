@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - ATS FREIGHT LLC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar { width: 250px; background-color: #1f2937; }
+        .sidebar-item:hover { background-color: rgba(255,255,255,0.1); }
+        .sidebar-item.active { background-color: rgba(255,255,255,0.1); border-left: 4px solid #ffffff; }
+        .main-content { margin-left: 250px; }
+        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
+        .loading-spinner { border: 4px solid #f3f4f6; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .metric-card { transition: transform 0.2s ease-in-out; }
+        .metric-card:hover { transform: translateY(-2px); }
+        .tab-button { transition: all 0.2s ease; }
+        .tab-button.active { border-bottom-color: #3b82f6; color: #3b82f6; }
+        .chart-container { min-height: 300px; }
+        @media print {
+            .sidebar, .no-print { display: none !important; }
+            .main-content { margin-left: 0 !important; }
+            body { background: white; }
+            .card-shadow { box-shadow: none; border: 1px solid #e5e7eb; }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div class="sidebar fixed left-0 top-0 h-full text-white z-50">
+        <div class="p-6">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center text-2xl font-bold text-gray-800">ATS</div>
+                <div>
+                    <h2 class="text-xl font-bold">ATS FREIGHT LLC</h2>
+                    <p class="text-sm opacity-75">TMS</p>
+                </div>
+            </div>
+            <nav class="space-y-2">
+                <a href="index.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-tachometer-alt mr-3 w-5"></i>Dashboard
+                </a>
+                <a href="loads.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-truck mr-3 w-5"></i>Loads
+                </a>
+                <a href="drivers.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-users mr-3 w-5"></i>Drivers
+                </a>
+                <a href="fleet.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-truck-monster mr-3 w-5"></i>Fleet
+                </a>
+                <a href="customers.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-building mr-3 w-5"></i>Customers
+                </a>
+                <a href="expenses.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-receipt mr-3 w-5"></i>Expenses
+                </a>
+                <a href="invoices.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-file-invoice mr-3 w-5"></i>Invoices
+                </a>
+                <a href="settlements.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-calculator mr-3 w-5"></i>Settlements
+                </a>
+                <a href="reports.html" class="sidebar-item active flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-chart-bar mr-3 w-5"></i>Reports
+                </a>
+                <a href="import.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-white hover:bg-opacity-10">
+                    <i class="fas fa-upload mr-3 w-5"></i>Import
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content p-6">
+        <!-- Header -->
+        <div class="bg-white shadow-sm border-b mb-6">
+            <div class="px-6 py-4 flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Business Reports</h1>
+                    <p class="text-gray-600">Real-time P&L, driver & customer analytics</p>
+                </div>
+                <div class="flex space-x-3 no-print">
+                    <select id="reportPeriod" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="week">This Week</option>
+                        <option value="month" selected>This Month</option>
+                        <option value="quarter">This Quarter</option>
+                        <option value="year">This Year</option>
+                        <option value="all_time">All Time</option>
+                    </select>
+                    <button onclick="ReportManager.printReport()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-print mr-2"></i>Print
+                    </button>
+                    <button onclick="ReportManager.exportReport()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Export CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="reportsLoading" class="text-center py-20">
+            <div class="loading-spinner inline-block"></div>
+            <p class="mt-4 text-gray-600 text-lg">Calculating reports...</p>
+        </div>
+
+        <!-- Reports Content -->
+        <div id="reportsContent" class="hidden">
+            <!-- Tabs -->
+            <div class="bg-white border-b mb-6">
+                <div class="px-6">
+                    <nav class="flex space-x-8">
+                        <button onclick="ReportManager.switchTab('overview')" id="overviewTab" 
+                                class="tab-button py-4 px-1 border-b-2 border-blue-600 font-medium text-sm text-blue-600">
+                            Overview
+                        </button>
+                        <button onclick="ReportManager.switchTab('revenue')" id="revenueTab" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
+                            Revenue
+                        </button>
+                        <button onclick="ReportManager.switchTab('expenses')" id="expensesTab" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
+                            Expenses
+                        </button>
+                        <button onclick="ReportManager.switchTab('drivers')" id="driversTab" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
+                            Drivers
+                        </button>
+                        <button onclick="ReportManager.switchTab('customers')" id="customersTab" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
+                            Customers
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Overview Tab -->
+                <div id="overviewContent" class="tab-content">
+                    <!-- Key Metrics -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-white rounded-lg p-6 card-shadow metric-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total Revenue</p>
+                                    <p class="text-2xl font-bold text-green-600" id="totalRevenue">$0</p>
+                                    <div id="driverPayWarning" class="hidden mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                                        <i class="fas fa-info-circle mr-2"></i>Driver pay is estimated from loads (no settlements found). Create settlements for accurate amounts.
+                                    </div>
+                                </div>
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg p-6 card-shadow metric-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total Miles</p>
+                                    <p class="text-2xl font-bold text-blue-600" id="totalMiles">0</p>
+                                    <p class="text-sm text-gray-500">+12.5% from last month</p>
+                                </div>
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-road text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg p-6 card-shadow metric-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Loads Completed</p>
+                                    <p class="text-2xl font-bold text-purple-600" id="loadsCompleted">0</p>
+                                    <p class="text-sm text-gray-500">This period</p>
+                                </div>
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-truck text-purple-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg p-6 card-shadow metric-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Net Profit</p>
+                                    <p class="text-2xl font-bold" id="netProfit">$0</p>
+                                    <p class="text-sm text-gray-500"><span id="profitMargin">0%</span> margin</p>
+                                </div>
+                                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-orange-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profit Breakdown -->
+                    <div class="bg-white rounded-lg p-6 card-shadow mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Profit Breakdown</h3>
+                        
+                        <div class="space-y-4">
+                            <!-- Total Revenue -->
+                            <div class="border-b border-gray-200 pb-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-lg font-medium text-gray-900">Total Revenue</span>
+                                    <span class="text-2xl font-bold text-green-600" id="breakdownRevenue">$31,300.00</span>
+                                </div>
+                                <div class="ml-4 space-y-1 text-sm text-gray-600">
+                                    <div class="flex justify-between">
+                                        <span>Company Driver Loads</span>
+                                        <span id="breakdownCompanyRevenue">$14,700.00</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Owner Operator Loads</span>
+                                        <span id="breakdownOwnerOperatorRevenue">$16,600.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total Expenses -->
+                            <div class="border-b border-gray-200 pb-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-lg font-medium text-gray-900">Total Expenses</span>
+                                    <span class="text-2xl font-bold text-red-600" id="breakdownExpenses">$16,854.00</span>
+                                </div>
+                                <div class="ml-4 space-y-1 text-sm text-gray-600">
+                                    <div class="flex justify-between">
+                                        <span>Fuel</span>
+                                        <span id="breakdownFuel">$13,960.00</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Insurance</span>
+                                        <span id="breakdownInsurance">$2,369.00</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Maintenance</span>
+                                        <span id="breakdownMaintenance">$280.00</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Truck Payments (Leases/Loans)</span>
+                                        <span id="breakdownTruckPayments">$0.00</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Fixed Expenses</span>
+                                        <span id="breakdownFixedExpenses">$0.00</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Other</span>
+                                        <span id="breakdownOther">$245.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Driver Pay -->
+                            <div class="border-b border-gray-200 pb-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-lg font-medium text-gray-900">Driver Pay</span>
+                                    <span class="text-2xl font-bold text-red-600" id="breakdownDriverPay">-$608.00</span>
+                                </div>
+                                <div class="ml-4 space-y-1 text-sm text-gray-600">
+                                    <div class="flex justify-between">
+                                        <span>Company Drivers</span>
+                                        <span id="breakdownDriverPayCompany">$0.00</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Owner Operators</span>
+                                        <span id="breakdownDriverPayOO">-$608.00</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Owner (as Driver)</span>
+                                        <span id="breakdownDriverPayOwner">$0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Net Profit -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xl font-bold text-gray-900">Net Profit</span>
+                                    <span id="breakdownNetProfit" class="text-3xl font-bold text-green-600">$15,054.00</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">Owner gets this as distribution (salary already in driver pay)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-lg p-6 card-shadow">
+                            <h3 class="text-lg font-semibold mb-4">Revenue Trend</h3>
+                            <div id="revenueChart" class="chart-container"></div>
+                        </div>
+                        <div class="bg-white rounded-lg p-6 card-shadow">
+                            <h3 class="text-lg font-semibold mb-4">Expense Breakdown</h3>
+                            <div id="expenseChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue Tab -->
+                <div id="revenueContent" class="tab-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white rounded-lg p-6 card-shadow">
+                            <h3 class="text-lg font-semibold mb-4">Monthly Revenue</h3>
+                            <div id="monthlyRevenueChart" class="chart-container"></div>
+                        </div>
+                        <div class="bg-white rounded-lg p-6 card-shadow">
+                            <h3 class="text-lg font-semibold mb-4">Revenue by Driver Type</h3>
+                            <div id="driverTypeRevenueChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <h3 class="text-lg font-semibold mb-4">Revenue Details</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loads</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Miles</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate/Mile</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="revenueTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expenses Tab -->
+                <div id="expensesContent" class="tab-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white rounded-lg p-6 card-shadow">
+                            <h3 class="text-lg font-semibold mb-4">Monthly Expenses</h3>
+                            <div id="monthlyExpensesChart" class="chart-container"></div>
+                        </div>
+                        <div class="bg-white rounded-lg p-6 card-shadow">
+                            <h3 class="text-lg font-semibold mb-4">Expense Categories</h3>
+                            <div id="expenseCategoriesChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <h3 class="text-lg font-semibold mb-4">Expense Details</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% of Total</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expensesTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drivers Tab -->
+                <div id="driversContent" class="tab-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white rounded-lg p-6 card-shadow">
+                            <h3 class="text-lg font-semibold mb-4">Driver Performance</h3>
+                            <div id="driverPerformanceChart" class="chart-container"></div>
+                        </div>
+                        <div class="bg-white rounded-lg p-6 card-shadow">
+                            <h3 class="text-lg font-semibold mb-4">Driver Efficiency</h3>
+                            <div id="driverEfficiencyChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <h3 class="text-lg font-semibold mb-4">Driver Statistics</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loads</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Miles</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate/Mile</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="driversTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customers Tab -->
+                <div id="customersContent" class="tab-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white rounded-lg p-6 card-shadow">
+                            <h3 class="text-lg font-semibold mb-4">Top Customers</h3>
+                            <div id="topCustomersChart" class="chart-container"></div>
+                        </div>
+                        <div class="bg-white rounded-lg p-6 card-shadow">
+                            <h3 class="text-lg font-semibold mb-4">Customer Growth</h3>
+                            <div id="customerGrowthChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-6 card-shadow">
+                        <h3 class="text-lg font-semibold mb-4">Customer Analysis</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loads</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Rate</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Load</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customersTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="main.js"></script>
+    <script src="populate-mock-data.js"></script>
+
+    <script>
+        const ReportManager = {
+            data: null,
+            currentTab: 'overview',
+
+            async init() {
+                document.getElementById('reportsLoading').classList.remove('hidden');
+                document.getElementById('reportsContent').classList.add('hidden');
+                
+                await DataManager.waitForLoad();
+                await this.refreshData();
+                
+                document.getElementById('reportsLoading').classList.add('hidden');
+                document.getElementById('reportsContent').classList.remove('hidden');
+                
+                this.switchTab('overview');
+                
+                // Event listeners
+                document.getElementById('reportPeriod').addEventListener('change', () => this.refreshData());
+            },
+
+            async refreshData() {
+                console.log('[Reports] Refreshing data...');
+                this.calculateAll();
+                this.renderCurrentTab();
+            },
+
+            calculateAll() {
+                const loads = DataManager.loads || [];
+                const expenses = DataManager.expenses || [];
+                const settlements = DataManager.settlements || [];
+                const drivers = DataManager.drivers || [];
+                const customers = DataManager.customers || [];
+                
+                const period = document.getElementById('reportPeriod').value;
+                console.log(`[Reports] Calculating for period: ${period}`);
+
+                // Get date range
+                const { startDate, now } = this.getDateRange(period);
+                
+                // Filter data by period
+                let filteredLoads = loads;
+                let filteredExpenses = expenses;
+                let filteredSettlements = settlements;
+
+                if (startDate) {
+                    const expensesBeforeFilter = expenses.length;
+                    filteredExpenses = expenses.filter(exp => {
+                        const expDate = new Date(exp.date || exp.createdAt);
+                        const inRange = expDate >= startDate && expDate <= now;
+                        return inRange;
+                    });
+                    console.log(`[Reports] Expenses filtered by date: ${expensesBeforeFilter} -> ${filteredExpenses.length} (period: ${period}, startDate: ${startDate?.toISOString()}, now: ${now.toISOString()})`);
+                } else {
+                    console.log(`[Reports] No date filter (all_time), showing all ${expenses.length} expenses`);
+                }
+
+                // Filter settlements by period
+                if (startDate) {
+                    filteredSettlements = settlements.filter(st => {
+                        const stDate = new Date(st.period?.startDate || st.createdAt);
+                        return stDate >= startDate && stDate <= now;
+                    });
+                }
+
+                // 1. Revenue: Break down by driver type
+                const revenueLoads = loads.filter(l => {
+                    const status = (l.status || '').toLowerCase().replace(' ', '_');
+                    return status === 'booked' || status === 'in_transit' || status === 'delivered' ||
+                        status === 'completed' || status === 'dispatched';
+                });
+
+                // Calculate revenue by driver type
+                let companyDriverRevenue = 0;
+                let ownerOperatorRevenue = 0;
+
+                // 1. Total Revenue: Use ACTUAL company revenue (commission for O/O, full for company drivers)
+                // FIX: O/O loads should only count commission (12%), not full load revenue
+                revenueLoads.forEach(load => {
+                    const grossAmount = parseFloat(load.rate?.total || load.rate || 0) || 0;
+                    
+                    if (load.driverId) {
+                        const driver = drivers.find(d => d.id === load.driverId);
+                        if (driver) {
+                            // Use calculateCompanyRevenueSync to get correct revenue
+                            // For O/O: Returns commission (12% of gross)
+                            // For Company/Owner: Returns full gross amount
+                            const companyRevenue = Utils.calculateCompanyRevenueSync(grossAmount, driver);
+                            
+                            if (driver.driverType === 'owner_operator') {
+                                // O/O revenue = commission only (e.g., 12% of $16,600 = $1,992)
+                                ownerOperatorRevenue += companyRevenue;
+                            } else {
+                                // Company driver or owner (driver) - full revenue
+                                companyDriverRevenue += companyRevenue;
+                            }
+                        } else {
+                            // Driver not found, use full revenue (assume company driver)
+                            companyDriverRevenue += grossAmount;
+                        }
+                    } else {
+                        // No driver assigned, use full revenue (assume company driver)
+                        companyDriverRevenue += grossAmount;
+                    }
+                });
+
+                const totalRevenue = companyDriverRevenue + ownerOperatorRevenue;
+
+                // 2. Total Miles: Sum of all miles from booked, in_transit, and delivered loads
+                const totalMiles = revenueLoads.reduce((sum, l) => sum + (parseFloat(l.mileage?.total || l.miles || 0) || 0), 0);
+
+                // 3. Loads Completed: Number of completed/delivered loads only
+                const completedLoads = loads.filter(l => {
+                    const status = (l.status || '').toLowerCase().replace(' ', '_');
+                    return status === 'delivered' || status === 'completed';
+                });
+                const loadsCompleted = completedLoads.length;
+
+                // 4. Driver Pay (Break down by driver type)
+                // FIXED: Use ACTUAL settlement netPay instead of calculating from loads
+                // 
+                // WHY THIS CHANGE:
+                // - Old method: Calculated gross pay (Revenue × 0.88) without subtracting expenses
+                // - Problem: Made it look like company was losing money because expenses weren't deducted
+                // - New method: Sum actual netPay from settlements (already has expenses deducted)
+                //
+                // FALLBACK: If no settlements exist, calculate estimated driver pay from loads
+                // This provides useful P&L data even when settlements haven't been created yet
+                let companyDriverPay = 0;
+                let ownerOperatorPay = 0;
+                let ownerAsDriverPay = 0;
+                let isEstimated = false; // Flag to indicate if using estimated values
+
+                // Sum actual net pay from settlements (this already has expenses deducted)
+                // FIX: Exclude O/O pay - it's their money, not company expense
+                filteredSettlements.forEach(settlement => {
+                    if (!settlement.driverId) return;
+                    
+                    const driver = drivers.find(d => d.id === settlement.driverId);
+                    if (!driver) {
+                        console.warn(`[Reports] Settlement ${settlement.id} has driverId ${settlement.driverId} but driver not found`);
+                        return;
+                    }
+                    
+                    // FIX: Skip Owner Operator settlements - their pay is NOT company expense
+                    // O/O pay is their share of their own loads, not money the company pays out
+                    if (driver.driverType === 'owner_operator') {
+                        console.log(`[Reports] Excluding O/O settlement ${settlement.id} - O/O pay is not company expense`);
+                        return; // Skip O/O settlements
+                    }
+                    
+                    // Get net pay (actual amount paid to driver after all deductions)
+                    // This already includes: gross pay - advances - lumper - expenses - taxes
+                    // FIX: Ensure netPay is never negative (cap at 0)
+                    // If deductions exceeded gross pay, netPay should be 0, not negative
+                    const netPay = Math.max(0, parseFloat(settlement.netPay || 0));
+                    
+                    // Categorize by driver type (O/O already excluded above)
+                    if (driver.driverType === 'owner') {
+                        ownerAsDriverPay += netPay;
+                    } else {
+                        // Company driver
+                        companyDriverPay += netPay;
+                    }
+                });
+
+                // FALLBACK: If no settlements, calculate estimated driver pay from loads
+                // This accounts for expenses that would be deducted
+                if (filteredSettlements.length === 0 && revenueLoads.length > 0) {
+                    isEstimated = true;
+                    console.log(`[Reports] No settlements found, calculating estimated driver pay from loads...`);
+                    
+                    // Get company expenses for deduction calculation
+                    const companyExpenses = filteredExpenses.filter(exp => {
+                        const paidBy = exp.paidBy || 'company';
+                        return paidBy !== 'owner_operator';
+                    });
+                    
+                    // Track expense deductions per expense ID
+                    const expenseDeductionTracker = new Map();
+                    
+                    revenueLoads.forEach(load => {
+                        if (!load.driverId) return;
+                        
+                        const driver = drivers.find(d => d.id === load.driverId);
+                        if (!driver) return;
+                        
+                        const totalRate = parseFloat(load.companyRevenue || load.rate?.total || load.rate || 0) || 0;
+                        const miles = parseFloat(load.mileage?.total || load.miles || 0) || 0;
+                        
+                        // Calculate base pay
+                        let basePay = parseFloat(load.rate?.driverPay) || 0;
+                        if (!basePay && driver.payment) {
+                            if (driver.payment.type === 'percentage') {
+                                let pct = parseFloat(driver.payPercentage) || 0.70;
+                                if (pct > 1) pct = pct / 100;
+                                basePay = totalRate * pct;
+                            } else if (driver.payment.type === 'per_mile') {
+                                const ratePerMile = parseFloat(driver.payment.perMileRate) || 0;
+                                basePay = miles * ratePerMile;
+                            }
+                        }
+                        
+                        // Calculate deductions for owner operators
+                        let deductions = 0;
+                        if (driver.driverType === 'owner_operator') {
+                            const loadExpenses = companyExpenses.filter(exp =>
+                                (exp.loadId === load.id || exp.driverId === load.driverId) &&
+                                exp.paidBy === 'company' &&
+                                exp.deductFromDriver === true
+                            );
+                            
+                            deductions = loadExpenses.reduce((sum, exp) => {
+                                const expenseId = exp.id;
+                                const expenseAmount = parseFloat(exp.amount) || 0;
+                                
+                                if (exp.expenseLedger) {
+                                    const remainingBalance = exp.expenseLedger.remainingBalance || 0;
+                                    if (remainingBalance > 0) {
+                                        const deductionAmount = Math.min(remainingBalance, basePay);
+                                        const alreadyDeducted = expenseDeductionTracker.get(expenseId) || 0;
+                                        expenseDeductionTracker.set(expenseId, alreadyDeducted + deductionAmount);
+                                        return sum + deductionAmount;
+                                    }
+                                    return sum;
+                                } else {
+                                    const alreadyDeducted = expenseDeductionTracker.get(expenseId) || 0;
+                                    if (alreadyDeducted >= expenseAmount) {
+                                        return sum;
+                                    }
+                                    const remainingToDeduct = expenseAmount - alreadyDeducted;
+                                    const deductionAmount = Math.min(remainingToDeduct, basePay);
+                                    expenseDeductionTracker.set(expenseId, alreadyDeducted + deductionAmount);
+                                    return sum + deductionAmount;
+                                }
+                            }, 0);
+                        }
+                        
+                        const finalPay = Math.max(0, basePay - deductions);
+                        
+                        // Categorize by driver type
+                        // FIX: Exclude O/O pay - it's their money, not company expense
+                        if (driver.driverType === 'owner_operator') {
+                            // Skip O/O - their pay is not company expense
+                            console.log(`[Reports] Excluding O/O load ${load.id} - O/O pay is not company expense`);
+                        } else if (driver.driverType === 'owner') {
+                            ownerAsDriverPay += finalPay;
+                        } else {
+                            // Company driver
+                            companyDriverPay += finalPay;
+                        }
+                    });
+                }
+
+                // FIX: O/O pay is excluded - it's their money, not company expense
+                // ownerOperatorPay should always be 0 now (we skip O/O settlements)
+                const totalDriverPay = companyDriverPay + ownerAsDriverPay; // O/O pay excluded
+                
+                // Check if there are loads without settlements (for informational purposes)
+                const settledLoadIds = new Set();
+                filteredSettlements.forEach(s => {
+                    if (s.loadIds && Array.isArray(s.loadIds)) {
+                        s.loadIds.forEach(id => settledLoadIds.add(id));
+                    }
+                });
+                const unsettledLoads = revenueLoads.filter(l => !settledLoadIds.has(l.id));
+
+                const driverPayData = {
+                    company: companyDriverPay,
+                    ownerOperator: ownerOperatorPay,
+                    ownerAsDriver: ownerAsDriverPay,
+                    total: totalDriverPay,
+                    settlementsUsed: filteredSettlements.length,
+                    unsettledLoads: unsettledLoads.length,
+                    isEstimated: isEstimated,
+                };
+
+                // 5. Expenses: Break down by category (only company-paid expenses)
+                const companyExpenses = filteredExpenses.filter(exp => {
+                    const paidBy = exp.paidBy || 'company';
+                    return paidBy !== 'owner_operator';
+                });
+
+                let fuelExpenses = 0;
+                let insuranceExpenses = 0;
+                let maintenanceExpenses = 0;
+                let truckPayments = 0;
+                let fixedExpenses = 0;
+                let otherExpenses = 0;
+
+                // FIX ISSUE 2: Include ALL company-paid expenses in P&L
+                const expensesForPandL = companyExpenses; // Include ALL company expenses
+                
+                console.log(`[Reports] Processing ${expensesForPandL.length} expenses for P&L breakdown`);
+                
+                expensesForPandL.forEach(exp => {
+                    let amount = parseFloat(exp.amount) || 0;
+                    
+                    // For O/O expenses that are deducted from driver pay, use the totalAmount from ledger
+                    if (exp.expenseLedger && exp.driverId) {
+                        const expenseDriver = drivers.find(d => d.id === exp.driverId);
+                        if (expenseDriver && expenseDriver.driverType === 'owner_operator' && exp.deductFromDriver === true) {
+                            // Use totalAmount (what company paid to vendor) for P&L
+                            amount = exp.expenseLedger.totalAmount || amount;
+                        }
+                    }
+                    
+                    const category = exp.category || exp.type || 'other';
+                    const categoryLower = category.toLowerCase();
+                    
+                    if (categoryLower.includes('fuel')) {
+                        fuelExpenses += amount;
+                    } else if (categoryLower.includes('insurance')) {
+                        insuranceExpenses += amount;
+                    } else if (categoryLower.includes('maintenance') || categoryLower.includes('repair')) {
+                        maintenanceExpenses += amount;
+                    } else if (categoryLower.includes('truck') || categoryLower.includes('lease') || categoryLower.includes('loan')) {
+                        truckPayments += amount;
+                    } else if (categoryLower.includes('fixed') || categoryLower.includes('office') || categoryLower.includes('admin')) {
+                        fixedExpenses += amount;
+                    } else {
+                        otherExpenses += amount;
+                    }
+                });
+
+                const totalExpenses = fuelExpenses + insuranceExpenses + maintenanceExpenses + truckPayments + fixedExpenses + otherExpenses;
+
+                // 6. Net Profit = Revenue - Driver Pay - Expenses
+                const netProfit = totalRevenue - totalDriverPay - totalExpenses;
+
+                // 7. Profit Margin = (Net Profit / Revenue) × 100
+                const profitMargin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : 0;
+
+                // 8. Monthly Revenue (Group revenue loads by month - booked, in_transit, delivered)
+                const monthlyRevenue = Array(12).fill(0);
+                const monthlyLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                
+                revenueLoads.forEach(load => {
+                    const loadDate = new Date(load.deliveredAt || load.createdAt);
+                    const month = loadDate.getMonth();
+                    const revenue = parseFloat(load.companyRevenue || load.rate?.total || load.rate || 0) || 0;
+                    monthlyRevenue[month] += revenue;
+                });
+
+                // Store all calculated data
+                this.data = {
+                    // Main metrics
+                    revenue: totalRevenue,
+                    revenueBreakdown: {
+                        companyDriver: companyDriverRevenue,
+                        ownerOperator: ownerOperatorRevenue
+                    },
+                    miles: totalMiles,
+                    loads: loadsCompleted,
+                    driverPay: totalDriverPay,
+                    driverPayBreakdown: {
+                        companyDriver: companyDriverPay,
+                        ownerOperator: ownerOperatorPay,
+                        ownerAsDriver: ownerAsDriverPay
+                    },
+                    driverPayEstimated: isEstimated, // Flag to indicate if driver pay is estimated
+                    totalExpenses: totalExpenses,
+                    expenseBreakdown: {
+                        fuel: fuelExpenses,
+                        insurance: insuranceExpenses,
+                        maintenance: maintenanceExpenses,
+                        truckPayments: truckPayments,
+                        fixedExpenses: fixedExpenses,
+                        other: otherExpenses
+                    },
+                    netProfit: netProfit,
+                    profitMargin: profitMargin,
+                    
+                    // Chart data
+                    monthlyRevenue: {
+                        labels: monthlyLabels,
+                        values: monthlyRevenue
+                    },
+                    
+                    // Raw data for detailed analysis
+                    loads: revenueLoads,
+                    expenses: companyExpenses,
+                    settlements: filteredSettlements,
+                    drivers: drivers,
+                    customers: customers
+                };
+
+                console.log('[Reports] Calculation complete:', {
+                    revenue: totalRevenue,
+                    driverPay: totalDriverPay,
+                    expenses: totalExpenses,
+                    netProfit: netProfit,
+                    isEstimated: isEstimated
+                });
+            },
+
+            getDateRange(period) {
+                const now = new Date();
+                let startDate = null;
+
+                switch (period) {
+                    case 'week':
+                        startDate = new Date(now);
+                        startDate.setDate(now.getDate() - 7);
+                        break;
+                    case 'month':
+                        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                        break;
+                    case 'quarter':
+                        const quarter = Math.floor(now.getMonth() / 3);
+                        startDate = new Date(now.getFullYear(), quarter * 3, 1);
+                        break;
+                    case 'year':
+                        startDate = new Date(now.getFullYear(), 0, 1);
+                        break;
+                    case 'all_time':
+                    default:
+                        startDate = null; // No filter
+                        break;
+                }
+
+                return { startDate, now };
+            },
+
+            switchTab(tab) {
+                this.currentTab = tab;
+                
+                // Update tab buttons
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.className = 'tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700';
+                });
+                document.getElementById(tab + 'Tab').className = 'tab-button py-4 px-1 border-b-2 border-blue-600 font-medium text-sm text-blue-600';
+                
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(tab + 'Content').classList.remove('hidden');
+                
+                this.renderCurrentTab();
+            },
+
+            renderCurrentTab() {
+                if (!this.data) return;
+                
+                switch (this.currentTab) {
+                    case 'overview':
+                        this.renderOverview();
+                        break;
+                    case 'revenue':
+                        this.renderRevenue();
+                        break;
+                    case 'expenses':
+                        this.renderExpenses();
+                        break;
+                    case 'drivers':
+                        this.renderDrivers();
+                        break;
+                    case 'customers':
+                        this.renderCustomers();
+                        break;
+                }
+            },
+
+            renderOverview() {
+                const data = this.data;
+                
+                // Update metrics
+                document.getElementById('totalRevenue').textContent = Utils.formatCurrency(data.revenue);
+                document.getElementById('totalMiles').textContent = data.miles.toLocaleString();
+                document.getElementById('loadsCompleted').textContent = data.loads;
+                document.getElementById('netProfit').textContent = Utils.formatCurrency(data.netProfit);
+                document.getElementById('profitMargin').textContent = data.profitMargin + '%';
+                
+                // Update net profit color
+                const netProfitEl = document.getElementById('netProfit');
+                netProfitEl.className = data.netProfit >= 0 ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600';
+                
+                // Update breakdown
+                const breakdownRevenue = document.getElementById('breakdownRevenue');
+                const breakdownDriverPay = document.getElementById('breakdownDriverPay');
+                const breakdownDriverPayCompany = document.getElementById('breakdownDriverPayCompany');
+                const breakdownDriverPayOO = document.getElementById('breakdownDriverPayOO');
+                const breakdownDriverPayOwner = document.getElementById('breakdownDriverPayOwner');
+                const breakdownNetProfit = document.getElementById('breakdownNetProfit');
+
+                if (breakdownRevenue) breakdownRevenue.textContent = Utils.formatCurrency(ReportManager.data.revenue);
+                if (breakdownDriverPay) {
+                    breakdownDriverPay.textContent = Utils.formatCurrency(ReportManager.data.driverPay);
+                    // Add estimated indicator if driver pay is estimated
+                    if (ReportManager.data.driverPayEstimated) {
+                        breakdownDriverPay.innerHTML = Utils.formatCurrency(ReportManager.data.driverPay) + 
+                            ' <span class="text-xs text-yellow-600 font-normal">(Estimated)</span>';
+                    }
+                }
+                if (breakdownDriverPayCompany) breakdownDriverPayCompany.textContent = Utils.formatCurrency(ReportManager.data.driverPayBreakdown?.companyDriver || 0);
+                if (breakdownDriverPayOO) breakdownDriverPayOO.textContent = Utils.formatCurrency(ReportManager.data.driverPayBreakdown?.ownerOperator || 0);
+                if (breakdownDriverPayOwner) breakdownDriverPayOwner.textContent = Utils.formatCurrency(ReportManager.data.driverPayBreakdown?.ownerAsDriver || 0);
+                
+                // Show warning if driver pay is estimated
+                const driverPayWarning = document.getElementById('driverPayWarning');
+                if (driverPayWarning) {
+                    if (ReportManager.data.driverPayEstimated) {
+                        driverPayWarning.classList.remove('hidden');
+                        driverPayWarning.innerHTML = '<i class="fas fa-info-circle mr-2"></i>Driver pay is estimated from loads (no settlements found). Create settlements for accurate amounts.';
+                    } else {
+                        driverPayWarning.classList.add('hidden');
+                    }
+                }
+
+                // Update expense breakdown
+                document.getElementById('breakdownExpenses').textContent = Utils.formatCurrency(data.totalExpenses);
+                document.getElementById('breakdownFuel').textContent = Utils.formatCurrency(data.expenseBreakdown.fuel);
+                document.getElementById('breakdownInsurance').textContent = Utils.formatCurrency(data.expenseBreakdown.insurance);
+                document.getElementById('breakdownMaintenance').textContent = Utils.formatCurrency(data.expenseBreakdown.maintenance);
+                document.getElementById('breakdownTruckPayments').textContent = Utils.formatCurrency(data.expenseBreakdown.truckPayments);
+                document.getElementById('breakdownFixedExpenses').textContent = Utils.formatCurrency(data.expenseBreakdown.fixedExpenses);
+                document.getElementById('breakdownOther').textContent = Utils.formatCurrency(data.expenseBreakdown.other);
+                
+                // Update net profit in breakdown
+                if (breakdownNetProfit) {
+                    breakdownNetProfit.textContent = Utils.formatCurrency(data.netProfit);
+                    breakdownNetProfit.className = data.netProfit >= 0 ? 'text-3xl font-bold text-green-600' : 'text-3xl font-bold text-red-600';
+                }
+
+                // Update revenue breakdown
+                const breakdownCompanyRevenue = document.getElementById('breakdownCompanyRevenue');
+                const breakdownOwnerOperatorRevenue = document.getElementById('breakdownOwnerOperatorRevenue');
+                if (breakdownCompanyRevenue) breakdownCompanyRevenue.textContent = Utils.formatCurrency(data.revenueBreakdown.companyDriver);
+                if (breakdownOwnerOperatorRevenue) breakdownOwnerOperatorRevenue.textContent = Utils.formatCurrency(data.revenueBreakdown.ownerOperator);
+
+                // Render charts
+                this.renderRevenueChart();
+                this.renderExpenseChart();
+            },
+
+            renderRevenueChart() {
+                const data = this.data.monthlyRevenue;
+                const trace = {
+                    x: data.labels,
+                    y: data.values,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: { color: '#3b82f6', width: 3 },
+                    marker: { color: '#3b82f6', size: 8 }
+                };
+
+                const layout = {
+                    margin: { t: 20, r: 20, b: 40, l: 60 },
+                    xaxis: { title: 'Month' },
+                    yaxis: { title: 'Revenue ($)', tickformat: '$,.0f' },
+                    showlegend: false,
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    paper_bgcolor: 'rgba(0,0,0,0)'
+                };
+
+                Plotly.newPlot('revenueChart', [trace], layout, { responsive: true, displayModeBar: false });
+            },
+
+            renderExpenseChart() {
+                const data = this.data.expenseBreakdown;
+                const labels = ['Fuel', 'Insurance', 'Maintenance', 'Truck Payments', 'Fixed', 'Other'];
+                const values = [data.fuel, data.insurance, data.maintenance, data.truckPayments, data.fixedExpenses, data.other];
+                
+                const trace = {
+                    labels: labels,
+                    values: values,
+                    type: 'pie',
+                    hole: 0.4,
+                    textinfo: 'label+percent',
+                    textposition: 'outside',
+                    marker: {
+                        colors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6']
+                    }
+                };
+
+                const layout = {
+                    margin: { t: 20, r: 20, b: 20, l: 20 },
+                    showlegend: false,
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    paper_bgcolor: 'rgba(0,0,0,0)'
+                };
+
+                Plotly.newPlot('expenseChart', [trace], layout, { responsive: true, displayModeBar: false });
+            },
+
+            renderRevenue() {
+                // Implementation for revenue tab
+                console.log('[Reports] Rendering revenue tab');
+            },
+
+            renderExpenses() {
+                // Implementation for expenses tab
+                console.log('[Reports] Rendering expenses tab');
+            },
+
+            renderDrivers() {
+                // Implementation for drivers tab
+                console.log('[Reports] Rendering drivers tab');
+            },
+
+            renderCustomers() {
+                // Implementation for customers tab
+                console.log('[Reports] Rendering customers tab');
+            },
+
+            printReport() {
+                window.print();
+            },
+
+            exportReport() {
+                if (!this.data) {
+                    Utils.showNotification('No data to export', 'warning');
+                    return;
+                }
+
+                const data = this.data;
+                const formatCSV = (value) => {
+                    if (typeof value === 'number') {
+                        return value.toFixed(2);
+                    }
+                    return String(value || '').replace(/,/g, ';');
+                };
+
+                let csvContent = 'ATS FREIGHT LLC - Business Report\n';
+                csvContent += `Generated: ${new Date().toLocaleString()}\n`;
+                csvContent += `Period: ${document.getElementById('reportPeriod').selectedOptions[0].text}\n\n`;
+
+                // Overview data
+                csvContent += 'OVERVIEW\n';
+                csvContent += 'Metric,Value\n';
+                csvContent += `Total Revenue,$${formatCSV(data.revenue)}\n`;
+                csvContent += `Company Driver Revenue,$${formatCSV(data.revenueBreakdown.companyDriver)}\n`;
+                csvContent += `Owner Operator Revenue,$${formatCSV(data.revenueBreakdown.ownerOperator)}\n`;
+                csvContent += `Total Miles,${formatCSV(data.miles)}\n`;
+                csvContent += `Loads Completed,${data.loads}\n`;
+                csvContent += `Total Driver Pay,$${formatCSV(data.driverPay)}\n`;
+                csvContent += `Company Driver Pay,$${formatCSV(data.driverPayBreakdown.companyDriver)}\n`;
+                csvContent += `Owner Operator Pay,$${formatCSV(data.driverPayBreakdown.ownerOperator)}\n`;
+                csvContent += `Owner as Driver Pay,$${formatCSV(data.driverPayBreakdown.ownerAsDriver)}\n`;
+                csvContent += `Total Expenses,$${formatCSV(data.totalExpenses)}\n`;
+                csvContent += `Fuel Expenses,$${formatCSV(data.expenseBreakdown.fuel)}\n`;
+                csvContent += `Insurance Expenses,$${formatCSV(data.expenseBreakdown.insurance)}\n`;
+                csvContent += `Maintenance Expenses,$${formatCSV(data.expenseBreakdown.maintenance)}\n`;
+                csvContent += `Truck Payments,$${formatCSV(data.expenseBreakdown.truckPayments)}\n`;
+                csvContent += `Fixed Expenses,$${formatCSV(data.expenseBreakdown.fixedExpenses)}\n`;
+                csvContent += `Other Expenses,$${formatCSV(data.expenseBreakdown.other)}\n`;
+                csvContent += `Net Profit,$${formatCSV(data.netProfit)}\n`;
+                csvContent += `Profit Margin,${data.profitMargin}%\n\n`;
+
+                // Driver Pay Breakdown
+                csvContent += 'DRIVER PAY BREAKDOWN\n';
+                csvContent += 'Driver Type,Amount\n';
+                csvContent += `Company Drivers,$${formatCSV(data.driverPayBreakdown.companyDriver)}\n`;
+                csvContent += `Owner Operators,$${formatCSV(data.driverPayBreakdown.ownerOperator)}\n`;
+                csvContent += `Owner as Driver,$${formatCSV(data.driverPayBreakdown.ownerAsDriver)}\n`;
+                csvContent += `Total,$${formatCSV(data.driverPay)}\n`;
+
+                // Create and download file
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `ATS_Business_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                Utils.showNotification('Report exported successfully!', 'success');
+            }
+        };
+
+        // Auto-refresh when data changes
+        window.renderLoads = () => ReportManager.refreshData();
+        window.renderExpenses = () => ReportManager.refreshData();
+        window.renderSettlements = () => ReportManager.refreshData();
+        window.renderDrivers = () => ReportManager.refreshData();
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async () => {
+            await ReportManager.init();
+        });
+    </script>
+</body>
+</html>

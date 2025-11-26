@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispatch Board - ATS FREIGHT LLC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-navy {
+            background-color: #1f2937;
+        }
+
+        .gradient-bg {
+            background-color: #1f2937;
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Dispatch Board Specific Styles */
+        .dispatch-grid {
+            display: grid;
+            grid-template-columns: 200px repeat(7, 1fr);
+            gap: 1px;
+            background-color: #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .dispatch-header {
+            background-color: #1f2937;
+            color: white;
+            padding: 12px 8px;
+            font-weight: 600;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .dispatch-header.today {
+            background-color: #2563eb;
+        }
+
+        .driver-cell {
+            background-color: #f9fafb;
+            padding: 8px;
+            font-weight: 500;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .driver-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .driver-avatar.available {
+            background-color: #10b981;
+        }
+
+        .driver-avatar.on-load {
+            background-color: #f59e0b;
+        }
+
+        .driver-avatar.off-duty {
+            background-color: #6b7280;
+        }
+
+        .day-cell {
+            background-color: white;
+            min-height: 80px;
+            padding: 4px;
+            position: relative;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .day-cell.today {
+            background-color: #eff6ff;
+        }
+
+        .day-cell.weekend {
+            background-color: #f9fafb;
+        }
+
+        .load-card {
+            background-color: #dbeafe;
+            border-left: 3px solid #2563eb;
+            border-radius: 4px;
+            padding: 6px 8px;
+            margin-bottom: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .load-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .load-card.pickup {
+            background-color: #fef3c7;
+            border-left-color: #f59e0b;
+        }
+
+        .load-card.delivery {
+            background-color: #d1fae5;
+            border-left-color: #10b981;
+        }
+
+        .load-card.in-transit {
+            background-color: #dbeafe;
+            border-left-color: #2563eb;
+        }
+
+        .load-card.multi-day {
+            border-radius: 4px 0 0 4px;
+            margin-right: -4px;
+        }
+
+        .load-card.multi-day-end {
+            border-radius: 0 4px 4px 0;
+            margin-left: -4px;
+            border-left: none;
+        }
+
+        .load-card.multi-day-middle {
+            border-radius: 0;
+            margin-left: -4px;
+            margin-right: -4px;
+            border-left: none;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.available {
+            background-color: #10b981;
+        }
+
+        .status-dot.on-load {
+            background-color: #f59e0b;
+        }
+
+        .status-dot.off-duty {
+            background-color: #6b7280;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Drag and Drop */
+        .load-card.dragging {
+            opacity: 0.5;
+        }
+
+        .day-cell.drag-over {
+            background-color: #bfdbfe;
+        }
+
+        /* Unassigned loads sidebar */
+        .unassigned-sidebar {
+            background-color: #fef2f2;
+            border: 2px dashed #fca5a5;
+            border-radius: 8px;
+            padding: 12px;
+            min-height: 200px;
+        }
+
+        .unassigned-load {
+            background-color: white;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+
+        .unassigned-load:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .unassigned-load:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain"
+                        onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
+                    <div class="company-logo hidden w-12 h-12 bg-white rounded-lg items-center justify-center font-bold text-gray-800">
+                        ATS</div>
+                    <div>
+                        <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
+                        <p class="text-sm opacity-90">Transportation Management System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="index.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    </a>
+                    <a href="loads.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-truck mr-2"></i>Loads
+                    </a>
+                    <a href="drivers.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-users mr-2"></i>Drivers
+                    </a>
+                    <span class="nav-item active px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-calendar-alt mr-2"></i>Dispatch
+                    </span>
+                    <a href="invoices.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-file-invoice mr-2"></i>Invoices
+                    </a>
+                    <span class="text-sm">Welcome, Liban Ali</span>
+                    <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">Dispatch Board</h2>
+                <p class="text-gray-600 mt-1">Visual load planning and driver assignment</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <!-- Week Navigation -->
+                <div class="flex items-center bg-white rounded-lg shadow-sm border border-gray-200">
+                    <button onclick="previousWeek()" class="px-3 py-2 hover:bg-gray-50 rounded-l-lg">
+                        <i class="fas fa-chevron-left text-gray-600"></i>
+                    </button>
+                    <span id="weekRange" class="px-4 py-2 font-medium text-gray-700 border-x border-gray-200">
+                        Loading...
+                    </span>
+                    <button onclick="nextWeek()" class="px-3 py-2 hover:bg-gray-50 rounded-r-lg">
+                        <i class="fas fa-chevron-right text-gray-600"></i>
+                    </button>
+                </div>
+                <button onclick="goToToday()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Today
+                </button>
+                <button onclick="refreshDispatch()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div class="bg-white rounded-lg p-4 card-shadow">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-user-check text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">Available Drivers</p>
+                        <p id="availableDrivers" class="text-xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-4 card-shadow">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-truck-loading text-yellow-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">On Load</p>
+                        <p id="onLoadDrivers" class="text-xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-4 card-shadow">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-exclamation-circle text-red-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">Unassigned Loads</p>
+                        <p id="unassignedLoads" class="text-xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-4 card-shadow">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-calendar-day text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">Pickups Today</p>
+                        <p id="pickupsToday" class="text-xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-4 card-shadow">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-flag-checkered text-purple-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">Deliveries Today</p>
+                        <p id="deliveriesToday" class="text-xl font-bold text-gray-900">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Layout: Dispatch Board + Unassigned Sidebar -->
+        <div class="flex gap-6">
+            <!-- Dispatch Board -->
+            <div class="flex-1 bg-white rounded-lg card-shadow overflow-hidden">
+                <div class="dispatch-grid" id="dispatchGrid">
+                    <!-- Header Row -->
+                    <div class="dispatch-header">Driver / Truck</div>
+                    <!-- Day headers populated by JS -->
+                </div>
+            </div>
+
+            <!-- Unassigned Loads Sidebar -->
+            <div class="w-72 flex-shrink-0">
+                <div class="bg-white rounded-lg card-shadow p-4 sticky top-4">
+                    <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                        <i class="fas fa-inbox text-red-500 mr-2"></i>
+                        Unassigned Loads
+                        <span id="unassignedCount" class="ml-2 bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">0</span>
+                    </h3>
+                    <div id="unassignedContainer" class="unassigned-sidebar">
+                        <p class="text-gray-400 text-sm text-center py-8">No unassigned loads</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <a href="loads.html" class="block text-center text-blue-600 hover:text-blue-700 text-sm font-medium">
+                            <i class="fas fa-plus mr-1"></i> Add New Load
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="bg-white rounded-lg card-shadow p-4 mt-4">
+                    <h4 class="font-semibold text-gray-800 mb-3 text-sm">Legend</h4>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-3 bg-yellow-200 border-l-2 border-yellow-500 rounded-sm"></div>
+                            <span class="text-gray-600">Pickup</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-3 bg-blue-200 border-l-2 border-blue-500 rounded-sm"></div>
+                            <span class="text-gray-600">In Transit</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-3 bg-green-200 border-l-2 border-green-500 rounded-sm"></div>
+                            <span class="text-gray-600">Delivery</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
+                            <span class="status-dot available"></span>
+                            <span class="text-gray-600">Available</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="status-dot on-load"></span>
+                            <span class="text-gray-600">On Load</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="status-dot off-duty"></span>
+                            <span class="text-gray-600">Off Duty</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Details Modal -->
+    <div id="loadModal" class="modal">
+        <div class="modal-content">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-900">Load Details</h3>
+                <button onclick="closeLoadModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="loadModalContent" class="p-6">
+                <!-- Populated by JS -->
+            </div>
+            <div class="p-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button onclick="closeLoadModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                    Close
+                </button>
+                <a id="loadModalEditLink" href="#" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    View Full Details
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Driver Modal -->
+    <div id="assignModal" class="modal">
+        <div class="modal-content">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Assign Driver to Load</h3>
+            </div>
+            <div class="p-6">
+                <div id="assignLoadInfo" class="bg-gray-50 rounded-lg p-4 mb-4">
+                    <!-- Load info populated by JS -->
+                </div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Select Driver</label>
+                <select id="assignDriverSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">-- Select Driver --</option>
+                </select>
+            </div>
+            <div class="p-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button onclick="closeAssignModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                    Cancel
+                </button>
+                <button onclick="confirmAssignDriver()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Assign Driver
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-12 py-8 border-t border-gray-200">
+        <div class="text-center">
+            <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
+            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT 3169186</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script src="data-stability.js"></script>
+    <script src="main.js"></script>
+    <script>
+        // Dispatch Board State
+        let currentWeekStart = getWeekStart(new Date());
+        let selectedLoadId = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await DataManager.init();
+            renderDispatchBoard();
+            updateStats();
+        });
+
+        // Get Monday of the week for a given date
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+            return new Date(d.setDate(diff));
+        }
+
+        // Format date for display
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function formatDateFull(date) {
+            return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        }
+
+        // Navigation
+        function previousWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            renderDispatchBoard();
+        }
+
+        function nextWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            renderDispatchBoard();
+        }
+
+        function goToToday() {
+            currentWeekStart = getWeekStart(new Date());
+            renderDispatchBoard();
+        }
+
+        function refreshDispatch() {
+            renderDispatchBoard();
+            updateStats();
+            Utils.showNotification('Dispatch board refreshed', 'success');
+        }
+
+        // Get week dates
+        function getWeekDates() {
+            const dates = [];
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(date.getDate() + i);
+                dates.push(date);
+            }
+            return dates;
+        }
+
+        // Check if date is today
+        function isToday(date) {
+            const today = new Date();
+            return date.toDateString() === today.toDateString();
+        }
+
+        // Check if date is weekend
+        function isWeekend(date) {
+            const day = date.getDay();
+            return day === 0 || day === 6;
+        }
+
+        // Get driver initials
+        function getInitials(name) {
+            if (!name) return '??';
+            const parts = name.split(' ');
+            if (parts.length >= 2) {
+                return (parts[0][0] + parts[1][0]).toUpperCase();
+            }
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        // Get driver status based on loads
+        function getDriverStatus(driverId, weekDates) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const activeLoads = DataManager.loads.filter(load => {
+                if (load.driverId !== driverId) return false;
+                const status = (load.status || '').toLowerCase();
+                return status === 'dispatched' || status === 'in transit' || status === 'loading' || status === 'en route';
+            });
+
+            if (activeLoads.length > 0) return 'on-load';
+
+            // Check if driver has upcoming loads this week
+            const hasUpcoming = DataManager.loads.some(load => {
+                if (load.driverId !== driverId) return false;
+                const pickupDate = new Date(load.pickup?.date || load.pickupDate);
+                return pickupDate >= today && pickupDate <= weekDates[6];
+            });
+
+            return hasUpcoming ? 'available' : 'available';
+        }
+
+        // Get loads for a specific driver and date
+        function getLoadsForDriverDate(driverId, date) {
+            const dateStr = date.toISOString().split('T')[0];
+
+            return DataManager.loads.filter(load => {
+                if (load.driverId !== driverId) return false;
+
+                const pickupDate = (load.pickup?.date || load.pickupDate || '').split('T')[0];
+                const deliveryDate = (load.delivery?.date || load.deliveryDate || '').split('T')[0];
+
+                // Check if this date falls within pickup to delivery range
+                if (pickupDate && deliveryDate) {
+                    return dateStr >= pickupDate && dateStr <= deliveryDate;
+                }
+
+                // Check if pickup or delivery is on this date
+                return pickupDate === dateStr || deliveryDate === dateStr;
+            });
+        }
+
+        // Determine load card type for a date
+        function getLoadCardType(load, date) {
+            const dateStr = date.toISOString().split('T')[0];
+            const pickupDate = (load.pickup?.date || load.pickupDate || '').split('T')[0];
+            const deliveryDate = (load.delivery?.date || load.deliveryDate || '').split('T')[0];
+
+            if (dateStr === pickupDate && dateStr === deliveryDate) {
+                return 'single'; // Same day pickup and delivery
+            } else if (dateStr === pickupDate) {
+                return 'pickup';
+            } else if (dateStr === deliveryDate) {
+                return 'delivery';
+            } else {
+                return 'in-transit';
+            }
+        }
+
+        // Render the dispatch board
+        function renderDispatchBoard() {
+            const grid = document.getElementById('dispatchGrid');
+            const weekDates = getWeekDates();
+
+            // Update week range display
+            const weekEnd = new Date(currentWeekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            document.getElementById('weekRange').textContent =
+                `${formatDate(currentWeekStart)} - ${formatDate(weekEnd)}`;
+
+            // Build grid HTML
+            let html = '<div class="dispatch-header">Driver / Truck</div>';
+
+            // Day headers
+            weekDates.forEach(date => {
+                const todayClass = isToday(date) ? 'today' : '';
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                const dayNum = date.getDate();
+                html += `<div class="dispatch-header ${todayClass}">${dayName}<br>${dayNum}</div>`;
+            });
+
+            // Get active drivers (sorted by name)
+            const drivers = DataManager.drivers
+                .filter(d => d.status !== 'inactive' && d.status !== 'terminated')
+                .sort((a, b) => {
+                    const nameA = a.firstName && a.lastName ? `${a.firstName} ${a.lastName}` : (a.name || '');
+                    const nameB = b.firstName && b.lastName ? `${b.firstName} ${b.lastName}` : (b.name || '');
+                    return nameA.localeCompare(nameB);
+                });
+
+            if (drivers.length === 0) {
+                html += `
+                    <div class="driver-cell col-span-8 text-center py-8 text-gray-500">
+                        No active drivers found. <a href="drivers.html" class="text-blue-600 hover:underline">Add drivers</a>
+                    </div>
+                `;
+            }
+
+            // Driver rows
+            drivers.forEach(driver => {
+                const status = getDriverStatus(driver.id, weekDates);
+                const truck = driver.currentTruckId ? DataManager.trucks.find(t => t.id === driver.currentTruckId) : null;
+                const truckNumber = truck?.truckNumber || truck?.unitNumber || truck?.number || 'No Truck';
+                const driverName = driver.firstName && driver.lastName ? `${driver.firstName} ${driver.lastName}` : (driver.name || 'Unknown');
+
+                html += `
+                    <div class="driver-cell">
+                        <div class="driver-avatar ${status}">${getInitials(driverName)}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium text-gray-900 truncate">${driverName}</div>
+                            <div class="text-xs text-gray-500 truncate">${truckNumber}</div>
+                        </div>
+                        <span class="status-dot ${status}" title="${status.replace('-', ' ')}"></span>
+                    </div>
+                `;
+
+                // Day cells for this driver
+                weekDates.forEach(date => {
+                    const todayClass = isToday(date) ? 'today' : '';
+                    const weekendClass = isWeekend(date) ? 'weekend' : '';
+                    const loads = getLoadsForDriverDate(driver.id, date);
+                    const dateStr = date.toISOString().split('T')[0];
+
+                    html += `<div class="day-cell ${todayClass} ${weekendClass}" 
+                                data-driver-id="${driver.id}" 
+                                data-date="${dateStr}"
+                                ondragover="handleDragOver(event)"
+                                ondrop="handleDrop(event)"
+                                ondragleave="handleDragLeave(event)">`;
+
+                    loads.forEach(load => {
+                        const cardType = getLoadCardType(load, date);
+                        const loadNumber = load.loadNumber || load.id?.substring(0, 8) || 'N/A';
+                        const origin = load.pickup?.city || 'Origin';
+                        const destination = load.delivery?.city || 'Dest';
+
+                        let cardClass = 'load-card';
+                        if (cardType === 'pickup') cardClass += ' pickup';
+                        else if (cardType === 'delivery') cardClass += ' delivery';
+                        else if (cardType === 'in-transit') cardClass += ' in-transit';
+
+                        html += `
+                            <div class="${cardClass}" 
+                                onclick="showLoadDetails('${load.id}')"
+                                draggable="true"
+                                ondragstart="handleDragStart(event, '${load.id}')">
+                                <div class="font-semibold">#${loadNumber}</div>
+                                <div class="text-gray-600 truncate">${origin} → ${destination}</div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                });
+            });
+
+            grid.innerHTML = html;
+
+            // Render unassigned loads
+            renderUnassignedLoads();
+        }
+
+        // Render unassigned loads sidebar
+        function renderUnassignedLoads() {
+            const container = document.getElementById('unassignedContainer');
+            const countBadge = document.getElementById('unassignedCount');
+
+            const unassigned = DataManager.loads.filter(load => {
+                const status = (load.status || '').toLowerCase();
+                const hasDriver = load.driverId && load.driverId !== '' && load.driverId !== 'null';
+                const isActive = status !== 'delivered' && status !== 'completed' && status !== 'cancelled';
+                return !hasDriver && isActive;
+            });
+
+            countBadge.textContent = unassigned.length;
+            document.getElementById('unassignedLoads').textContent = unassigned.length;
+
+            if (unassigned.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-sm text-center py-8">No unassigned loads</p>';
+                return;
+            }
+
+            let html = '';
+            unassigned.forEach(load => {
+                const loadNumber = load.loadNumber || load.id?.substring(0, 8) || 'N/A';
+                const origin = load.pickup?.city || 'Origin';
+                const originState = load.pickup?.state || '';
+                const destination = load.delivery?.city || 'Dest';
+                const destState = load.delivery?.state || '';
+                const pickupDate = load.pickup?.date || load.pickupDate;
+                const rate = parseFloat(load.rate?.total || load.rate || 0);
+
+                html += `
+                    <div class="unassigned-load" 
+                        draggable="true"
+                        ondragstart="handleDragStart(event, '${load.id}')"
+                        onclick="openAssignModal('${load.id}')">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-semibold text-gray-900">#${loadNumber}</span>
+                            <span class="text-green-600 font-medium text-sm">${Utils.formatCurrency(rate)}</span>
+                        </div>
+                        <div class="text-sm text-gray-600 mb-1">
+                            ${origin}${originState ? ', ' + originState : ''} → ${destination}${destState ? ', ' + destState : ''}
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            <i class="fas fa-calendar mr-1"></i>
+                            ${pickupDate ? Utils.formatDate(pickupDate) : 'No date'}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Update stats
+        function updateStats() {
+            const drivers = DataManager.drivers.filter(d => d.status !== 'inactive' && d.status !== 'terminated');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayStr = today.toISOString().split('T')[0];
+
+            // Count drivers on active loads
+            const onLoad = drivers.filter(d => {
+                return DataManager.loads.some(load => {
+                    if (load.driverId !== d.id) return false;
+                    const status = (load.status || '').toLowerCase();
+                    return status === 'dispatched' || status === 'in transit' || status === 'loading' || status === 'en route';
+                });
+            }).length;
+
+            const available = drivers.length - onLoad;
+
+            document.getElementById('availableDrivers').textContent = available;
+            document.getElementById('onLoadDrivers').textContent = onLoad;
+
+            // Pickups today
+            const pickupsToday = DataManager.loads.filter(load => {
+                const pickupDate = (load.pickup?.date || load.pickupDate || '').split('T')[0];
+                return pickupDate === todayStr;
+            }).length;
+            document.getElementById('pickupsToday').textContent = pickupsToday;
+
+            // Deliveries today
+            const deliveriesToday = DataManager.loads.filter(load => {
+                const deliveryDate = (load.delivery?.date || load.deliveryDate || '').split('T')[0];
+                return deliveryDate === todayStr;
+            }).length;
+            document.getElementById('deliveriesToday').textContent = deliveriesToday;
+        }
+
+        // Drag and Drop handlers
+        function handleDragStart(event, loadId) {
+            event.dataTransfer.setData('text/plain', loadId);
+            event.target.classList.add('dragging');
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+
+        async function handleDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+
+            const loadId = event.dataTransfer.getData('text/plain');
+            const driverId = event.currentTarget.dataset.driverId;
+
+            if (!loadId || !driverId) return;
+
+            try {
+                await DataManager.updateLoad(loadId, { driverId: driverId });
+                Utils.showNotification('Load assigned successfully', 'success');
+                renderDispatchBoard();
+                updateStats();
+            } catch (error) {
+                console.error('Error assigning load:', error);
+                Utils.showNotification('Error assigning load: ' + error.message, 'error');
+            }
+        }
+
+        // Load details modal
+        function showLoadDetails(loadId) {
+            const load = DataManager.loads.find(l => l.id === loadId);
+            if (!load) {
+                Utils.showNotification('Load not found', 'error');
+                return;
+            }
+
+            const modal = document.getElementById('loadModal');
+            const content = document.getElementById('loadModalContent');
+            const editLink = document.getElementById('loadModalEditLink');
+
+            const driver = load.driverId ? DataManager.drivers.find(d => d.id === load.driverId) : null;
+            const customer = load.customerId ? DataManager.customers.find(c => c.id === load.customerId) : null;
+
+            const loadNumber = load.loadNumber || load.id?.substring(0, 8) || 'N/A';
+            const rate = parseFloat(load.rate?.total || load.rate || 0);
+            const driverName = driver ? (driver.firstName && driver.lastName ? `${driver.firstName} ${driver.lastName}` : driver.name) : 'Unassigned';
+
+            content.innerHTML = `
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-2">Load Information</h4>
+                        <div class="space-y-2 text-sm">
+                            <p><span class="text-gray-500">Load #:</span> <strong>${loadNumber}</strong></p>
+                            <p><span class="text-gray-500">Status:</span> <span class="capitalize">${load.status || 'N/A'}</span></p>
+                            <p><span class="text-gray-500">Rate:</span> <span class="text-green-600 font-medium">${Utils.formatCurrency(rate)}</span></p>
+                            <p><span class="text-gray-500">Customer:</span> ${customer?.company?.name || customer?.name || 'N/A'}</p>
+                            <p><span class="text-gray-500">Driver:</span> ${driverName}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-800 mb-2">Route Details</h4>
+                        <div class="space-y-3 text-sm">
+                            <div class="bg-yellow-50 p-3 rounded-lg">
+                                <p class="font-medium text-yellow-800 mb-1"><i class="fas fa-arrow-up mr-1"></i> Pickup</p>
+                                <p>${load.pickup?.city || 'N/A'}${load.pickup?.state ? ', ' + load.pickup.state : ''}</p>
+                                <p class="text-gray-500">${load.pickup?.date ? Utils.formatDate(load.pickup.date) : 'No date'}</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded-lg">
+                                <p class="font-medium text-green-800 mb-1"><i class="fas fa-arrow-down mr-1"></i> Delivery</p>
+                                <p>${load.delivery?.city || 'N/A'}${load.delivery?.state ? ', ' + load.delivery.state : ''}</p>
+                                <p class="text-gray-500">${load.delivery?.date ? Utils.formatDate(load.delivery.date) : 'No date'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            editLink.href = `loads.html?id=${loadId}`;
+            modal.classList.add('show');
+        }
+
+        function closeLoadModal() {
+            document.getElementById('loadModal').classList.remove('show');
+        }
+
+        // Assign modal
+        function openAssignModal(loadId) {
+            selectedLoadId = loadId;
+            const load = DataManager.loads.find(l => l.id === loadId);
+            if (!load) return;
+
+            const modal = document.getElementById('assignModal');
+            const loadInfo = document.getElementById('assignLoadInfo');
+            const driverSelect = document.getElementById('assignDriverSelect');
+
+            const loadNumber = load.loadNumber || load.id?.substring(0, 8) || 'N/A';
+            const origin = load.pickup?.city || 'Origin';
+            const destination = load.delivery?.city || 'Dest';
+
+            loadInfo.innerHTML = `
+                <p class="font-medium text-gray-800">Load #${loadNumber}</p>
+                <p class="text-sm text-gray-600">${origin} → ${destination}</p>
+            `;
+
+            // Populate driver dropdown
+            const activeDrivers = DataManager.drivers
+                .filter(d => d.status !== 'inactive' && d.status !== 'terminated')
+                .sort((a, b) => {
+                    const nameA = a.firstName && a.lastName ? `${a.firstName} ${a.lastName}` : (a.name || '');
+                    const nameB = b.firstName && b.lastName ? `${b.firstName} ${b.lastName}` : (b.name || '');
+                    return nameA.localeCompare(nameB);
+                });
+
+            driverSelect.innerHTML = '<option value="">-- Select Driver --</option>';
+            activeDrivers.forEach(driver => {
+                const truck = driver.currentTruckId ? DataManager.trucks.find(t => t.id === driver.currentTruckId) : null;
+                const truckInfo = truck ? ` (${truck.truckNumber || truck.unitNumber || truck.number || 'No Truck'})` : '';
+                const driverName = driver.firstName && driver.lastName ? `${driver.firstName} ${driver.lastName}` : (driver.name || 'Unknown');
+                driverSelect.innerHTML += `<option value="${driver.id}">${driverName}${truckInfo}</option>`;
+            });
+
+            modal.classList.add('show');
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assignModal').classList.remove('show');
+            selectedLoadId = null;
+        }
+
+        async function confirmAssignDriver() {
+            const driverId = document.getElementById('assignDriverSelect').value;
+
+            if (!driverId) {
+                Utils.showNotification('Please select a driver', 'warning');
+                return;
+            }
+
+            if (!selectedLoadId) {
+                Utils.showNotification('No load selected', 'error');
+                return;
+            }
+
+            try {
+                await DataManager.updateLoad(selectedLoadId, { driverId: driverId });
+                Utils.showNotification('Driver assigned successfully', 'success');
+                closeAssignModal();
+                renderDispatchBoard();
+                updateStats();
+            } catch (error) {
+                console.error('Error assigning driver:', error);
+                Utils.showNotification('Error assigning driver: ' + error.message, 'error');
+            }
+        }
+
+        // Close modals on outside click
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        };
+
+        // Expose functions globally
+        window.previousWeek = previousWeek;
+        window.nextWeek = nextWeek;
+        window.goToToday = goToToday;
+        window.refreshDispatch = refreshDispatch;
+        window.showLoadDetails = showLoadDetails;
+        window.closeLoadModal = closeLoadModal;
+        window.openAssignModal = openAssignModal;
+        window.closeAssignModal = closeAssignModal;
+        window.confirmAssignDriver = confirmAssignDriver;
+        window.handleDragStart = handleDragStart;
+        window.handleDragOver = handleDragOver;
+        window.handleDragLeave = handleDragLeave;
+        window.handleDrop = handleDrop;
+    </script>
+</body>
+
+</html>

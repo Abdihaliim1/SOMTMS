@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Driver Settlements - ATS FREIGHT LLC (Updated)</title>
+    <title>Driver Settlements - ATS FREIGHT LLC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
@@ -133,7 +133,6 @@
                 <p class="text-gray-600 mt-2">Manage driver payments and settlements</p>
             </div>
             <div class="flex items-center space-x-4">
-
                 <button onclick="openGenerateSettlementModal()"
                     class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
                     <i class="fas fa-plus"></i>
@@ -248,7 +247,7 @@
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 <div class="flex items-end">
-                    <button
+                    <button onclick="applyFilters()"
                         class="w-full bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
                         <i class="fas fa-search mr-2"></i>Filter
                     </button>
@@ -267,9 +266,6 @@
                         </button>
                         <button onclick="printAllSettlements()" class="text-gray-600 hover:text-gray-800">
                             <i class="fas fa-print mr-2"></i>Print All
-                        </button>
-                        <button onclick="emailAllSettlements()" class="text-blue-600 hover:text-blue-800 ml-2">
-                            <i class="fas fa-envelope mr-2"></i>Email All
                         </button>
                         <button onclick="refreshSettlements()" class="text-green-600 hover:text-green-800 ml-2">
                             <i class="fas fa-sync-alt mr-2"></i>Refresh
@@ -324,6 +320,27 @@
 
             <div class="p-6">
                 <form id="settlementForm" class="space-y-6">
+                    <!-- Settlement Period Selection -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <h4 class="text-sm font-semibold text-blue-900 mb-3">
+                            <i class="fas fa-calendar-week mr-2"></i>Settlement Period
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-blue-800 mb-1">Select Week</label>
+                                <input type="week" id="settlementWeek"
+                                    class="w-full border border-blue-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    onchange="updatePeriodDisplay()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-blue-800 mb-1">Period</label>
+                                <div id="periodDisplay" class="text-sm text-blue-700 py-2 px-3 bg-white rounded border border-blue-200">
+                                    Select a week to see the period
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 gap-6">
                         <div>
                             <div class="flex justify-between items-center mb-2">
@@ -333,7 +350,7 @@
                                     <i class="fas fa-refresh mr-1"></i>Refresh
                                 </button>
                             </div>
-                            <select id="driverSelect" aria-label="Select Driver"
+                            <select id="driverSelect" aria-label="Select Driver" onchange="loadDriverLoads()"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <option value="">Select a driver...</option>
                             </select>
@@ -347,9 +364,11 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                            Select</th>
+                                            <input type="checkbox" id="selectAllLoads" onchange="toggleAllLoads(this)">
+                                        </th>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Load #</th>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
                                         <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
                                             Pay Amount</th>
                                     </tr>
@@ -383,7 +402,7 @@
                                     <span>Gross Pay:</span>
                                     <span id="grossPay" class="font-medium">$0.00</span>
                                 </div>
-                                <div class="flex justify-between text-red-500">
+                                <div class="flex justify-between text-gray-600">
                                     <span>Total Deductions:</span>
                                     <span id="totalDeductions" class="font-medium">$0.00</span>
                                 </div>
@@ -398,7 +417,7 @@
                     <div id="noLoadsMessage" class="hidden text-center py-8">
                         <div class="bg-yellow-50 text-yellow-800 p-4 rounded-lg inline-block">
                             <i class="fas fa-exclamation-triangle mr-2"></i>
-                            No unpaid delivered loads found for this driver.
+                            No unpaid delivered loads found for this driver in the selected period.
                         </div>
                     </div>
 
@@ -407,8 +426,9 @@
                             class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors">
                             Cancel
                         </button>
-                        <button type="button" id="generateSettlementBtn"
-                            class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <button type="button" id="generateSettlementBtn" onclick="generateSettlement()"
+                            class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled>
                             Generate Settlement
                         </button>
                     </div>
@@ -424,21 +444,128 @@
 
     <script src="data-stability.js"></script>
     <script src="main.js"></script>
-    <script src="expense-ledger-utils.js"></script>
-    <script src="populate-mock-data.js"></script>
     <script>
-        // FINAL WORKING VERSION — DRIVERS ALWAYS SHOW
-        window.openGenerateSettlementModal = async function() {
-            const modal = document.getElementById('createSettlementModal');
-            if (!modal) return console.error('Modal not found');
+        // ========================================
+        // SETTLEMENT PAGE - MAIN LOGIC
+        // ========================================
 
+        // Global variables
+        let selectedLoads = [];
+        let currentSettlementData = {};
+
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Settlements page ready');
+            
+            // Wait for DataManager to be fully initialized
+            while (!DataManager || !DataManager.settlements) {
+                console.log('Waiting for DataManager to initialize...');
+                await new Promise(r => setTimeout(r, 200));
+            }
+            
+            console.log('DataManager ready, rendering settlements table...');
+            renderSettlementsTable();
+            populateFilters();
+            initializeSettlementCharts();
+            
+            // Set default week to current week
+            setCurrentWeek();
+        });
+
+        // Set current week in the week picker
+        function setCurrentWeek() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const weekNum = Utils.getWeekNumber(now);
+            const weekStr = `${year}-W${weekNum.toString().padStart(2, '0')}`;
+            
+            const weekFilter = document.getElementById('weekFilter');
+            const settlementWeek = document.getElementById('settlementWeek');
+            
+            if (weekFilter) weekFilter.value = weekStr;
+            if (settlementWeek) {
+                settlementWeek.value = weekStr;
+                updatePeriodDisplay();
+            }
+        }
+
+        // Update period display based on selected week
+        function updatePeriodDisplay() {
+            const weekInput = document.getElementById('settlementWeek');
+            const periodDisplay = document.getElementById('periodDisplay');
+            
+            if (!weekInput.value) {
+                periodDisplay.textContent = 'Select a week to see the period';
+                return;
+            }
+            
+            const [year, week] = weekInput.value.split('-W');
+            const weekStart = getDateOfISOWeek(parseInt(week), parseInt(year));
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            
+            periodDisplay.textContent = Utils.formatDateRange(weekStart, weekEnd);
+        }
+
+        // Get date from ISO week number
+        function getDateOfISOWeek(week, year) {
+            const simple = new Date(year, 0, 1 + (week - 1) * 7);
+            const dow = simple.getDay();
+            const ISOweekStart = simple;
+            if (dow <= 4)
+                ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+            else
+                ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+            return ISOweekStart;
+        }
+
+        // Populate filter dropdowns
+        function populateFilters() {
+            const driverFilter = document.getElementById('driverFilter');
+            driverFilter.innerHTML = '<option value="">All Drivers</option>';
+            
+            DataManager.drivers.forEach(d => {
+                const opt = new Option(`${d.firstName} ${d.lastName}`, d.id);
+                driverFilter.add(opt);
+            });
+        }
+
+        // Apply filters to settlements table
+        function applyFilters() {
+            renderSettlementsTable();
+        }
+
+        // Expose render function for external updates
+        window.renderSettlements = function() {
+            renderSettlementsTable();
+            updateStats();
+            updateSettlementCharts();
+        };
+
+        // ========================================
+        // MODAL FUNCTIONS
+        // ========================================
+
+        window.openGenerateSettlementModal = async function() {
+            console.log('🚀 openGenerateSettlementModal called!');
+            
+            const modal = document.getElementById('createSettlementModal');
+            if (!modal) {
+                console.error('❌ Modal not found');
+                return;
+            }
+            
+            console.log('✅ Modal found, opening...');
             modal.classList.add('show');
 
             // Show loading state
             const select = document.getElementById('driverSelect');
             select.innerHTML = '<option>Loading drivers...</option>';
 
-            // Reset everything
+            // Reset form
             document.getElementById('settlementLoadsSection').classList.add('hidden');
             document.getElementById('noLoadsMessage').classList.add('hidden');
             document.getElementById('driverLoadsBody').innerHTML = '';
@@ -449,17 +576,15 @@
             document.getElementById('otherDeduction').value = '0';
             document.getElementById('generateSettlementBtn').disabled = true;
             
-            // Clean up any previous expense banners
-            const banners = document.querySelectorAll('.bg-red-50.border.border-red-200');
-            banners.forEach(banner => banner.remove());
-            window.autoPopulatedExpenses = [];
+            // Set current week
+            setCurrentWeek();
 
-            // WAIT FOR DRIVERS TO LOAD — THIS IS THE FIX
+            // Wait for drivers to load
             while (!DataManager?.drivers || DataManager.drivers.length === 0) {
                 await new Promise(r => setTimeout(r, 100));
             }
 
-            // NOW DRIVERS ARE READY
+            // Populate drivers
             select.innerHTML = '<option value="">Select a driver...</option>';
             DataManager.drivers.forEach(d => {
                 const opt = new Option(`${d.firstName} ${d.lastName}`, d.id);
@@ -470,46 +595,82 @@
 
         window.closeCreateModal = function() {
             document.getElementById('createSettlementModal').classList.remove('show');
-            
-            // Clean up any auto-populated expense banners
-            const banners = document.querySelectorAll('.bg-red-50.border.border-red-200');
-            banners.forEach(banner => banner.remove());
-            
-            // Clear auto-populated expenses
-            window.autoPopulatedExpenses = [];
         };
 
-        // Function to setup event listeners (called after DOM is ready)
-        function setupEventListeners() {
-            console.log('Setting up event listeners...');
-            // Event listener for driver selection
-            const driverSelect = document.getElementById('driverSelect');
-            if (!driverSelect) {
-                console.error('driverSelect element not found');
+        window.refreshDriversList = async function() {
+            const select = document.getElementById('driverSelect');
+            select.innerHTML = '<option value="">Refreshing drivers...</option>';
+            
+            if (!DataManager || !DataManager.drivers || DataManager.drivers.length === 0) {
+                try {
+                    await DataManager.init();
+                } catch (error) {
+                    console.error('Error reinitializing:', error);
+                }
+            }
+            
+            if (DataManager?.drivers && DataManager.drivers.length > 0) {
+                select.innerHTML = '<option value="">Select a driver...</option>';
+                DataManager.drivers.forEach(d => {
+                    const opt = new Option(`${d.firstName} ${d.lastName}`, d.id);
+                    select.add(opt);
+                });
+            } else {
+                select.innerHTML = '<option value="">No drivers found</option>';
+            }
+        };
+
+        // ========================================
+        // LOAD DRIVER'S DELIVERED LOADS
+        // ========================================
+
+        window.loadDriverLoads = function() {
+            console.log('📋 loadDriverLoads called!');
+            
+            const driverId = document.getElementById('driverSelect').value;
+            const weekInput = document.getElementById('settlementWeek').value;
+            
+            console.log('Driver ID:', driverId);
+            console.log('Week input:', weekInput);
+            
+            if (!driverId) {
+                console.log('❌ No driver selected in loadDriverLoads');
+                document.getElementById('settlementLoadsSection').classList.add('hidden');
+                document.getElementById('noLoadsMessage').classList.add('hidden');
                 return;
             }
-            console.log('driverSelect element found, adding change listener');
-            
-            driverSelect.addEventListener('change', async function() {
-                console.log('Driver selection changed to:', this.value);
-                const driverId = this.value;
-                if (!driverId) {
-                    console.log('No driver selected, hiding sections');
-                    document.getElementById('settlementLoadsSection').classList.add('hidden');
-                    document.getElementById('noLoadsMessage').classList.add('hidden');
-                    return;
-                }
 
-            // Load unpaid delivered loads for this driver
             const driver = DataManager.drivers.find(d => d.id === driverId);
             if (!driver) return;
 
-            // Get delivered loads without settlementId
-            const unpaidLoads = DataManager.loads.filter(load => 
-                load.driverId === driverId && 
-                (load.status === 'delivered' || load.status === 'Delivered') &&
-                !load.settlementId
-            );
+            // Get week dates
+            let weekStart, weekEnd;
+            if (weekInput) {
+                const [year, week] = weekInput.split('-W');
+                weekStart = getDateOfISOWeek(parseInt(week), parseInt(year));
+                weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+                weekEnd.setHours(23, 59, 59, 999);
+            } else {
+                // Default to current week
+                weekStart = Utils.getWeekStart(new Date());
+                weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+                weekEnd.setHours(23, 59, 59, 999);
+            }
+
+            // Get delivered loads without settlementId for this driver in the selected period
+            const unpaidLoads = DataManager.loads.filter(load => {
+                const isDriver = load.driverId === driverId;
+                const isDelivered = (load.status === 'delivered' || load.status === 'Delivered');
+                const notSettled = !load.settlementId;
+                
+                // Check if delivery date is within the selected week
+                const deliveryDate = new Date(load.delivery?.date || load.deliveredAt || load.createdAt);
+                const inPeriod = deliveryDate >= weekStart && deliveryDate <= weekEnd;
+                
+                return isDriver && isDelivered && notSettled && inPeriod;
+            });
 
             const loadsBody = document.getElementById('driverLoadsBody');
             loadsBody.innerHTML = '';
@@ -527,203 +688,89 @@
             // Calculate driver pay percentage
             const payPercentage = Utils.validatePayPercentage(driver.payPercentage, driver.driverType);
 
+            // Store period info
+            currentSettlementData.periodStart = weekStart.toISOString();
+            currentSettlementData.periodEnd = weekEnd.toISOString();
+            currentSettlementData.periodDisplay = Utils.formatDateRange(weekStart, weekEnd);
+
             unpaidLoads.forEach(load => {
                 const rate = parseFloat(load.rate?.total || load.rate || 0);
                 const driverPay = rate * payPercentage;
+                const miles = load.mileage?.total || 0;
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td class="px-4 py-2">
-                        <input type="checkbox" class="load-checkbox" data-load-id="${load.id}" data-pay="${driverPay}" checked>
+                        <input type="checkbox" class="load-checkbox" data-load-id="${load.id}" 
+                            data-pay="${driverPay}" data-miles="${miles}" checked 
+                            onchange="calculateSettlementTotals()">
                     </td>
-                    <td class="px-4 py-2 text-sm">${load.loadNumber || load.id}</td>
-                    <td class="px-4 py-2 text-sm">${load.deliveredAt ? new Date(load.deliveredAt).toLocaleDateString() : 'N/A'}</td>
-                    <td class="px-4 py-2 text-sm text-right">${Utils.formatCurrency(driverPay)}</td>
+                    <td class="px-4 py-2 text-sm font-medium">${load.loadNumber || load.id}</td>
+                    <td class="px-4 py-2 text-sm">${Utils.formatDate(load.delivery?.date || load.deliveredAt)}</td>
+                    <td class="px-4 py-2 text-sm">${load.pickup?.city || ''} → ${load.delivery?.city || ''}</td>
+                    <td class="px-4 py-2 text-sm text-right font-semibold">${Utils.formatCurrency(driverPay)}</td>
                 `;
                 loadsBody.appendChild(row);
             });
 
-            // AUTO-POPULATE O/O EXPENSES — FINAL UPGRADE
+            // Auto-populate O/O expenses
             if (driver.driverType === 'owner_operator') {
-                // Get all company-paid expenses for this O/O that aren't settled yet
-                const unsettledExpenses = DataManager.expenses.filter(expense => 
-                    expense.driverId === driverId && 
-                    expense.paidBy === 'company' &&
-                    !expense.settlementId
-                );
-
-                console.log(`[Settlement] Found ${unsettledExpenses.length} unsettled O/O expenses for ${driver.firstName} ${driver.lastName}`);
-
-                if (unsettledExpenses.length > 0) {
-                    // Auto-populate deduction fields based on expense categories
-                    let totalFuel = 0;
-                    let totalOther = 0;
-
-                    unsettledExpenses.forEach(expense => {
-                        const amount = parseFloat(expense.amount) || 0;
-                        const category = (expense.category || expense.type || '').toLowerCase();
-                        
-                        if (category.includes('fuel')) {
-                            totalFuel += amount;
-                        } else {
-                            totalOther += amount;
-                        }
-                    });
-
-                    // Set the deduction amounts
-                    document.getElementById('fuelDeduction').value = totalFuel.toFixed(2);
-                    document.getElementById('otherDeduction').value = totalOther.toFixed(2);
-
-                    // Show banner above deductions section
-                    const deductionsSection = document.querySelector('.bg-gray-50.p-4.rounded-lg.mb-4');
-                    if (deductionsSection) {
-                        const banner = document.createElement('div');
-                        banner.className = 'bg-red-50 border border-red-200 rounded-lg p-3 mb-4';
-                        banner.innerHTML = `
-                            <div class="flex items-center">
-                                <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
-                                <div>
-                                    <p class="text-sm font-medium text-red-800">Company Paid Expenses Found</p>
-                                    <p class="text-xs text-red-600">These expenses will be deducted from net pay (${unsettledExpenses.length} expenses totaling ${Utils.formatCurrency(totalFuel + totalOther)})</p>
-                                </div>
-                            </div>
-                        `;
-                        deductionsSection.parentNode.insertBefore(banner, deductionsSection);
-                    }
-
-                    // Store expense IDs for settlement creation
-                    window.autoPopulatedExpenses = unsettledExpenses.map(e => e.id);
-                    
-                    console.log(`[Settlement] Auto-populated: Fuel $${totalFuel}, Other $${totalOther}`);
-                } else {
-                    window.autoPopulatedExpenses = [];
-                }
-            } else {
-                // Clear any auto-populated expenses for non-O/O drivers
-                window.autoPopulatedExpenses = [];
+                autoPopulateOOExpenses(driverId);
             }
-
-            // Add checkbox listeners
-            document.querySelectorAll('.load-checkbox').forEach(cb => {
-                cb.addEventListener('change', calculateSettlementTotals);
-            });
 
             calculateSettlementTotals();
             document.getElementById('generateSettlementBtn').disabled = false;
-            });
-
-            // Generate Settlement button handler
-            const generateBtn = document.getElementById('generateSettlementBtn');
-            if (!generateBtn) {
-                console.error('generateSettlementBtn element not found');
-                return;
-            }
-            
-            generateBtn.addEventListener('click', async function() {
-                const driverId = document.getElementById('driverSelect').value;
-                if (!driverId) {
-                    Utils.showNotification('Please select a driver', 'warning');
-                    return;
-                }
-
-                const checkedLoads = document.querySelectorAll('.load-checkbox:checked');
-                if (checkedLoads.length === 0) {
-                    Utils.showNotification('Please select at least one load', 'warning');
-                    return;
-                }
-
-                const loadIds = Array.from(checkedLoads).map(cb => cb.dataset.loadId);
-                const grossPay = parseFloat(document.getElementById('grossPay').textContent.replace(/[$,]/g, '')) || 0;
-                const totalDeductions = parseFloat(document.getElementById('totalDeductions').textContent.replace(/[$,]/g, '')) || 0;
-                const netPay = parseFloat(document.getElementById('netPay').textContent.replace(/[$,]/g, '')) || 0;
-
-                const driver = DataManager.drivers.find(d => d.id === driverId);
-
-                // Include auto-populated expenses for O/O
-                const expenseIds = window.autoPopulatedExpenses || [];
-
-                const settlementData = {
-                    settlementNumber: 'ST-' + new Date().getFullYear() + '-' + Date.now().toString(36).toUpperCase(),
-                    driverId: driverId,
-                    driverName: `${driver.firstName} ${driver.lastName}`,
-                    loadIds: loadIds,
-                    expenseIds: expenseIds, // Include auto-populated expenses
-                    grossPay: grossPay,
-                    totalDeductions: totalDeductions,
-                    netPay: netPay,
-                    fuelDeduction: parseFloat(document.getElementById('fuelDeduction').value) || 0,
-                    otherDeduction: parseFloat(document.getElementById('otherDeduction').value) || 0,
-                    status: 'pending',
-                    createdAt: new Date().toISOString()
-                };
-
-                try {
-                    const id = await DataManager.addSettlement(settlementData);
-                    
-                    // Mark loads as settled
-                    for (const loadId of loadIds) {
-                        await DataManager.updateLoad(loadId, { settlementId: id });
-                    }
-
-                    // Mark auto-populated expenses as settled
-                    for (const expenseId of expenseIds) {
-                        await DataManager.updateExpense(expenseId, { settlementId: id });
-                    }
-
-                    Utils.showNotification(`Settlement created successfully! ${expenseIds.length > 0 ? `(${expenseIds.length} expenses included)` : ''}`, 'success');
-                    closeCreateModal();
-                    renderSettlementsTable();
-                } catch (error) {
-                    console.error('Error creating settlement:', error);
-                    Utils.showNotification('Failed to create settlement', 'error');
-                }
-            });
-        }
-
-        window.refreshDriversList = async function() {
-            const select = document.getElementById('driverSelect');
-            select.innerHTML = '<option value="">Refreshing drivers...</option>';
-            
-            console.log('Manual refresh requested');
-            console.log('DataManager status:', {
-                exists: !!DataManager,
-                driversExists: !!DataManager?.drivers,
-                driversCount: DataManager?.drivers?.length || 0
-            });
-            
-            // Force reinitialize if needed
-            if (!DataManager || !DataManager.drivers || DataManager.drivers.length === 0) {
-                try {
-                    console.log('Reinitializing DataManager...');
-                    await DataManager.init();
-                } catch (error) {
-                    console.error('Error reinitializing:', error);
-                }
-            }
-            
-            // Populate drivers
-            if (DataManager?.drivers && DataManager.drivers.length > 0) {
-                select.innerHTML = '<option value="">Select a driver...</option>';
-                DataManager.drivers.forEach(d => {
-                    const opt = new Option(`${d.firstName} ${d.lastName}`, d.id);
-                    select.add(opt);
-                });
-                console.log('Drivers refreshed successfully:', DataManager.drivers.length);
-            } else {
-                select.innerHTML = '<option value="">No drivers found - check Firebase connection</option>';
-                console.error('Still no drivers after refresh');
-            }
         };
 
-        function calculateSettlementTotals() {
+        // Auto-populate expenses for Owner Operators
+        function autoPopulateOOExpenses(driverId) {
+            const unsettledExpenses = DataManager.expenses.filter(expense => 
+                expense.driverId === driverId && 
+                expense.paidBy === 'company' &&
+                !expense.settlementId
+            );
+
+            if (unsettledExpenses.length > 0) {
+                let totalFuel = 0;
+                let totalOther = 0;
+
+                unsettledExpenses.forEach(expense => {
+                    const amount = parseFloat(expense.amount) || 0;
+                    const category = (expense.category || expense.type || '').toLowerCase();
+                    
+                    if (category.includes('fuel')) {
+                        totalFuel += amount;
+                    } else {
+                        totalOther += amount;
+                    }
+                });
+
+                document.getElementById('fuelDeduction').value = totalFuel.toFixed(2);
+                document.getElementById('otherDeduction').value = totalOther.toFixed(2);
+
+                // Store expense IDs for settlement creation
+                window.autoPopulatedExpenses = unsettledExpenses.map(e => e.id);
+                
+                console.log(`Auto-populated: Fuel $${totalFuel}, Other $${totalOther}`);
+            } else {
+                window.autoPopulatedExpenses = [];
+            }
+        }
+
+        // ========================================
+        // CALCULATION FUNCTIONS
+        // ========================================
+
+        window.calculateSettlementTotals = function() {
             const checkboxes = document.querySelectorAll('.load-checkbox:checked');
             let grossPay = 0;
+            let totalMiles = 0;
 
             checkboxes.forEach(cb => {
                 grossPay += parseFloat(cb.dataset.pay) || 0;
+                totalMiles += parseFloat(cb.dataset.miles) || 0;
             });
 
-            // Get deductions (fuel, other, etc.)
             const fuelDeduction = parseFloat(document.getElementById('fuelDeduction')?.value) || 0;
             const otherDeduction = parseFloat(document.getElementById('otherDeduction')?.value) || 0;
             const totalDeductions = fuelDeduction + otherDeduction;
@@ -733,29 +780,131 @@
             document.getElementById('grossPay').textContent = Utils.formatCurrency(grossPay);
             document.getElementById('totalDeductions').textContent = Utils.formatCurrency(totalDeductions);
             document.getElementById('netPay').textContent = Utils.formatCurrency(netPay);
-        }
 
-        window.calculateSettlementTotals = calculateSettlementTotals;
-        
-        // Expose renderSettlementsTable globally for Firebase listener
-        window.renderSettlements = function() {
-            renderSettlementsTable();
-            updateStats();
-            updateSettlementCharts();
+            // Store for settlement creation
+            currentSettlementData.grossPay = grossPay;
+            currentSettlementData.totalDeductions = totalDeductions;
+            currentSettlementData.netPay = netPay;
+            currentSettlementData.totalMiles = totalMiles;
+            currentSettlementData.fuelDeduction = fuelDeduction;
+            currentSettlementData.otherDeduction = otherDeduction;
         };
 
-        // Render settlements table with actual data
-        function renderSettlementsTable() {
-            console.log('renderSettlementsTable called');
-            const tbody = document.getElementById('settlementsTableBody');
-            if (!tbody) {
-                console.error('settlementsTableBody not found');
+        window.toggleAllLoads = function(source) {
+            const checkboxes = document.querySelectorAll('.load-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+            calculateSettlementTotals();
+        };
+
+        // ========================================
+        // GENERATE SETTLEMENT
+        // ========================================
+
+        window.generateSettlement = async function() {
+            console.log('🔥 generateSettlement called!');
+            
+            // Debug checks
+            console.log('DataManager available:', !!DataManager);
+            console.log('Utils available:', !!Utils);
+            console.log('currentSettlementData:', currentSettlementData);
+            
+            const driverId = document.getElementById('driverSelect').value;
+            console.log('Selected driverId:', driverId);
+            
+            if (!driverId) {
+                console.log('❌ No driver selected');
+                if (Utils && Utils.showNotification) {
+                    Utils.showNotification('Please select a driver', 'warning');
+                } else {
+                    alert('Please select a driver');
+                }
                 return;
             }
+
+            const checkedLoads = document.querySelectorAll('.load-checkbox:checked');
+            console.log('Checked loads:', checkedLoads.length);
+            
+            if (checkedLoads.length === 0) {
+                console.log('❌ No loads selected');
+                if (Utils && Utils.showNotification) {
+                    Utils.showNotification('Please select at least one load', 'warning');
+                } else {
+                    alert('Please select at least one load');
+                }
+                return;
+            }
+
+            const driver = DataManager.drivers.find(d => d.id === driverId);
+            const loadIds = Array.from(checkedLoads).map(cb => cb.dataset.loadId);
+            const expenseIds = window.autoPopulatedExpenses || [];
+
+            // Generate settlement number
+            const settlementNumber = 'ST-' + new Date().getFullYear() + '-' + (1000 + DataManager.settlements.length + 1);
+
+            const settlementData = {
+                settlementNumber: settlementNumber,
+                driverId: driverId,
+                driverName: `${driver.firstName} ${driver.lastName}`,
+                loadIds: loadIds,
+                expenseIds: expenseIds,
+                grossPay: currentSettlementData.grossPay,
+                totalDeductions: currentSettlementData.totalDeductions,
+                netPay: currentSettlementData.netPay,
+                totalMiles: currentSettlementData.totalMiles,
+                fuelDeduction: currentSettlementData.fuelDeduction,
+                otherDeduction: currentSettlementData.otherDeduction,
+                period: {
+                    start: currentSettlementData.periodStart,
+                    end: currentSettlementData.periodEnd,
+                    display: currentSettlementData.periodDisplay
+                },
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                const id = await DataManager.addSettlement(settlementData);
+                
+                // Mark loads as settled
+                for (const loadId of loadIds) {
+                    await DataManager.updateLoad(loadId, { settlementId: id }, { silent: true });
+                }
+
+                // Mark expenses as settled
+                for (const expenseId of expenseIds) {
+                    await DataManager.updateExpense(expenseId, { settlementId: id });
+                }
+
+                Utils.showNotification(`Settlement ${settlementNumber} created successfully!`, 'success');
+                closeCreateModal();
+                renderSettlementsTable();
+            } catch (error) {
+                console.error('Error creating settlement:', error);
+                Utils.showNotification('Failed to create settlement', 'error');
+            }
+        };
+
+        // ========================================
+        // RENDER SETTLEMENTS TABLE
+        // ========================================
+
+        function renderSettlementsTable() {
+            const tbody = document.getElementById('settlementsTableBody');
+            if (!tbody) return;
             
             tbody.innerHTML = '';
-            const settlements = DataManager.settlements || [];
-            console.log('Rendering settlements table with', settlements.length, 'settlements');
+            let settlements = DataManager.settlements || [];
+            
+            // Apply filters
+            const driverFilter = document.getElementById('driverFilter')?.value;
+            const statusFilter = document.getElementById('statusFilter')?.value;
+            
+            if (driverFilter) {
+                settlements = settlements.filter(s => s.driverId === driverFilter);
+            }
+            if (statusFilter) {
+                settlements = settlements.filter(s => s.status === statusFilter);
+            }
             
             if (settlements.length === 0) {
                 tbody.innerHTML = `
@@ -766,6 +915,7 @@
                         </td>
                     </tr>
                 `;
+                updateStats();
                 return;
             }
             
@@ -784,7 +934,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${settlement.period?.display || formatDate(settlement.createdAt)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${settlement.totalMiles || 0}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${Utils.formatCurrency(settlement.grossPay || 0)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">-${Utils.formatCurrency(settlement.totalDeductions || 0)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">-${Utils.formatCurrency(settlement.totalDeductions || 0)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">${Utils.formatCurrency(settlement.netPay || 0)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 py-1 text-xs rounded-full ${statusClass}">${(settlement.status || 'pending').charAt(0).toUpperCase() + (settlement.status || 'pending').slice(1)}</span>
@@ -796,9 +946,6 @@
                         <button onclick="printSettlement('${settlement.id}')" class="text-gray-600 hover:text-gray-800" title="Print PDF">
                             <i class="fas fa-print"></i>
                         </button>
-                        <button onclick="emailSettlement('${settlement.id}')" class="text-blue-600 hover:text-blue-800 ml-2" title="Email Settlement">
-                            <i class="fas fa-envelope"></i>
-                        </button>
                         <button onclick="deleteSettlement('${settlement.id}')" class="text-red-600 hover:text-red-800" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -807,33 +954,30 @@
                 tbody.appendChild(row);
             });
             
-            // Update stats after rendering
             updateStats();
         }
 
-        // Helper function to format date
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
             const date = new Date(dateString);
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
-        // Update settlement statistics
+        // ========================================
+        // UPDATE STATISTICS
+        // ========================================
+
         function updateStats() {
             const settlements = DataManager.settlements || [];
             
-            // Total settlements
             document.getElementById('totalSettlements').textContent = settlements.length;
             
-            // Pending settlements
             const pending = settlements.filter(s => s.status === 'pending').length;
             document.getElementById('pendingSettlements').textContent = pending;
             
             // This week's total
             const now = new Date();
-            const weekStart = new Date(now);
-            weekStart.setDate(now.getDate() - now.getDay());
-            weekStart.setHours(0, 0, 0, 0);
+            const weekStart = Utils.getWeekStart(now);
             
             const thisWeekSettlements = settlements.filter(s => {
                 const created = new Date(s.createdAt);
@@ -849,358 +993,66 @@
             document.getElementById('avgSettlement').textContent = Utils.formatCurrency(avgSettlement);
         }
 
-        // View settlement details (placeholder)
+        // ========================================
+        // SETTLEMENT ACTIONS
+        // ========================================
+
         window.viewSettlement = function(settlementId) {
             const settlement = DataManager.settlements.find(s => s.id === settlementId);
             if (!settlement) {
                 Utils.showNotification('Settlement not found', 'error');
                 return;
             }
-            alert(`Settlement: ${settlement.settlementNumber}\nDriver: ${settlement.driverName}\nGross Pay: ${Utils.formatCurrency(settlement.grossPay)}\nDeductions: ${Utils.formatCurrency(settlement.totalDeductions)}\nNet Pay: ${Utils.formatCurrency(settlement.netPay)}\nStatus: ${settlement.status}`);
+            
+            const info = `
+Settlement: ${settlement.settlementNumber}
+Driver: ${settlement.driverName}
+Period: ${settlement.period?.display || 'N/A'}
+Gross Pay: ${Utils.formatCurrency(settlement.grossPay)}
+Deductions: ${Utils.formatCurrency(settlement.totalDeductions)}
+Net Pay: ${Utils.formatCurrency(settlement.netPay)}
+Status: ${settlement.status}
+            `.trim();
+            
+            alert(info);
         };
 
-        // Print settlement - Generate PDF
-        window.printSettlement = function(settlementId) {
-            const settlement = DataManager.settlements.find(s => s.id === settlementId);
-            if (!settlement) {
-                Utils.showNotification('Settlement not found', 'error');
-                return;
-            }
-
+        window.deleteSettlement = async function(settlementId) {
+            if (!confirm('Are you sure you want to delete this settlement?')) return;
+            
             try {
-                // Validate settlement data before generating PDF
-                if (!settlement.id && !settlement.settlementNumber) {
-                    throw new Error('Settlement missing identification');
+                const settlement = DataManager.settlements.find(s => s.id === settlementId);
+                
+                // Clear settlementId from associated loads
+                if (settlement && settlement.loadIds) {
+                    for (const loadId of settlement.loadIds) {
+                        await DataManager.updateLoad(loadId, { settlementId: null }, { silent: true });
+                    }
                 }
                 
-                generateSettlementPDF(settlement);
-                Utils.showNotification('Settlement PDF generated successfully', 'success');
+                // Clear settlementId from associated expenses
+                if (settlement && settlement.expenseIds) {
+                    for (const expenseId of settlement.expenseIds) {
+                        await DataManager.updateExpense(expenseId, { settlementId: null });
+                    }
+                }
+                
+                await DataManager.deleteSettlement(settlementId);
+                Utils.showNotification('Settlement deleted', 'success');
+                renderSettlementsTable();
             } catch (error) {
-                console.error('Error generating PDF:', error);
-                const errorMessage = error.message || 'Unknown error occurred';
-                Utils.showNotification('Error generating PDF: ' + errorMessage, 'error');
+                console.error('Error deleting settlement:', error);
+                Utils.showNotification('Failed to delete settlement', 'error');
             }
         };
 
-        // Safe date formatting helper
-        function safeFormatDate(dateValue, fallback = 'N/A') {
-            if (!dateValue) return fallback;
-            
-            try {
-                const date = new Date(dateValue);
-                if (isNaN(date.getTime())) {
-                    console.warn('Invalid date value:', dateValue);
-                    return fallback;
-                }
-                return Utils.formatDate(date);
-            } catch (error) {
-                console.warn('Error formatting date:', dateValue, error);
-                return fallback;
-            }
-        }
+        window.refreshSettlements = function() {
+            Utils.showNotification('Refreshing settlements...', 'info');
+            renderSettlementsTable();
+            updateSettlementCharts();
+            Utils.showNotification('Settlements refreshed', 'success');
+        };
 
-        // Generate Professional Settlement PDF - Exact Design Match
-        function generateSettlementPDF(settlement) {
-            console.log('Generating professional PDF for settlement:', settlement);
-            
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Get driver info
-            const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
-            const driverName = driver ? `${driver.firstName} ${driver.lastName}` : 'Unknown Driver';
-            const driverId = driver ? driver.driverId || driver.id : 'N/A';
-            
-            // === HEADER SECTION ===
-            // Date and Settlement Number (top corners)
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(0, 0, 0);
-            doc.text(safeFormatDate(new Date()), 20, 15);
-            doc.text(`Settlement ${settlement.settlementNumber || settlement.id}`, 140, 15);
-            
-            // Company Logo Area (left side)
-            doc.setFontSize(20);
-            doc.setFont(undefined, 'bold');
-            doc.text('ATS FREIGHT LLC', 20, 35);
-            
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text('DOT 3169186', 20, 42);
-            
-            // Company Address
-            doc.text('3191 MORSE RD STE 15', 20, 52);
-            doc.text('COLUMBUS, OH 43231', 20, 58);
-            doc.text('Phone: (614) 254-0380', 20, 64);
-            
-            // Settlement Title (right side)
-            doc.setFontSize(18);
-            doc.setFont(undefined, 'bold');
-            doc.text('DRIVER SETTLEMENT', 120, 35);
-            
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text(`Settlement #: ${settlement.settlementNumber || settlement.id}`, 120, 45);
-            doc.text(`Date: ${safeFormatDate(settlement.createdAt || new Date())}`, 120, 52);
-            doc.text(`Period: ${safeFormatDate(settlement.startDate)} - ${safeFormatDate(settlement.endDate)}`, 120, 59);
-            
-            // Horizontal line separator
-            doc.setDrawColor(0, 0, 0);
-            doc.setLineWidth(1);
-            doc.line(20, 75, 190, 75);
-            
-            let yPos = 85;
-            
-            // === DRIVER INFORMATION SECTION ===
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text('Driver Information', 20, yPos);
-            
-            yPos += 8;
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text(`Name: ${driverName} (${driverId})`, 20, yPos);
-            yPos += 6;
-            doc.text(`Driver ID: ${driverId}`, 20, yPos);
-            yPos += 6;
-            
-            // Calculate total miles from loads
-            let totalMiles = 0;
-            if (settlement.loadIds && settlement.loadIds.length > 0) {
-                settlement.loadIds.forEach(loadId => {
-                    const load = DataManager.loads.find(l => l.id === loadId);
-                    if (load && load.mileage) {
-                        totalMiles += load.mileage.total || 0;
-                    }
-                });
-            }
-            doc.text(`Total Miles: ${totalMiles}`, 20, yPos);
-            
-            yPos += 15;
-            
-            // === ITEMIZED LOADS & EARNINGS SECTION ===
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text('Itemized Loads & Earnings', 20, yPos);
-            
-            yPos += 10;
-            
-            // Table headers
-            doc.setFillColor(240, 240, 240);
-            doc.rect(20, yPos - 3, 170, 8, 'F');
-            doc.setDrawColor(0, 0, 0);
-            doc.rect(20, yPos - 3, 170, 8, 'S');
-            
-            doc.setFontSize(9);
-            doc.setFont(undefined, 'bold');
-            doc.text('LOAD #', 25, yPos + 2);
-            doc.text('DATE', 55, yPos + 2);
-            doc.text('ROUTE', 85, yPos + 2);
-            doc.text('LOAD AMOUNT', 130, yPos + 2);
-            doc.text('CALCULATION', 155, yPos + 2);
-            doc.text('GROSS PAY', 175, yPos + 2);
-            
-            yPos += 10;
-            
-            // Load details
-            let totalGrossPay = 0;
-            if (settlement.loadIds && settlement.loadIds.length > 0) {
-                settlement.loadIds.forEach((loadId, index) => {
-                    const load = DataManager.loads.find(l => l.id === loadId);
-                    if (load) {
-                        const loadAmount = load.rate?.total || 0;
-                        const driverPayPercentage = Utils.validatePayPercentage(driver.payPercentage, driver.driverType);
-                        const grossPay = loadAmount * driverPayPercentage;
-                        totalGrossPay += grossPay;
-                        
-                        // Alternating row colors
-                        if (index % 2 === 0) {
-                            doc.setFillColor(248, 248, 248);
-                            doc.rect(20, yPos - 3, 170, 8, 'F');
-                        }
-                        
-                        doc.setDrawColor(200, 200, 200);
-                        doc.rect(20, yPos - 3, 170, 8, 'S');
-                        
-                        doc.setFontSize(8);
-                        doc.setFont(undefined, 'normal');
-                        doc.text(load.loadNumber || 'N/A', 25, yPos + 2);
-                        doc.text(safeFormatDate(load.delivery?.date), 55, yPos + 2);
-                        doc.text(`${load.pickup?.city || 'N/A'} → ${load.delivery?.city || 'N/A'}`, 85, yPos + 2);
-                        doc.text(Utils.formatCurrency(loadAmount), 130, yPos + 2);
-                        doc.text(`${Utils.formatCurrency(loadAmount)} × ${Math.round(driverPayPercentage * 100)}% = ${Utils.formatCurrency(grossPay)}`, 155, yPos + 2);
-                        doc.text(Utils.formatCurrency(grossPay), 175, yPos + 2);
-                        
-                        yPos += 8;
-                    }
-                });
-            }
-            
-            // Gross Pay Total
-            doc.setFillColor(220, 220, 220);
-            doc.rect(20, yPos - 3, 170, 8, 'F');
-            doc.setDrawColor(0, 0, 0);
-            doc.rect(20, yPos - 3, 170, 8, 'S');
-            
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'bold');
-            doc.text('GROSS PAY', 25, yPos + 2);
-            doc.text(Utils.formatCurrency(settlement.grossPay || totalGrossPay), 175, yPos + 2);
-            
-            yPos += 15;
-            
-            // === ITEMIZED DEDUCTIONS SECTION ===
-            if (settlement.totalDeductions > 0) {
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text('Itemized Deductions', 20, yPos);
-                
-                yPos += 10;
-                
-                // Get expenses for this settlement
-                const settlementExpenses = DataManager.expenses.filter(exp => 
-                    settlement.expenseIds && settlement.expenseIds.includes(exp.id)
-                );
-                
-                if (settlementExpenses.length > 0) {
-                    // Group expenses by load
-                    const expensesByLoad = {};
-                    settlementExpenses.forEach(exp => {
-                        const loadId = exp.loadId || 'general';
-                        if (!expensesByLoad[loadId]) {
-                            expensesByLoad[loadId] = [];
-                        }
-                        expensesByLoad[loadId].push(exp);
-                    });
-                    
-                    // Display expenses by load
-                    Object.keys(expensesByLoad).forEach(loadId => {
-                        const load = loadId !== 'general' ? DataManager.loads.find(l => l.id === loadId) : null;
-                        const loadTitle = load ? `Load #${load.loadNumber}` : 'General Expenses';
-                        
-                        doc.setFontSize(11);
-                        doc.setFont(undefined, 'bold');
-                        doc.text(loadTitle, 20, yPos);
-                        yPos += 8;
-                        
-                        // Table headers for expenses
-                        doc.setFillColor(240, 240, 240);
-                        doc.rect(20, yPos - 3, 170, 8, 'F');
-                        doc.setDrawColor(0, 0, 0);
-                        doc.rect(20, yPos - 3, 170, 8, 'S');
-                        
-                        doc.setFontSize(9);
-                        doc.setFont(undefined, 'bold');
-                        doc.text('TYPE', 25, yPos + 2);
-                        doc.text('DESCRIPTION', 80, yPos + 2);
-                        doc.text('AMOUNT', 165, yPos + 2);
-                        
-                        yPos += 10;
-                        
-                        // List expenses
-                        expensesByLoad[loadId].forEach((exp, index) => {
-                            if (index % 2 === 0) {
-                                doc.setFillColor(248, 248, 248);
-                                doc.rect(20, yPos - 3, 170, 8, 'F');
-                            }
-                            
-                            doc.setDrawColor(200, 200, 200);
-                            doc.rect(20, yPos - 3, 170, 8, 'S');
-                            
-                            doc.setFontSize(8);
-                            doc.setFont(undefined, 'normal');
-                            doc.text(exp.category || exp.type || 'Expense', 25, yPos + 2);
-                            doc.text(exp.description || exp.category || 'Expense', 80, yPos + 2);
-                            doc.text(`-${Utils.formatCurrency(exp.amount)}`, 165, yPos + 2);
-                            
-                            yPos += 8;
-                        });
-                        
-                        yPos += 5;
-                    });
-                }
-                
-                yPos += 5;
-                
-                // === DEDUCTIONS BREAKDOWN ===
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text('Deductions Breakdown', 20, yPos);
-                
-                yPos += 10;
-                
-                // List all deduction categories
-                const deductions = [
-                    { label: 'Expenses', amount: settlement.fuelDeduction + settlement.maintenanceDeduction + settlement.otherExpenseDeduction },
-                    { label: 'Fuel Deduction', amount: settlement.fuelDeduction }
-                ];
-                
-                deductions.forEach(deduction => {
-                    if (deduction.amount > 0) {
-                        doc.setFontSize(10);
-                        doc.setFont(undefined, 'normal');
-                        doc.text(deduction.label, 25, yPos);
-                        doc.text(`-${Utils.formatCurrency(deduction.amount)}`, 165, yPos);
-                        yPos += 8;
-                    }
-                });
-                
-                yPos += 5;
-                
-                // Taxes section (showing $0.00 for 1099 contractors)
-                doc.setFontSize(11);
-                doc.setFont(undefined, 'bold');
-                doc.text('Taxes:', 25, yPos);
-                yPos += 8;
-                
-                const taxes = [
-                    { label: 'Federal Tax', amount: 0 },
-                    { label: 'State Tax', amount: 0 },
-                    { label: 'Social Security', amount: 0 },
-                    { label: 'Medicare', amount: 0 }
-                ];
-                
-                taxes.forEach(tax => {
-                    doc.setFontSize(10);
-                    doc.setFont(undefined, 'normal');
-                    doc.text(tax.label, 35, yPos);
-                    doc.text(`-${Utils.formatCurrency(tax.amount)}`, 165, yPos);
-                    yPos += 6;
-                });
-                
-                yPos += 10;
-                
-                // Total Deductions
-                doc.setFillColor(220, 220, 220);
-                doc.rect(20, yPos - 3, 170, 10, 'F');
-                doc.setDrawColor(0, 0, 0);
-                doc.rect(20, yPos - 3, 170, 10, 'S');
-                
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text('Total Deductions', 25, yPos + 4);
-                doc.text(`-${Utils.formatCurrency(settlement.totalDeductions)}`, 165, yPos + 4);
-                
-                yPos += 20;
-            }
-            
-            // === NET PAY SECTION ===
-            doc.setFillColor(240, 240, 240);
-            doc.rect(20, yPos - 5, 170, 15, 'F');
-            doc.setDrawColor(0, 0, 0);
-            doc.setLineWidth(2);
-            doc.rect(20, yPos - 5, 170, 15, 'S');
-            
-            doc.setFontSize(16);
-            doc.setFont(undefined, 'bold');
-            doc.text('NET PAY', 25, yPos + 5);
-            
-            // Save the PDF
-            const fileName = `Settlement_${settlement.settlementNumber || settlement.id}_${driverName.replace(/\s+/g, '_')}.pdf`;
-            doc.save(fileName);
-        }
-
-        // Print All Settlements
         window.printAllSettlements = function() {
             const settlements = DataManager.settlements.filter(s => s.status !== 'draft');
             
@@ -1215,134 +1067,394 @@
                 }
             }
 
-            let processed = 0;
             Utils.showNotification(`Generating ${settlements.length} settlement PDFs...`, 'info');
 
             settlements.forEach((settlement, index) => {
                 setTimeout(() => {
                     try {
                         generateSettlementPDF(settlement);
-                        processed++;
-                        
-                        if (processed === settlements.length) {
-                            Utils.showNotification(`Successfully generated ${processed} settlement PDFs`, 'success');
-                        }
                     } catch (error) {
                         console.error(`Error generating PDF for settlement ${settlement.id}:`, error);
                     }
-                }, index * 500); // Stagger PDF generation to avoid browser issues
+                }, index * 500);
             });
         };
 
-        // Email Settlement
-        window.emailSettlement = function(settlementId) {
+        // ========================================
+        // PDF GENERATION - EXACT DESIGN MATCH
+        // ========================================
+
+        window.printSettlement = function(settlementId) {
             const settlement = DataManager.settlements.find(s => s.id === settlementId);
             if (!settlement) {
                 Utils.showNotification('Settlement not found', 'error');
                 return;
             }
 
+            try {
+                generateSettlementPDF(settlement);
+                Utils.showNotification('Settlement PDF generated successfully', 'success');
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                Utils.showNotification('Error generating PDF: ' + error.message, 'error');
+            }
+        };
+
+        function generateSettlementPDF(settlement) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Get driver info
             const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
-            const driverName = driver ? `${driver.firstName} ${driver.lastName}` : 'Unknown Driver';
-            const driverEmail = driver?.email || '';
-
-            if (!driverEmail) {
-                Utils.showNotification('Driver email not found. Please update driver profile.', 'warning');
-                return;
-            }
-
-            // Create email content
-            const subject = `Settlement ${settlement.settlementNumber || settlement.id} - ATS FREIGHT LLC`;
-            const body = `Dear ${driverName},
-
-Please find your settlement details below:
-
-Settlement #: ${settlement.settlementNumber || settlement.id}
-Period: ${safeFormatDate(settlement.startDate)} - ${safeFormatDate(settlement.endDate)}
-Gross Pay: ${Utils.formatCurrency(settlement.grossPay || 0)}
-Total Deductions: ${Utils.formatCurrency(settlement.totalDeductions || 0)}
-Net Pay: ${Utils.formatCurrency(settlement.netPay || 0)}
-
-Please contact the office if you have any questions.
-
-Best regards,
-ATS FREIGHT LLC
-(614) 254-0380`;
-
-            // Create mailto link
-            const mailtoLink = `mailto:${driverEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            const driverName = driver ? `${driver.firstName} ${driver.lastName}` : settlement.driverName || 'Unknown Driver';
+            const driverId = driver?.driverId || driver?.id?.substring(0, 8) || 'N/A';
             
-            // Open email client
-            window.open(mailtoLink);
+            // Colors - NO RED, all dark charcoal
+            const darkColor = [31, 41, 55];      // #1f2937 - primary text
+            const grayColor = [107, 114, 128];   // #6b7280 - secondary text
+            const lightGray = [243, 244, 246];   // #f3f4f6 - table headers
+            const borderGray = [229, 231, 235];  // #e5e7eb - borders
             
-            Utils.showNotification('Email client opened with settlement details', 'success');
-        };
-
-        // Email All Settlements
-        window.emailAllSettlements = function() {
-            const settlements = DataManager.settlements.filter(s => s.status !== 'draft');
+            let yPos = 15;
             
-            if (settlements.length === 0) {
-                Utils.showNotification('No settlements to email', 'warning');
-                return;
+            // === TOP LEFT: Date/Time stamp ===
+            doc.setFontSize(9);
+            doc.setTextColor(...grayColor);
+            const now = new Date();
+            doc.text(`${now.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })}, ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`, 15, yPos);
+            
+            // === TOP RIGHT: Settlement Number ===
+            doc.text(`Settlement ${settlement.settlementNumber || 'N/A'}`, 155, yPos);
+            
+            yPos = 30;
+            
+            // === COMPANY HEADER LEFT SIDE ===
+            doc.setFontSize(22);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...darkColor);
+            doc.text('ATS FREIGHT LLC', 15, yPos);
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(...grayColor);
+            doc.text('DOT 3169186', 15, yPos + 8);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(...darkColor);
+            doc.text('3191 MORSE RD STE 15', 15, yPos + 18);
+            doc.text('COLUMBUS, OH 43231', 15, yPos + 24);
+            doc.text('Phone: (614) 254-0380', 15, yPos + 30);
+            
+            // === HEADER RIGHT SIDE ===
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...darkColor);
+            doc.text('DRIVER SETTLEMENT', 130, yPos);
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(...grayColor);
+            doc.text(`Settlement #: ${settlement.settlementNumber || 'N/A'}`, 130, yPos + 10);
+            doc.text(`Date: ${safeFormatDate(settlement.createdAt)}`, 130, yPos + 16);
+            doc.text(`Period: ${settlement.period?.display || 'N/A'}`, 130, yPos + 22);
+            
+            yPos = 75;
+            
+            // === DRIVER INFORMATION BOX ===
+            doc.setFillColor(...lightGray);
+            doc.setDrawColor(...borderGray);
+            doc.roundedRect(15, yPos, 180, 28, 2, 2, 'FD');
+            
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...darkColor);
+            doc.text('Driver Information', 20, yPos + 8);
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Name: ${driverName} (${driverId})`, 20, yPos + 16);
+            doc.text(`Driver ID: ${driverId}`, 20, yPos + 22);
+            doc.text(`Total Miles: ${settlement.totalMiles || 0}`, 120, yPos + 16);
+            
+            yPos = 110;
+            
+            // === ITEMIZED LOADS & EARNINGS ===
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...darkColor);
+            doc.text('Itemized Loads & Earnings', 15, yPos);
+            
+            yPos += 8;
+            
+            // Table Header
+            doc.setFillColor(...lightGray);
+            doc.rect(15, yPos, 180, 10, 'F');
+            doc.setDrawColor(...borderGray);
+            doc.rect(15, yPos, 180, 10, 'S');
+            
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...grayColor);
+            doc.text('LOAD #', 18, yPos + 7);
+            doc.text('DATE', 45, yPos + 7);
+            doc.text('ROUTE', 75, yPos + 7);
+            doc.text('LOAD AMOUNT', 115, yPos + 7);
+            doc.text('CALCULATION', 145, yPos + 7);
+            doc.text('GROSS PAY', 178, yPos + 7);
+            
+            yPos += 10;
+            
+            // Load Rows
+            let calculatedGross = 0;
+            const driverPayPercentage = driver ? Utils.validatePayPercentage(driver.payPercentage, driver.driverType) : 0.88;
+            
+            if (settlement.loadIds && settlement.loadIds.length > 0) {
+                settlement.loadIds.forEach((loadId, index) => {
+                    const load = DataManager.loads.find(l => l.id === loadId);
+                    if (!load) return;
+                    
+                    const loadAmount = parseFloat(load.rate?.total || load.rate || 0);
+                    const grossPay = loadAmount * driverPayPercentage;
+                    calculatedGross += grossPay;
+                    
+                    if (index % 2 === 0) {
+                        doc.setFillColor(255, 255, 255);
+                    } else {
+                        doc.setFillColor(250, 250, 250);
+                    }
+                    doc.rect(15, yPos, 180, 10, 'F');
+                    doc.setDrawColor(...borderGray);
+                    doc.rect(15, yPos, 180, 10, 'S');
+                    
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(...darkColor);
+                    
+                    const loadNum = load.loadNumber || loadId.substring(0, 8);
+                    const loadDate = safeFormatDate(load.delivery?.date || load.deliveredAt);
+                    const route = `${loadNum}: ${load.pickup?.city || 'Origin'} → ${load.delivery?.city || 'Dest'}`;
+                    const calcText = `${Utils.formatCurrency(loadAmount)} × ${Math.round(driverPayPercentage * 100)}% = ${Utils.formatCurrency(grossPay)}`;
+                    
+                    doc.text(loadNum, 18, yPos + 7);
+                    doc.text(loadDate, 45, yPos + 7);
+                    doc.setFontSize(7);
+                    doc.text(route.substring(0, 35), 75, yPos + 7);
+                    doc.setFontSize(9);
+                    doc.text(Utils.formatCurrency(loadAmount), 118, yPos + 7);
+                    doc.setFontSize(6);
+                    doc.text(calcText, 145, yPos + 7);
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(Utils.formatCurrency(grossPay), 178, yPos + 7);
+                    
+                    yPos += 10;
+                });
             }
-
-            const driversWithEmail = settlements.filter(settlement => {
-                const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
-                return driver && driver.email;
-            });
-
-            if (driversWithEmail.length === 0) {
-                Utils.showNotification('No drivers have email addresses configured', 'warning');
-                return;
-            }
-
-            if (driversWithEmail.length !== settlements.length) {
-                const missingEmails = settlements.length - driversWithEmail.length;
-                if (!confirm(`${missingEmails} drivers are missing email addresses. Continue with ${driversWithEmail.length} settlements?`)) {
-                    return;
+            
+            // GROSS PAY Total Row
+            doc.setFillColor(...lightGray);
+            doc.rect(15, yPos, 180, 10, 'F');
+            doc.setDrawColor(...borderGray);
+            doc.rect(15, yPos, 180, 10, 'S');
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...darkColor);
+            doc.text('GROSS PAY', 18, yPos + 7);
+            doc.text(Utils.formatCurrency(settlement.grossPay || calculatedGross), 178, yPos + 7);
+            
+            yPos += 18;
+            
+            // === DEDUCTIONS SECTION ===
+            if (settlement.totalDeductions > 0 || settlement.fuelDeduction > 0 || settlement.otherDeduction > 0) {
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(...darkColor);
+                doc.text('Itemized Deductions', 15, yPos);
+                
+                yPos += 8;
+                
+                // Show load-specific deductions if available
+                if (settlement.loadIds && settlement.loadIds.length > 0 && settlement.fuelDeduction > 0) {
+                    settlement.loadIds.forEach(loadId => {
+                        const load = DataManager.loads.find(l => l.id === loadId);
+                        if (!load) return;
+                        
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'bold');
+                        doc.setTextColor(...darkColor);
+                        doc.text(`Load #${load.loadNumber || loadId.substring(0, 8)}`, 15, yPos);
+                        yPos += 6;
+                        
+                        // Mini table header
+                        doc.setFillColor(...lightGray);
+                        doc.rect(15, yPos, 180, 8, 'F');
+                        doc.setDrawColor(...borderGray);
+                        doc.rect(15, yPos, 180, 8, 'S');
+                        
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'bold');
+                        doc.setTextColor(...grayColor);
+                        doc.text('TYPE', 18, yPos + 5);
+                        doc.text('DESCRIPTION', 80, yPos + 5);
+                        doc.text('AMOUNT', 175, yPos + 5);
+                        
+                        yPos += 8;
+                        
+                        // Fuel deduction row
+                        doc.setFillColor(255, 255, 255);
+                        doc.rect(15, yPos, 180, 8, 'F');
+                        doc.setDrawColor(...borderGray);
+                        doc.rect(15, yPos, 180, 8, 'S');
+                        
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                        doc.setTextColor(...darkColor);
+                        doc.text('Fuel', 18, yPos + 5);
+                        doc.text('Fuel', 80, yPos + 5);
+                        doc.text(`-${Utils.formatCurrency(settlement.fuelDeduction)}`, 175, yPos + 5);
+                        yPos += 12;
+                        
+                        break; // Only show for first load
+                    });
                 }
+                
+                // === DEDUCTIONS BREAKDOWN ===
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(...darkColor);
+                doc.text('Deductions Breakdown', 15, yPos);
+                
+                yPos += 10;
+                
+                const totalExpenses = (settlement.fuelDeduction || 0) + (settlement.otherDeduction || 0);
+                if (totalExpenses > 0) {
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(...darkColor);
+                    doc.text('Expenses', 25, yPos);
+                    doc.text(`-${Utils.formatCurrency(totalExpenses)}`, 175, yPos);
+                    yPos += 7;
+                }
+                
+                if (settlement.fuelDeduction > 0) {
+                    doc.setTextColor(...darkColor);
+                    doc.text('Fuel Deduction', 25, yPos);
+                    doc.text(`-${Utils.formatCurrency(settlement.fuelDeduction)}`, 175, yPos);
+                    yPos += 12;
+                }
+                
+                // === TAXES SECTION ===
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(...darkColor);
+                doc.text('Taxes:', 25, yPos);
+                yPos += 8;
+                
+                const taxes = ['Federal Tax', 'State Tax', 'Social Security', 'Medicare'];
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(...grayColor);
+                taxes.forEach(tax => {
+                    doc.text(tax, 35, yPos);
+                    doc.text('-$0.00', 175, yPos);
+                    yPos += 6;
+                });
+                
+                yPos += 8;
+                
+                // === TOTAL DEDUCTIONS ROW ===
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(...darkColor);
+                doc.text('Total Deductions', 15, yPos);
+                doc.text(`-${Utils.formatCurrency(settlement.totalDeductions || 0)}`, 175, yPos);
+                
+                yPos += 15;
             }
-
-            // Create batch email
-            const emailAddresses = driversWithEmail.map(settlement => {
-                const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
-                return driver.email;
-            }).join(',');
-
-            const subject = 'Your Settlement from ATS FREIGHT LLC';
-            const body = `Dear Drivers,
-
-Your settlement details are ready for review. Please contact the office for specific settlement information.
-
-ATS FREIGHT LLC
-Phone: (614) 254-0380
-Email: info@atsfreight.com
-
-Thank you for your service!`;
-
-            const mailtoLink = `mailto:${emailAddresses}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             
-            window.open(mailtoLink);
+            // === NET PAY SECTION ===
+            doc.setDrawColor(...borderGray);
+            doc.setLineWidth(0.5);
+            doc.line(15, yPos, 195, yPos);
             
-            Utils.showNotification(`Email client opened for ${driversWithEmail.length} drivers`, 'success');
-        };
+            yPos += 15;
+            
+            // NET PAY label
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(...grayColor);
+            doc.text('NET PAY', 105, yPos, { align: 'center' });
+            
+            yPos += 12;
+            
+            // NET PAY amount (LARGE, DARK - NO RED)
+            doc.setFontSize(28);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...darkColor);  // Dark charcoal, NOT red
+            doc.text(Utils.formatCurrency(settlement.netPay || 0), 105, yPos, { align: 'center' });
+            
+            yPos += 20;
+            
+            // === FOOTER ===
+            doc.setDrawColor(...borderGray);
+            doc.setLineWidth(0.3);
+            doc.line(15, yPos, 195, yPos);
+            
+            yPos += 10;
+            
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'italic');
+            doc.setTextColor(...grayColor);
+            doc.text('This is a computer-generated settlement statement. Please review all items carefully.', 105, yPos, { align: 'center' });
+            
+            yPos += 6;
+            doc.text(`Generated on ${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`, 105, yPos, { align: 'center' });
+            
+            yPos += 12;
+            
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(...grayColor);
+            doc.text('Print', 85, yPos);
+            doc.text('Email to Driver', 110, yPos);
+            
+            // === SAVE PDF ===
+            const fileName = `Settlement_${settlement.settlementNumber || settlement.id}.pdf`;
+            doc.save(fileName);
+        }
 
-        // Initialize Settlement Charts
+        function safeFormatDate(dateValue, fallback = 'N/A') {
+            if (!dateValue) return fallback;
+            
+            try {
+                const date = new Date(dateValue);
+                if (isNaN(date.getTime())) return fallback;
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            } catch (error) {
+                return fallback;
+            }
+        }
+
+        // ========================================
+        // CHARTS
+        // ========================================
+
         function initializeSettlementCharts() {
             renderSettlementTrendsChart();
             renderPaymentStatusChart();
         }
 
-        // Render Settlement Trends Chart
+        function updateSettlementCharts() {
+            if (typeof Plotly !== 'undefined') {
+                initializeSettlementCharts();
+            }
+        }
+
         function renderSettlementTrendsChart() {
             const settlements = DataManager.settlements || [];
             
-            // Group settlements by week
             const weeklyData = {};
             const today = new Date();
             
-            // Generate last 8 weeks
             for (let i = 7; i >= 0; i--) {
                 const weekStart = new Date(today);
                 weekStart.setDate(today.getDate() - (i * 7));
@@ -1361,17 +1473,13 @@ Thank you for your service!`;
                     avgAmount: 0
                 };
                 
-                // Count settlements in this week
                 settlements.forEach(settlement => {
                     try {
                         const dateValue = settlement.createdAt || settlement.date;
                         if (!dateValue) return;
                         
                         const settlementDate = new Date(dateValue);
-                        if (isNaN(settlementDate.getTime())) {
-                            console.warn('Invalid settlement date:', dateValue);
-                            return;
-                        }
+                        if (isNaN(settlementDate.getTime())) return;
                         
                         if (settlementDate >= weekStart && settlementDate <= weekEnd) {
                             weeklyData[weekKey].settlements++;
@@ -1382,7 +1490,6 @@ Thank you for your service!`;
                     }
                 });
                 
-                // Calculate average
                 if (weeklyData[weekKey].settlements > 0) {
                     weeklyData[weekKey].avgAmount = weeklyData[weekKey].totalAmount / weeklyData[weekKey].settlements;
                 }
@@ -1417,56 +1524,27 @@ Thank you for your service!`;
                 title: '',
                 showlegend: true,
                 margin: { t: 20, b: 40, l: 60, r: 60 },
-                xaxis: { 
-                    title: 'Week',
-                    tickangle: -45
-                },
-                yaxis: {
-                    title: 'Number of Settlements',
-                    side: 'left',
-                    color: '#3b82f6'
-                },
-                yaxis2: {
-                    title: 'Average Amount ($)',
-                    side: 'right',
-                    overlaying: 'y',
-                    color: '#10b981',
-                    tickformat: '$,.0f'
-                },
+                xaxis: { title: 'Week', tickangle: -45 },
+                yaxis: { title: 'Number of Settlements', side: 'left', color: '#3b82f6' },
+                yaxis2: { title: 'Average Amount ($)', side: 'right', overlaying: 'y', color: '#10b981', tickformat: '$,.0f' },
                 font: { family: 'Inter, sans-serif', size: 12 }
             };
             
-            const config = { responsive: true, displayModeBar: false };
-            
-            Plotly.newPlot('settlementChart', data, layout, config);
+            Plotly.newPlot('settlementChart', data, layout, { responsive: true, displayModeBar: false });
         }
 
-        // Render Payment Status Chart
         function renderPaymentStatusChart() {
             const settlements = DataManager.settlements || [];
             
-            // Count settlements by status
-            const statusCounts = {
-                'Paid': 0,
-                'Pending': 0,
-                'Processed': 0,
-                'Draft': 0
-            };
+            const statusCounts = { 'Paid': 0, 'Pending': 0, 'Processed': 0, 'Draft': 0 };
             
             settlements.forEach(settlement => {
                 const status = settlement.status || 'pending';
                 switch (status.toLowerCase()) {
-                    case 'paid':
-                        statusCounts['Paid']++;
-                        break;
-                    case 'processed':
-                        statusCounts['Processed']++;
-                        break;
-                    case 'draft':
-                        statusCounts['Draft']++;
-                        break;
-                    default:
-                        statusCounts['Pending']++;
+                    case 'paid': statusCounts['Paid']++; break;
+                    case 'processed': statusCounts['Processed']++; break;
+                    case 'draft': statusCounts['Draft']++; break;
+                    default: statusCounts['Pending']++;
                 }
             });
             
@@ -1479,19 +1557,10 @@ Thank you for your service!`;
                 labels: labels,
                 type: 'pie',
                 hole: 0.4,
-                marker: {
-                    colors: colors,
-                    line: {
-                        color: '#ffffff',
-                        width: 2
-                    }
-                },
+                marker: { colors: colors, line: { color: '#ffffff', width: 2 } },
                 textinfo: 'label+percent',
                 textposition: 'outside',
-                textfont: {
-                    size: 12,
-                    family: 'Inter, sans-serif'
-                }
+                textfont: { size: 12, family: 'Inter, sans-serif' }
             }];
             
             const layout = {
@@ -1499,93 +1568,11 @@ Thank you for your service!`;
                 showlegend: true,
                 margin: { t: 20, b: 20, l: 20, r: 20 },
                 font: { family: 'Inter, sans-serif', size: 12 },
-                legend: {
-                    orientation: 'h',
-                    x: 0.5,
-                    xanchor: 'center',
-                    y: -0.1
-                }
+                legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.1 }
             };
             
-            const config = { responsive: true, displayModeBar: false };
-            
-            Plotly.newPlot('paymentStatusChart', data, layout, config);
+            Plotly.newPlot('paymentStatusChart', data, layout, { responsive: true, displayModeBar: false });
         }
-
-        // Update charts when data changes
-        function updateSettlementCharts() {
-            if (typeof Plotly !== 'undefined') {
-                initializeSettlementCharts();
-            }
-        }
-
-        // Refresh all settlements data and charts
-        window.refreshSettlements = function() {
-            Utils.showNotification('Refreshing settlements data...', 'info');
-            
-            try {
-                // Re-render table
-                renderSettlementsTable();
-                
-                // Update stats
-                updateStats();
-                
-                // Update charts
-                updateSettlementCharts();
-                
-                Utils.showNotification('Settlements refreshed successfully', 'success');
-            } catch (error) {
-                console.error('Error refreshing settlements:', error);
-                Utils.showNotification('Error refreshing settlements', 'error');
-            }
-        };
-
-        // Delete settlement
-        window.deleteSettlement = async function(settlementId) {
-            if (!confirm('Are you sure you want to delete this settlement?')) return;
-            
-            try {
-                const settlement = DataManager.settlements.find(s => s.id === settlementId);
-                
-                // Clear settlementId from associated loads
-                if (settlement && settlement.loadIds) {
-                    for (const loadId of settlement.loadIds) {
-                        await DataManager.updateLoad(loadId, { settlementId: null });
-                    }
-                }
-                
-                await DataManager.deleteSettlement(settlementId);
-                Utils.showNotification('Settlement deleted', 'success');
-                renderSettlementsTable();
-            } catch (error) {
-                console.error('Error deleting settlement:', error);
-                Utils.showNotification('Failed to delete settlement', 'error');
-            }
-        };
-
-        // Auto-run when page loads
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('Settlements page ready');
-            setupEventListeners();
-            
-            // Wait for DataManager to be fully initialized
-            while (!DataManager || !DataManager.settlements) {
-                console.log('Waiting for DataManager to initialize...');
-                await new Promise(r => setTimeout(r, 200));
-            }
-            
-            console.log('DataManager ready, rendering settlements table...');
-            renderSettlementsTable();
-            
-            // Initialize charts
-            console.log('Initializing settlement charts...');
-            initializeSettlementCharts();
-            
-            // Also set up a listener for when settlements change
-            if (DataManager.settlements) {
-                console.log('Initial settlements count:', DataManager.settlements.length);
-            }
-        });
     </script>
 </body>
 

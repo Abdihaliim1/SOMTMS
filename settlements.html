@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <style>
@@ -264,8 +265,11 @@
                         <button class="text-gray-600 hover:text-gray-800">
                             <i class="fas fa-download mr-2"></i>Export
                         </button>
-                        <button class="text-gray-600 hover:text-gray-800">
+                        <button onclick="printAllSettlements()" class="text-gray-600 hover:text-gray-800">
                             <i class="fas fa-print mr-2"></i>Print All
+                        </button>
+                        <button onclick="emailAllSettlements()" class="text-blue-600 hover:text-blue-800 ml-2">
+                            <i class="fas fa-envelope mr-2"></i>Email All
                         </button>
                     </div>
                 </div>
@@ -784,8 +788,11 @@
                         <button onclick="viewSettlement('${settlement.id}')" class="text-blue-600 hover:text-blue-800" title="View">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button onclick="printSettlement('${settlement.id}')" class="text-gray-600 hover:text-gray-800" title="Print">
+                        <button onclick="printSettlement('${settlement.id}')" class="text-gray-600 hover:text-gray-800" title="Print PDF">
                             <i class="fas fa-print"></i>
+                        </button>
+                        <button onclick="emailSettlement('${settlement.id}')" class="text-blue-600 hover:text-blue-800 ml-2" title="Email Settlement">
+                            <i class="fas fa-envelope"></i>
                         </button>
                         <button onclick="deleteSettlement('${settlement.id}')" class="text-red-600 hover:text-red-800" title="Delete">
                             <i class="fas fa-trash"></i>
@@ -847,9 +854,261 @@
             alert(`Settlement: ${settlement.settlementNumber}\nDriver: ${settlement.driverName}\nGross Pay: ${Utils.formatCurrency(settlement.grossPay)}\nDeductions: ${Utils.formatCurrency(settlement.totalDeductions)}\nNet Pay: ${Utils.formatCurrency(settlement.netPay)}\nStatus: ${settlement.status}`);
         };
 
-        // Print settlement (placeholder)
+        // Print settlement - Generate PDF
         window.printSettlement = function(settlementId) {
-            Utils.showNotification('Print functionality coming soon', 'info');
+            const settlement = DataManager.settlements.find(s => s.id === settlementId);
+            if (!settlement) {
+                Utils.showNotification('Settlement not found', 'error');
+                return;
+            }
+
+            try {
+                generateSettlementPDF(settlement);
+                Utils.showNotification('Settlement PDF generated successfully', 'success');
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                Utils.showNotification('Error generating PDF: ' + error.message, 'error');
+            }
+        };
+
+        // Generate Settlement PDF
+        function generateSettlementPDF(settlement) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Get driver info
+            const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
+            const driverName = driver ? `${driver.firstName} ${driver.lastName}` : 'Unknown Driver';
+            
+            // Header
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('ATS FREIGHT LLC', 20, 20);
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text('3191 MORSE RD STE 15, COLUMBUS, OH 43231', 20, 30);
+            doc.text('Phone: (614) 254-0380 | DOT: 3169186', 20, 38);
+            
+            // Settlement Title
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('DRIVER SETTLEMENT', 20, 55);
+            
+            // Settlement Info
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Settlement #: ${settlement.settlementNumber || settlement.id}`, 20, 70);
+            doc.text(`Driver: ${driverName}`, 20, 78);
+            doc.text(`Period: ${Utils.formatDate(settlement.startDate)} - ${Utils.formatDate(settlement.endDate)}`, 20, 86);
+            doc.text(`Generated: ${Utils.formatDate(new Date())}`, 20, 94);
+            
+            let yPos = 110;
+            
+            // Loads Section
+            if (settlement.loadIds && settlement.loadIds.length > 0) {
+                doc.setFont(undefined, 'bold');
+                doc.text('LOADS:', 20, yPos);
+                yPos += 10;
+                
+                doc.setFont(undefined, 'normal');
+                settlement.loadIds.forEach(loadId => {
+                    const load = DataManager.loads.find(l => l.id === loadId);
+                    if (load) {
+                        const loadText = `${load.loadNumber || 'N/A'} - ${load.pickup?.city || 'N/A'} to ${load.delivery?.city || 'N/A'} - ${Utils.formatCurrency(load.rate?.total || 0)}`;
+                        doc.text(loadText, 25, yPos);
+                        yPos += 8;
+                    }
+                });
+                yPos += 5;
+            }
+            
+            // Financial Summary
+            doc.setFont(undefined, 'bold');
+            doc.text('FINANCIAL SUMMARY:', 20, yPos);
+            yPos += 10;
+            
+            doc.setFont(undefined, 'normal');
+            doc.text(`Gross Pay: ${Utils.formatCurrency(settlement.grossPay || 0)}`, 25, yPos);
+            yPos += 8;
+            
+            // Deductions
+            if (settlement.totalDeductions > 0) {
+                doc.text('Deductions:', 25, yPos);
+                yPos += 8;
+                
+                if (settlement.advances > 0) {
+                    doc.text(`  Advances: ${Utils.formatCurrency(settlement.advances)}`, 30, yPos);
+                    yPos += 6;
+                }
+                if (settlement.lumperFees > 0) {
+                    doc.text(`  Lumper Fees: ${Utils.formatCurrency(settlement.lumperFees)}`, 30, yPos);
+                    yPos += 6;
+                }
+                if (settlement.fuelDeduction > 0) {
+                    doc.text(`  Fuel: ${Utils.formatCurrency(settlement.fuelDeduction)}`, 30, yPos);
+                    yPos += 6;
+                }
+                if (settlement.insuranceDeduction > 0) {
+                    doc.text(`  Insurance: ${Utils.formatCurrency(settlement.insuranceDeduction)}`, 30, yPos);
+                    yPos += 6;
+                }
+                if (settlement.maintenanceDeduction > 0) {
+                    doc.text(`  Maintenance: ${Utils.formatCurrency(settlement.maintenanceDeduction)}`, 30, yPos);
+                    yPos += 6;
+                }
+                if (settlement.otherExpenseDeduction > 0) {
+                    doc.text(`  Other Expenses: ${Utils.formatCurrency(settlement.otherExpenseDeduction)}`, 30, yPos);
+                    yPos += 6;
+                }
+                
+                doc.text(`Total Deductions: ${Utils.formatCurrency(settlement.totalDeductions)}`, 25, yPos);
+                yPos += 10;
+            }
+            
+            // Net Pay
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(14);
+            doc.text(`NET PAY: ${Utils.formatCurrency(settlement.netPay || 0)}`, 25, yPos);
+            
+            // Footer
+            yPos = 270;
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text('This settlement is subject to the terms and conditions of your driver agreement.', 20, yPos);
+            doc.text('Please contact the office if you have any questions regarding this settlement.', 20, yPos + 8);
+            
+            // Save the PDF
+            const fileName = `Settlement_${settlement.settlementNumber || settlement.id}_${driverName.replace(/\s+/g, '_')}.pdf`;
+            doc.save(fileName);
+        }
+
+        // Print All Settlements
+        window.printAllSettlements = function() {
+            const settlements = DataManager.settlements.filter(s => s.status !== 'draft');
+            
+            if (settlements.length === 0) {
+                Utils.showNotification('No settlements to print', 'warning');
+                return;
+            }
+
+            if (settlements.length > 10) {
+                if (!confirm(`This will generate ${settlements.length} PDF files. Continue?`)) {
+                    return;
+                }
+            }
+
+            let processed = 0;
+            Utils.showNotification(`Generating ${settlements.length} settlement PDFs...`, 'info');
+
+            settlements.forEach((settlement, index) => {
+                setTimeout(() => {
+                    try {
+                        generateSettlementPDF(settlement);
+                        processed++;
+                        
+                        if (processed === settlements.length) {
+                            Utils.showNotification(`Successfully generated ${processed} settlement PDFs`, 'success');
+                        }
+                    } catch (error) {
+                        console.error(`Error generating PDF for settlement ${settlement.id}:`, error);
+                    }
+                }, index * 500); // Stagger PDF generation to avoid browser issues
+            });
+        };
+
+        // Email Settlement
+        window.emailSettlement = function(settlementId) {
+            const settlement = DataManager.settlements.find(s => s.id === settlementId);
+            if (!settlement) {
+                Utils.showNotification('Settlement not found', 'error');
+                return;
+            }
+
+            const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
+            const driverName = driver ? `${driver.firstName} ${driver.lastName}` : 'Unknown Driver';
+            const driverEmail = driver?.email || '';
+
+            if (!driverEmail) {
+                Utils.showNotification('Driver email not found. Please update driver profile.', 'warning');
+                return;
+            }
+
+            // Create email content
+            const subject = `Settlement ${settlement.settlementNumber || settlement.id} - ATS FREIGHT LLC`;
+            const body = `Dear ${driverName},
+
+Please find your settlement details below:
+
+Settlement #: ${settlement.settlementNumber || settlement.id}
+Period: ${Utils.formatDate(settlement.startDate)} - ${Utils.formatDate(settlement.endDate)}
+Gross Pay: ${Utils.formatCurrency(settlement.grossPay || 0)}
+Total Deductions: ${Utils.formatCurrency(settlement.totalDeductions || 0)}
+Net Pay: ${Utils.formatCurrency(settlement.netPay || 0)}
+
+Please contact the office if you have any questions.
+
+Best regards,
+ATS FREIGHT LLC
+(614) 254-0380`;
+
+            // Create mailto link
+            const mailtoLink = `mailto:${driverEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            
+            // Open email client
+            window.open(mailtoLink);
+            
+            Utils.showNotification('Email client opened with settlement details', 'success');
+        };
+
+        // Email All Settlements
+        window.emailAllSettlements = function() {
+            const settlements = DataManager.settlements.filter(s => s.status !== 'draft');
+            
+            if (settlements.length === 0) {
+                Utils.showNotification('No settlements to email', 'warning');
+                return;
+            }
+
+            const driversWithEmail = settlements.filter(settlement => {
+                const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
+                return driver && driver.email;
+            });
+
+            if (driversWithEmail.length === 0) {
+                Utils.showNotification('No drivers have email addresses configured', 'warning');
+                return;
+            }
+
+            if (driversWithEmail.length !== settlements.length) {
+                const missingEmails = settlements.length - driversWithEmail.length;
+                if (!confirm(`${missingEmails} drivers are missing email addresses. Continue with ${driversWithEmail.length} settlements?`)) {
+                    return;
+                }
+            }
+
+            // Create batch email
+            const emailAddresses = driversWithEmail.map(settlement => {
+                const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
+                return driver.email;
+            }).join(',');
+
+            const subject = 'Your Settlement from ATS FREIGHT LLC';
+            const body = `Dear Drivers,
+
+Your settlement details are ready for review. Please contact the office for specific settlement information.
+
+ATS FREIGHT LLC
+Phone: (614) 254-0380
+Email: info@atsfreight.com
+
+Thank you for your service!`;
+
+            const mailtoLink = `mailto:${emailAddresses}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            
+            window.open(mailtoLink);
+            
+            Utils.showNotification(`Email client opened for ${driversWithEmail.length} drivers`, 'success');
         };
 
         // Delete settlement

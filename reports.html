@@ -1127,7 +1127,7 @@
                         const totalRate = parseFloat(load.companyRevenue || load.rate?.total || load.rate || 0) || 0;
                         const miles = parseFloat(load.mileage?.total || load.miles || 0) || 0;
                         
-                        // First look up the driver → use their real stored percentage → if missing, use 0 (not 0.75!)
+                        // First look up the driver → use their real stored percentage → if missing, use 0 (NO DEFAULTS!)
                         let driverPay = parseFloat(load.rate?.driverPay) || 0;
 
                         // If no explicit driverPay on load, calculate from driver's stored percentage
@@ -1143,7 +1143,7 @@
                             }
                         }
 
-                        // Final fallback: $0 if nothing found (never guess 75%)
+                        // Final fallback: $0 if nothing found (NO HARDCODED PERCENTAGES!)
                         const basePay = driverPay;
                         
                         // Calculate deductions for owner operators

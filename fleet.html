@@ -915,7 +915,7 @@
                                 // Calculate driver pay for this load
                                 const loadAmount = parseFloat(load.rate?.total) || 0;
                                 if (driver.payment?.type === 'percentage') {
-                                    const percentage = parseFloat(driver.payment.percentage || driver.payPercentage || 70);
+                                    const percentage = parseFloat(driver.payment.percentage || driver.payPercentage || 0);
                                     const driverPercent = percentage > 1 ? percentage / 100 : percentage;
                                     driverPay += loadAmount * driverPercent;
                                 } else if (driver.payment?.type === 'per_mile') {

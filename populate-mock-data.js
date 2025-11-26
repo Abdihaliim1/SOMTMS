@@ -215,7 +215,7 @@ async function populateMockData() {
                 firstName: 'Liban',
                 lastName: 'Ali',
                 driverType: 'owner',
-                payPercentage: 0.70, // 70% as decimal
+                payPercentage: 0.65, // 65% as decimal - individual rate
                 phone: '(614) 254-0380',
                 email: 'liban@atsfreight.com',
                 address: '3191 Morse Rd STE 15',
@@ -269,7 +269,7 @@ async function populateMockData() {
                 firstName: 'Marcus',
                 lastName: 'Johnson',
                 driverType: 'company',
-                payPercentage: 0.70, // 70% as decimal
+                payPercentage: 0.68, // 68% as decimal - individual rate
                 phone: '(614) 555-0202',
                 email: 'marcus.j@atsfreight.com',
                 address: '890 Livingston Ave',
@@ -293,7 +293,7 @@ async function populateMockData() {
                 firstName: 'Sarah',
                 lastName: 'Williams',
                 driverType: 'company',
-                payPercentage: 0.70, // 70% as decimal
+                payPercentage: 0.72, // 72% as decimal - individual rate
                 phone: '(614) 555-0303',
                 email: 'sarah.w@atsfreight.com',
                 address: '2340 Sullivant Ave',

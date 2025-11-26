@@ -642,7 +642,7 @@
                         let basePay = parseFloat(load.rate?.driverPay) || 0;
                         if (!basePay && driver.payment) {
                             if (driver.payment.type === 'percentage') {
-                                let pct = parseFloat(driver.payPercentage) || 0.70;
+                                let pct = parseFloat(driver.payPercentage) || 0;
                                 if (pct > 1) pct = pct / 100;
                                 basePay = totalRate * pct;
                             } else if (driver.payment.type === 'per_mile') {

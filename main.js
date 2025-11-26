@@ -129,9 +129,9 @@ const Utils = {
             if (driverType === 'owner_operator') {
                 return 0.88; // 88% default for O/O
             } else if (driverType === 'company' || driverType === 'owner') {
-                return 0.70; // 70% default for company drivers
+                return 0; // No default - must be entered in system
             }
-            return 0.70; // Safe default
+            return 0; // No default - must be entered in system
         }
 
         let decimalValue = parseFloat(percentage);
@@ -147,14 +147,14 @@ const Utils = {
             if (driverType === 'owner_operator') {
                 return 0.88;
             }
-            return 0.70;
+            return 0; // No default - must be entered in system
         }
 
         // Warn if unusual for driver type
         if (driverType === 'owner_operator' && decimalValue < 0.80) {
             console.warn(`Unusual O/O percentage: ${(decimalValue * 100).toFixed(0)}%. Typically 85-90%`);
-        } else if ((driverType === 'company' || driverType === 'owner') && decimalValue > 0.80) {
-            console.warn(`Unusual company driver percentage: ${(decimalValue * 100).toFixed(0)}%. Typically 65-75%`);
+        } else if ((driverType === 'company' || driverType === 'owner') && decimalValue > 0.95) {
+            console.warn(`Unusual company driver percentage: ${(decimalValue * 100).toFixed(0)}%. Please verify this is correct.`);
         }
 
         return decimalValue;
@@ -1187,6 +1187,11 @@ const DataManager = {
 
     // --- DRIVERS ---
     addDriver: async (driverData) => {
+        // CRITICAL: Validate that driver has a pay percentage
+        if (!driverData.payPercentage || driverData.payPercentage <= 0) {
+            throw new Error('Driver pay percentage is required and must be greater than 0. No default percentages allowed.');
+        }
+        
         const payload = JSON.parse(JSON.stringify(driverData));
         payload.createdAt = new Date().toISOString();
         payload.updatedAt = new Date().toISOString();
@@ -1758,7 +1763,7 @@ const DataManager = {
         driverPayRules: {
             companyDriver: {
                 paymentType: "percentage",
-                percentage: 0.70,  // 70% of load
+                percentage: 0,  // No default - must be set per driver
                 updatedAt: new Date().toISOString()
             },
             ownerOperator: {
@@ -1768,7 +1773,7 @@ const DataManager = {
             },
             owner: {
                 paymentType: "percentage",
-                percentage: 0.70,  // Same as company driver
+                percentage: 0,  // No default - must be set per driver
                 updatedAt: new Date().toISOString()
             }
         },

@@ -176,7 +176,7 @@ firebase deploy
 ```javascript
 const businessRules = {
     driverPayRules: {
-        companyDriver: { percentage: 0.70 },    // 70% of load revenue
+        companyDriver: { percentage: 0 },    // Individual percentage per driver
         ownerOperator: { percentage: 0.88 }     // 88% of load revenue
     },
     revenueRules: {

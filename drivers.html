@@ -360,9 +360,9 @@
                                     <option value="owner">Owner (Driver)</option>
                                 </select>
                                 <p class="text-xs text-gray-500 mt-1">
-                                    <strong>Company Driver:</strong> 65-70% or per-mile, all expenses paid by
+                                    <strong>Company Driver:</strong> Custom percentage or per-mile rate, all expenses paid by
                                     company<br>
-                                    <strong>Owner Operator:</strong> 85-90%, expenses may be deducted from
+                                    <strong>Owner Operator:</strong> Custom percentage, expenses may be deducted from
                                     settlement<br>
                                     <strong>Owner (Driver):</strong> Same as company driver, gets business profit
                                     separately
@@ -625,9 +625,9 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Percentage Rate</label>
                                 <input type="number" id="percentageRate" step="0.01" min="0" max="100"
                                     class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="75">
+                                    placeholder="Enter percentage (required)" required min="0.01">
                                 <p class="text-xs text-gray-500 mt-1" id="percentageHint">
-                                    Enter percentage (e.g., 70 for 70%)
+                                    Enter driver's specific percentage (e.g., 65 for 65%)
                                 </p>
                             </div>
                         </div>
@@ -1153,11 +1153,11 @@
                 // Set default percentage range hint for company drivers
                 if (percentageHint) {
                     if (driverType === 'company') {
-                        percentageHint.textContent = 'Enter percentage (typically 65-70% for Company Drivers)';
+                        percentageHint.textContent = 'Enter this driver\'s specific percentage (varies by driver)';
                     } else if (driverType === 'owner') {
-                        percentageHint.textContent = 'Enter percentage (same as Company Driver, typically 65-70%)';
+                        percentageHint.textContent = 'Enter this driver\'s specific percentage (varies by driver)';
                     } else {
-                        percentageHint.textContent = 'Enter percentage (e.g., 70 for 70%)';
+                        percentageHint.textContent = 'Enter this driver\'s specific percentage (varies by driver)';
                     }
                 }
             }
@@ -1247,7 +1247,13 @@
                     },
                     // Store pay percentage separately for easier access
                     payPercentage: document.getElementById('paymentType').value === 'percentage'
-                        ? Utils.validatePayPercentage(parseFloat(document.getElementById('percentageRate').value) || 0, driverType)
+                        ? (() => {
+                            const percentage = parseFloat(document.getElementById('percentageRate').value) || 0;
+                            if (percentage <= 0) {
+                                throw new Error('Driver pay percentage is required and must be greater than 0. Each driver must have their own specific percentage.');
+                            }
+                            return Utils.validatePayPercentage(percentage, driverType);
+                        })()
                         : undefined,
                     // Deduction preferences for Owner Operators
                     deductionPreferences: driverType === 'owner_operator' ? {

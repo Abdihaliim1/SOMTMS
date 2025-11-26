@@ -36,9 +36,9 @@ async function migrateDriverPercentages() {
             if (driver.driverType === 'owner_operator') {
                 updateData.payPercentage = 0.88; // 88% default for O/O
             } else if (driver.driverType === 'company' || driver.driverType === 'owner') {
-                updateData.payPercentage = 0.70; // 70% default for company drivers
+                updateData.payPercentage = 0; // No default - must be set individually
             } else {
-                updateData.payPercentage = 0.70; // Safe default
+                updateData.payPercentage = 0; // No default - must be set individually
             }
             needsUpdate = true;
             migratedCount++;

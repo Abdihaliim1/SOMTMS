@@ -899,7 +899,7 @@
             }
         }
 
-        // Generate Professional Settlement PDF
+        // Generate Professional Settlement PDF - Exact Design Match
         function generateSettlementPDF(settlement) {
             console.log('Generating professional PDF for settlement:', settlement);
             
@@ -909,213 +909,291 @@
             // Get driver info
             const driver = DataManager.drivers.find(d => d.id === settlement.driverId);
             const driverName = driver ? `${driver.firstName} ${driver.lastName}` : 'Unknown Driver';
-            
-            // Colors
-            const primaryColor = [31, 41, 55]; // Navy blue
-            const accentColor = [59, 130, 246]; // Blue
-            const successColor = [16, 185, 129]; // Green
-            const grayColor = [107, 114, 128]; // Gray
+            const driverId = driver ? driver.driverId || driver.id : 'N/A';
             
             // === HEADER SECTION ===
-            // Company logo background
-            doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            doc.rect(0, 0, 210, 45, 'F');
-            
-            // Company name
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(24);
-            doc.setFont(undefined, 'bold');
-            doc.text('ATS FREIGHT LLC', 20, 25);
-            
-            // Company details
+            // Date and Settlement Number (top corners)
             doc.setFontSize(10);
             doc.setFont(undefined, 'normal');
-            doc.text('3191 MORSE RD STE 15, COLUMBUS, OH 43231', 20, 32);
-            doc.text('Phone: (614) 254-0380 | DOT: 3169186', 20, 38);
+            doc.setTextColor(0, 0, 0);
+            doc.text(safeFormatDate(new Date()), 20, 15);
+            doc.text(`Settlement ${settlement.settlementNumber || settlement.id}`, 140, 15);
             
-            // Settlement title with background
-            doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
-            doc.rect(0, 45, 210, 20, 'F');
-            doc.setTextColor(255, 255, 255);
+            // Company Logo Area (left side)
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('ATS FREIGHT LLC', 20, 35);
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text('DOT 3169186', 20, 42);
+            
+            // Company Address
+            doc.text('3191 MORSE RD STE 15', 20, 52);
+            doc.text('COLUMBUS, OH 43231', 20, 58);
+            doc.text('Phone: (614) 254-0380', 20, 64);
+            
+            // Settlement Title (right side)
             doc.setFontSize(18);
             doc.setFont(undefined, 'bold');
-            doc.text('DRIVER SETTLEMENT', 20, 58);
+            doc.text('DRIVER SETTLEMENT', 120, 35);
             
-            // Reset text color
-            doc.setTextColor(0, 0, 0);
-            
-            // === SETTLEMENT INFO SECTION ===
-            let yPos = 75;
-            
-            // Info box background
-            doc.setFillColor(248, 250, 252);
-            doc.rect(15, yPos, 180, 35, 'F');
-            doc.setDrawColor(229, 231, 235);
-            doc.rect(15, yPos, 180, 35, 'S');
-            
-            // Settlement details
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'bold');
-            yPos += 10;
-            doc.text('Settlement Information:', 20, yPos);
-            
+            doc.setFontSize(10);
             doc.setFont(undefined, 'normal');
+            doc.text(`Settlement #: ${settlement.settlementNumber || settlement.id}`, 120, 45);
+            doc.text(`Date: ${safeFormatDate(settlement.createdAt || new Date())}`, 120, 52);
+            doc.text(`Period: ${safeFormatDate(settlement.startDate)} - ${safeFormatDate(settlement.endDate)}`, 120, 59);
+            
+            // Horizontal line separator
+            doc.setDrawColor(0, 0, 0);
+            doc.setLineWidth(1);
+            doc.line(20, 75, 190, 75);
+            
+            let yPos = 85;
+            
+            // === DRIVER INFORMATION SECTION ===
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('Driver Information', 20, yPos);
+            
             yPos += 8;
-            doc.text(`Settlement #: ${settlement.settlementNumber || settlement.id}`, 25, yPos);
-            doc.text(`Driver: ${driverName}`, 110, yPos);
-            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Name: ${driverName} (${driverId})`, 20, yPos);
             yPos += 6;
-            const startDate = safeFormatDate(settlement.startDate);
-            const endDate = safeFormatDate(settlement.endDate);
-            const generatedDate = safeFormatDate(new Date());
-            
-            doc.text(`Period: ${startDate} - ${endDate}`, 25, yPos);
+            doc.text(`Driver ID: ${driverId}`, 20, yPos);
             yPos += 6;
-            doc.text(`Generated: ${generatedDate}`, 25, yPos);
             
-            yPos += 20;
-            
-            // === LOADS SECTION ===
+            // Calculate total miles from loads
+            let totalMiles = 0;
             if (settlement.loadIds && settlement.loadIds.length > 0) {
-                // Section header
-                doc.setFillColor(successColor[0], successColor[1], successColor[2]);
-                doc.rect(15, yPos, 180, 12, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text('LOADS COMPLETED', 20, yPos + 8);
-                
-                yPos += 18;
-                doc.setTextColor(0, 0, 0);
-                
-                // Table headers
-                doc.setFillColor(243, 244, 246);
-                doc.rect(15, yPos, 180, 10, 'F');
-                doc.setFontSize(9);
-                doc.setFont(undefined, 'bold');
-                doc.text('Load #', 20, yPos + 6);
-                doc.text('Route', 60, yPos + 6);
-                doc.text('Amount', 160, yPos + 6);
-                
-                yPos += 12;
-                doc.setFont(undefined, 'normal');
-                
-                // Load details
+                settlement.loadIds.forEach(loadId => {
+                    const load = DataManager.loads.find(l => l.id === loadId);
+                    if (load && load.mileage) {
+                        totalMiles += load.mileage.total || 0;
+                    }
+                });
+            }
+            doc.text(`Total Miles: ${totalMiles}`, 20, yPos);
+            
+            yPos += 15;
+            
+            // === ITEMIZED LOADS & EARNINGS SECTION ===
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('Itemized Loads & Earnings', 20, yPos);
+            
+            yPos += 10;
+            
+            // Table headers
+            doc.setFillColor(240, 240, 240);
+            doc.rect(20, yPos - 3, 170, 8, 'F');
+            doc.setDrawColor(0, 0, 0);
+            doc.rect(20, yPos - 3, 170, 8, 'S');
+            
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'bold');
+            doc.text('LOAD #', 25, yPos + 2);
+            doc.text('DATE', 55, yPos + 2);
+            doc.text('ROUTE', 85, yPos + 2);
+            doc.text('LOAD AMOUNT', 130, yPos + 2);
+            doc.text('CALCULATION', 155, yPos + 2);
+            doc.text('GROSS PAY', 175, yPos + 2);
+            
+            yPos += 10;
+            
+            // Load details
+            let totalGrossPay = 0;
+            if (settlement.loadIds && settlement.loadIds.length > 0) {
                 settlement.loadIds.forEach((loadId, index) => {
                     const load = DataManager.loads.find(l => l.id === loadId);
                     if (load) {
+                        const loadAmount = load.rate?.total || 0;
+                        const driverPayPercentage = Utils.validatePayPercentage(driver.payPercentage, driver.driverType);
+                        const grossPay = loadAmount * driverPayPercentage;
+                        totalGrossPay += grossPay;
+                        
                         // Alternating row colors
                         if (index % 2 === 0) {
-                            doc.setFillColor(249, 250, 251);
-                            doc.rect(15, yPos - 3, 180, 8, 'F');
+                            doc.setFillColor(248, 248, 248);
+                            doc.rect(20, yPos - 3, 170, 8, 'F');
                         }
                         
-                        doc.text(load.loadNumber || 'N/A', 20, yPos);
-                        doc.text(`${load.pickup?.city || 'N/A'} → ${load.delivery?.city || 'N/A'}`, 60, yPos);
-                        doc.text(Utils.formatCurrency(load.rate?.total || 0), 160, yPos);
+                        doc.setDrawColor(200, 200, 200);
+                        doc.rect(20, yPos - 3, 170, 8, 'S');
+                        
+                        doc.setFontSize(8);
+                        doc.setFont(undefined, 'normal');
+                        doc.text(load.loadNumber || 'N/A', 25, yPos + 2);
+                        doc.text(safeFormatDate(load.delivery?.date), 55, yPos + 2);
+                        doc.text(`${load.pickup?.city || 'N/A'} → ${load.delivery?.city || 'N/A'}`, 85, yPos + 2);
+                        doc.text(Utils.formatCurrency(loadAmount), 130, yPos + 2);
+                        doc.text(`${Utils.formatCurrency(loadAmount)} × ${Math.round(driverPayPercentage * 100)}% = ${Utils.formatCurrency(grossPay)}`, 155, yPos + 2);
+                        doc.text(Utils.formatCurrency(grossPay), 175, yPos + 2);
+                        
                         yPos += 8;
                     }
                 });
-                
-                yPos += 10;
             }
             
-            // === FINANCIAL SUMMARY SECTION ===
-            // Section header
-            doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            doc.rect(15, yPos, 180, 12, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(12);
+            // Gross Pay Total
+            doc.setFillColor(220, 220, 220);
+            doc.rect(20, yPos - 3, 170, 8, 'F');
+            doc.setDrawColor(0, 0, 0);
+            doc.rect(20, yPos - 3, 170, 8, 'S');
+            
+            doc.setFontSize(10);
             doc.setFont(undefined, 'bold');
-            doc.text('FINANCIAL SUMMARY', 20, yPos + 8);
+            doc.text('GROSS PAY', 25, yPos + 2);
+            doc.text(Utils.formatCurrency(settlement.grossPay || totalGrossPay), 175, yPos + 2);
             
-            yPos += 18;
-            doc.setTextColor(0, 0, 0);
+            yPos += 15;
             
-            // Financial details box
-            doc.setFillColor(248, 250, 252);
-            doc.rect(15, yPos, 180, 60, 'F');
-            doc.setDrawColor(229, 231, 235);
-            doc.rect(15, yPos, 180, 60, 'S');
-            
-            yPos += 12;
-            
-            // Gross Pay
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'normal');
-            doc.text('Gross Pay:', 25, yPos);
-            doc.setFont(undefined, 'bold');
-            doc.text(Utils.formatCurrency(settlement.grossPay || 0), 150, yPos);
-            
-            yPos += 10;
-            
-            // Deductions section
+            // === ITEMIZED DEDUCTIONS SECTION ===
             if (settlement.totalDeductions > 0) {
-                doc.setFont(undefined, 'normal');
-                doc.text('Deductions:', 25, yPos);
-                yPos += 8;
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('Itemized Deductions', 20, yPos);
                 
+                yPos += 10;
+                
+                // Get expenses for this settlement
+                const settlementExpenses = DataManager.expenses.filter(exp => 
+                    settlement.expenseIds && settlement.expenseIds.includes(exp.id)
+                );
+                
+                if (settlementExpenses.length > 0) {
+                    // Group expenses by load
+                    const expensesByLoad = {};
+                    settlementExpenses.forEach(exp => {
+                        const loadId = exp.loadId || 'general';
+                        if (!expensesByLoad[loadId]) {
+                            expensesByLoad[loadId] = [];
+                        }
+                        expensesByLoad[loadId].push(exp);
+                    });
+                    
+                    // Display expenses by load
+                    Object.keys(expensesByLoad).forEach(loadId => {
+                        const load = loadId !== 'general' ? DataManager.loads.find(l => l.id === loadId) : null;
+                        const loadTitle = load ? `Load #${load.loadNumber}` : 'General Expenses';
+                        
+                        doc.setFontSize(11);
+                        doc.setFont(undefined, 'bold');
+                        doc.text(loadTitle, 20, yPos);
+                        yPos += 8;
+                        
+                        // Table headers for expenses
+                        doc.setFillColor(240, 240, 240);
+                        doc.rect(20, yPos - 3, 170, 8, 'F');
+                        doc.setDrawColor(0, 0, 0);
+                        doc.rect(20, yPos - 3, 170, 8, 'S');
+                        
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'bold');
+                        doc.text('TYPE', 25, yPos + 2);
+                        doc.text('DESCRIPTION', 80, yPos + 2);
+                        doc.text('AMOUNT', 165, yPos + 2);
+                        
+                        yPos += 10;
+                        
+                        // List expenses
+                        expensesByLoad[loadId].forEach((exp, index) => {
+                            if (index % 2 === 0) {
+                                doc.setFillColor(248, 248, 248);
+                                doc.rect(20, yPos - 3, 170, 8, 'F');
+                            }
+                            
+                            doc.setDrawColor(200, 200, 200);
+                            doc.rect(20, yPos - 3, 170, 8, 'S');
+                            
+                            doc.setFontSize(8);
+                            doc.setFont(undefined, 'normal');
+                            doc.text(exp.category || exp.type || 'Expense', 25, yPos + 2);
+                            doc.text(exp.description || exp.category || 'Expense', 80, yPos + 2);
+                            doc.text(`-${Utils.formatCurrency(exp.amount)}`, 165, yPos + 2);
+                            
+                            yPos += 8;
+                        });
+                        
+                        yPos += 5;
+                    });
+                }
+                
+                yPos += 5;
+                
+                // === DEDUCTIONS BREAKDOWN ===
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('Deductions Breakdown', 20, yPos);
+                
+                yPos += 10;
+                
+                // List all deduction categories
                 const deductions = [
-                    { label: 'Advances', amount: settlement.advances },
-                    { label: 'Lumper Fees', amount: settlement.lumperFees },
-                    { label: 'Fuel', amount: settlement.fuelDeduction },
-                    { label: 'Insurance', amount: settlement.insuranceDeduction },
-                    { label: 'Maintenance', amount: settlement.maintenanceDeduction },
-                    { label: 'Other Expenses', amount: settlement.otherExpenseDeduction }
+                    { label: 'Expenses', amount: settlement.fuelDeduction + settlement.maintenanceDeduction + settlement.otherExpenseDeduction },
+                    { label: 'Fuel Deduction', amount: settlement.fuelDeduction }
                 ];
                 
                 deductions.forEach(deduction => {
                     if (deduction.amount > 0) {
-                        doc.text(`  ${deduction.label}:`, 30, yPos);
-                        doc.text(`-${Utils.formatCurrency(deduction.amount)}`, 150, yPos);
-                        yPos += 6;
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'normal');
+                        doc.text(deduction.label, 25, yPos);
+                        doc.text(`-${Utils.formatCurrency(deduction.amount)}`, 165, yPos);
+                        yPos += 8;
                     }
                 });
                 
-                // Total deductions line
-                doc.setDrawColor(200, 200, 200);
-                doc.line(25, yPos, 180, yPos);
-                yPos += 6;
+                yPos += 5;
                 
+                // Taxes section (showing $0.00 for 1099 contractors)
+                doc.setFontSize(11);
                 doc.setFont(undefined, 'bold');
-                doc.text('Total Deductions:', 25, yPos);
-                doc.text(`-${Utils.formatCurrency(settlement.totalDeductions)}`, 150, yPos);
+                doc.text('Taxes:', 25, yPos);
+                yPos += 8;
+                
+                const taxes = [
+                    { label: 'Federal Tax', amount: 0 },
+                    { label: 'State Tax', amount: 0 },
+                    { label: 'Social Security', amount: 0 },
+                    { label: 'Medicare', amount: 0 }
+                ];
+                
+                taxes.forEach(tax => {
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(tax.label, 35, yPos);
+                    doc.text(`-${Utils.formatCurrency(tax.amount)}`, 165, yPos);
+                    yPos += 6;
+                });
+                
                 yPos += 10;
+                
+                // Total Deductions
+                doc.setFillColor(220, 220, 220);
+                doc.rect(20, yPos - 3, 170, 10, 'F');
+                doc.setDrawColor(0, 0, 0);
+                doc.rect(20, yPos - 3, 170, 10, 'S');
+                
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('Total Deductions', 25, yPos + 4);
+                doc.text(`-${Utils.formatCurrency(settlement.totalDeductions)}`, 165, yPos + 4);
+                
+                yPos += 20;
             }
             
-            // Net Pay - highlighted
-            doc.setFillColor(successColor[0], successColor[1], successColor[2]);
-            doc.rect(20, yPos - 2, 160, 12, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(14);
+            // === NET PAY SECTION ===
+            doc.setFillColor(240, 240, 240);
+            doc.rect(20, yPos - 5, 170, 15, 'F');
+            doc.setDrawColor(0, 0, 0);
+            doc.setLineWidth(2);
+            doc.rect(20, yPos - 5, 170, 15, 'S');
+            
+            doc.setFontSize(16);
             doc.setFont(undefined, 'bold');
-            doc.text('NET PAY:', 25, yPos + 6);
-            doc.text(Utils.formatCurrency(settlement.netPay || 0), 150, yPos + 6);
-            
-            // Reset colors
-            doc.setTextColor(0, 0, 0);
-            
-            // === FOOTER SECTION ===
-            yPos = 260;
-            
-            // Footer background
-            doc.setFillColor(248, 250, 252);
-            doc.rect(0, yPos, 210, 37, 'F');
-            
-            yPos += 10;
-            doc.setFontSize(9);
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(grayColor[0], grayColor[1], grayColor[2]);
-            
-            doc.text('This settlement is subject to the terms and conditions of your driver agreement.', 20, yPos);
-            doc.text('Please contact the office if you have any questions regarding this settlement.', 20, yPos + 6);
-            
-            // Company footer
-            yPos += 15;
-            doc.setFont(undefined, 'bold');
-            doc.text('ATS FREIGHT LLC', 20, yPos);
-            doc.setFont(undefined, 'normal');
-            doc.text('Professional Transportation Services', 20, yPos + 4);
+            doc.text('NET PAY', 25, yPos + 5);
             
             // Save the PDF
             const fileName = `Settlement_${settlement.settlementNumber || settlement.id}_${driverName.replace(/\s+/g, '_')}.pdf`;

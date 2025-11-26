@@ -868,16 +868,41 @@
             }
 
             try {
+                // Validate settlement data before generating PDF
+                if (!settlement.id && !settlement.settlementNumber) {
+                    throw new Error('Settlement missing identification');
+                }
+                
                 generateSettlementPDF(settlement);
                 Utils.showNotification('Settlement PDF generated successfully', 'success');
             } catch (error) {
                 console.error('Error generating PDF:', error);
-                Utils.showNotification('Error generating PDF: ' + error.message, 'error');
+                const errorMessage = error.message || 'Unknown error occurred';
+                Utils.showNotification('Error generating PDF: ' + errorMessage, 'error');
             }
         };
 
+        // Safe date formatting helper
+        function safeFormatDate(dateValue, fallback = 'N/A') {
+            if (!dateValue) return fallback;
+            
+            try {
+                const date = new Date(dateValue);
+                if (isNaN(date.getTime())) {
+                    console.warn('Invalid date value:', dateValue);
+                    return fallback;
+                }
+                return Utils.formatDate(date);
+            } catch (error) {
+                console.warn('Error formatting date:', dateValue, error);
+                return fallback;
+            }
+        }
+
         // Generate Settlement PDF
         function generateSettlementPDF(settlement) {
+            console.log('Generating PDF for settlement:', settlement);
+            
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
@@ -905,8 +930,14 @@
             doc.setFont(undefined, 'normal');
             doc.text(`Settlement #: ${settlement.settlementNumber || settlement.id}`, 20, 70);
             doc.text(`Driver: ${driverName}`, 20, 78);
-            doc.text(`Period: ${Utils.formatDate(settlement.startDate)} - ${Utils.formatDate(settlement.endDate)}`, 20, 86);
-            doc.text(`Generated: ${Utils.formatDate(new Date())}`, 20, 94);
+            
+            // Safe date formatting with fallbacks
+            const startDate = safeFormatDate(settlement.startDate);
+            const endDate = safeFormatDate(settlement.endDate);
+            const generatedDate = safeFormatDate(new Date());
+            
+            doc.text(`Period: ${startDate} - ${endDate}`, 20, 86);
+            doc.text(`Generated: ${generatedDate}`, 20, 94);
             
             let yPos = 110;
             
@@ -1046,7 +1077,7 @@
 Please find your settlement details below:
 
 Settlement #: ${settlement.settlementNumber || settlement.id}
-Period: ${Utils.formatDate(settlement.startDate)} - ${Utils.formatDate(settlement.endDate)}
+Period: ${safeFormatDate(settlement.startDate)} - ${safeFormatDate(settlement.endDate)}
 Gross Pay: ${Utils.formatCurrency(settlement.grossPay || 0)}
 Total Deductions: ${Utils.formatCurrency(settlement.totalDeductions || 0)}
 Net Pay: ${Utils.formatCurrency(settlement.netPay || 0)}
@@ -1151,10 +1182,22 @@ Thank you for your service!`;
                 
                 // Count settlements in this week
                 settlements.forEach(settlement => {
-                    const settlementDate = new Date(settlement.createdAt || settlement.date);
-                    if (settlementDate >= weekStart && settlementDate <= weekEnd) {
-                        weeklyData[weekKey].settlements++;
-                        weeklyData[weekKey].totalAmount += parseFloat(settlement.netPay || 0);
+                    try {
+                        const dateValue = settlement.createdAt || settlement.date;
+                        if (!dateValue) return;
+                        
+                        const settlementDate = new Date(dateValue);
+                        if (isNaN(settlementDate.getTime())) {
+                            console.warn('Invalid settlement date:', dateValue);
+                            return;
+                        }
+                        
+                        if (settlementDate >= weekStart && settlementDate <= weekEnd) {
+                            weeklyData[weekKey].settlements++;
+                            weeklyData[weekKey].totalAmount += parseFloat(settlement.netPay || 0);
+                        }
+                    } catch (error) {
+                        console.warn('Error processing settlement date:', settlement, error);
                     }
                 });
                 

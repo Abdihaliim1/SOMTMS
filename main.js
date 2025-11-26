@@ -1474,6 +1474,11 @@ const DataManager = {
             payload.createdAt = new Date().toISOString();
             payload.updatedAt = new Date().toISOString();
             payload.companyId = 'ats_freight';
+            
+            // Initialize payment tracking fields
+            if (!payload.paidAmount) payload.paidAmount = 0;
+            if (!payload.payments) payload.payments = [];
+            if (!payload.status) payload.status = 'pending';
 
             const docRef = await db.collection('invoices').add(payload);
             Utils.showNotification('Invoice created successfully!', 'success');

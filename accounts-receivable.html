@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts Receivable - ATS FREIGHT LLC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-navy { background-color: #1f2937; }
+        .gradient-bg { background-color: #1f2937; }
+        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .nav-item { transition: all 0.2s ease; }
+        .nav-item:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .nav-item.active { background-color: rgba(255, 255, 255, 0.1); }
+        .aging-bar { height: 24px; border-radius: 4px; transition: width 0.5s ease; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background-color: white; border-radius: 12px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; }
+        tbody tr { transition: background-color 0.15s ease; }
+        tbody tr:hover { background-color: #f9fafb; }
+        .tab-btn { padding: 10px 20px; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
+        .tab-btn.active { border-bottom-color: #2563eb; color: #2563eb; }
+        .tab-btn:hover:not(.active) { background-color: #f3f4f6; }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain"
+                        onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
+                    <div class="company-logo hidden w-12 h-12 bg-white rounded-lg items-center justify-center font-bold text-gray-800">ATS</div>
+                    <div>
+                        <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
+                        <p class="text-sm opacity-90">Transportation Management System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="index.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium"><i class="fas fa-tachometer-alt mr-2"></i>Dashboard</a>
+                    <a href="loads.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium"><i class="fas fa-truck mr-2"></i>Loads</a>
+                    <a href="dispatch.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium"><i class="fas fa-calendar-alt mr-2"></i>Dispatch</a>
+                    <a href="invoices.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium"><i class="fas fa-file-invoice mr-2"></i>Invoices</a>
+                    <span class="nav-item active px-3 py-2 rounded-md text-sm font-medium"><i class="fas fa-chart-line mr-2"></i>AR & Aging</span>
+                    <span class="text-sm">Welcome, Liban Ali</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">Accounts Receivable</h2>
+                <p class="text-gray-600 mt-2">Track aging, payments, and outstanding balances</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="exportARReport()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"><i class="fas fa-download mr-2"></i>Export</button>
+                <button onclick="refreshData()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><i class="fas fa-sync-alt mr-2"></i>Refresh</button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-dollar-sign text-blue-600 text-xl"></i></div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">Total Outstanding</p>
+                        <p id="totalOutstanding" class="text-2xl font-bold text-gray-900">$0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"><i class="fas fa-check-circle text-green-600 text-xl"></i></div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">Current (0-30)</p>
+                        <p id="aging0to30" class="text-2xl font-bold text-green-600">$0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center"><i class="fas fa-clock text-yellow-600 text-xl"></i></div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">31-60 Days</p>
+                        <p id="aging31to60" class="text-2xl font-bold text-yellow-600">$0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center"><i class="fas fa-exclamation-circle text-orange-600 text-xl"></i></div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">61-90 Days</p>
+                        <p id="aging61to90" class="text-2xl font-bold text-orange-600">$0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg p-6 card-shadow">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center"><i class="fas fa-exclamation-triangle text-red-600 text-xl"></i></div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500">90+ Days</p>
+                        <p id="aging90plus" class="text-2xl font-bold text-red-600">$0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-lg card-shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">AR Aging Distribution</h3>
+                <div id="agingChart" style="height: 300px;"></div>
+            </div>
+            <div class="bg-white rounded-lg card-shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Collection Trend (6 Months)</h3>
+                <div id="collectionChart" style="height: 300px;"></div>
+            </div>
+        </div>
+
+        <!-- Aging Bars -->
+        <div class="bg-white rounded-lg card-shadow p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Aging Breakdown</h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">Current (0-30 days)</span>
+                        <span id="aging0to30Pct" class="text-sm font-semibold text-green-600">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-6"><div id="aging0to30Bar" class="aging-bar bg-green-500" style="width: 0%"></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">31-60 days</span>
+                        <span id="aging31to60Pct" class="text-sm font-semibold text-yellow-600">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-6"><div id="aging31to60Bar" class="aging-bar bg-yellow-500" style="width: 0%"></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">61-90 days</span>
+                        <span id="aging61to90Pct" class="text-sm font-semibold text-orange-600">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-6"><div id="aging61to90Bar" class="aging-bar bg-orange-500" style="width: 0%"></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">90+ days (Critical)</span>
+                        <span id="aging90plusPct" class="text-sm font-semibold text-red-600">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-6"><div id="aging90plusBar" class="aging-bar bg-red-500" style="width: 0%"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white rounded-lg card-shadow">
+            <div class="border-b border-gray-200 flex">
+                <button onclick="switchTab('outstanding')" class="tab-btn active" id="tab-outstanding">Outstanding Invoices</button>
+                <button onclick="switchTab('customer')" class="tab-btn" id="tab-customer">By Customer</button>
+                <button onclick="switchTab('payments')" class="tab-btn" id="tab-payments">Recent Payments</button>
+            </div>
+
+            <!-- Outstanding Tab -->
+            <div id="content-outstanding" class="tab-content">
+                <div class="p-4 border-b border-gray-200 flex flex-wrap gap-4">
+                    <input type="text" id="searchInvoice" placeholder="Search..." class="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg" oninput="filterInvoices()">
+                    <select id="filterAging" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="filterInvoices()">
+                        <option value="">All Aging</option>
+                        <option value="0-30">Current (0-30)</option>
+                        <option value="31-60">31-60 Days</option>
+                        <option value="61-90">61-90 Days</option>
+                        <option value="90+">90+ Days</option>
+                    </select>
+                    <select id="filterCustomer" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="filterInvoices()">
+                        <option value="">All Customers</option>
+                    </select>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice #</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Days Out</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Paid</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Balance</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="outstandingTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Customer Tab -->
+            <div id="content-customer" class="tab-content hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Invoices</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Current</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">31-60</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">61-90</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">90+</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Avg Days</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div id="content-payments" class="tab-content hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice #</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Record Payment</h3>
+                <button onclick="closePaymentModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="paymentForm" onsubmit="submitPayment(event)" class="p-6">
+                <input type="hidden" id="paymentInvoiceId">
+                <div class="bg-gray-50 rounded-lg p-4 mb-6 grid grid-cols-2 gap-4 text-sm">
+                    <div><span class="text-gray-500">Invoice:</span> <strong id="paymentInvoiceNumber"></strong></div>
+                    <div><span class="text-gray-500">Customer:</span> <strong id="paymentCustomerName"></strong></div>
+                    <div><span class="text-gray-500">Amount:</span> <strong id="paymentInvoiceAmount"></strong></div>
+                    <div><span class="text-gray-500">Balance:</span> <strong id="paymentBalanceDue" class="text-red-600"></strong></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Amount *</label>
+                        <input type="number" id="paymentAmount" step="0.01" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Date *</label>
+                        <input type="date" id="paymentDate" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Method</label>
+                        <select id="paymentMethod" class="w-full px-4 py-2 border rounded-lg">
+                            <option value="check">Check</option>
+                            <option value="ach">ACH</option>
+                            <option value="wire">Wire</option>
+                            <option value="factoring">Factoring</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Reference #</label>
+                        <input type="text" id="paymentReference" class="w-full px-4 py-2 border rounded-lg" placeholder="Check #, etc.">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closePaymentModal()" class="px-4 py-2 text-gray-600">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"><i class="fas fa-check mr-2"></i>Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-12 py-8 border-t border-gray-200 text-center">
+        <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
+        <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT 3169186</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="data-stability.js"></script>
+    <script src="main.js"></script>
+    <script>
+        let arData = { aging0to30: 0, aging31to60: 0, aging61to90: 0, aging90plus: 0, total: 0, invoices: [], customerSummary: {}, payments: [] };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await DataManager.init();
+            document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+            calculateARData();
+            renderAll();
+            populateCustomerFilter();
+        });
+
+        function calculateARData() {
+            const today = new Date(); 
+            today.setHours(0, 0, 0, 0);
+            arData = { aging0to30: 0, aging31to60: 0, aging61to90: 0, aging90plus: 0, total: 0, invoices: [], customerSummary: {}, payments: [] };
+
+            DataManager.invoices.forEach(invoice => {
+                // Handle fully paid invoices - add to payments history
+                if (invoice.status === 'paid') {
+                    if (invoice.paidAt) {
+                        arData.payments.push({ 
+                            date: invoice.paidAt, 
+                            invoiceNumber: invoice.invoiceNumber, 
+                            customerName: invoice.customerName, 
+                            amount: parseFloat(invoice.amount || 0), 
+                            method: invoice.paymentMethod || 'Check', 
+                            reference: invoice.paymentReference || '' 
+                        });
+                    }
+                    // Also add individual payments from payments array if it exists
+                    if (invoice.payments && Array.isArray(invoice.payments)) {
+                        invoice.payments.forEach(payment => {
+                            arData.payments.push({
+                                date: payment.date,
+                                invoiceNumber: invoice.invoiceNumber,
+                                customerName: invoice.customerName,
+                                amount: parseFloat(payment.amount || 0),
+                                method: payment.method || 'Check',
+                                reference: payment.reference || ''
+                            });
+                        });
+                    }
+                    return; // Skip paid invoices from aging
+                }
+
+                const invoiceDate = new Date(invoice.date || invoice.createdAt);
+                const amount = parseFloat(invoice.amount || 0);
+                const paidAmount = parseFloat(invoice.paidAmount || 0);
+                const balance = amount - paidAmount;
+                
+                if (balance <= 0) return; // Skip if no balance
+
+                const daysOutstanding = Math.floor((today - invoiceDate) / (1000 * 60 * 60 * 24));
+                let agingBucket = '0-30';
+                
+                if (daysOutstanding <= 30) { 
+                    arData.aging0to30 += balance; 
+                    agingBucket = '0-30'; 
+                } else if (daysOutstanding <= 60) { 
+                    arData.aging31to60 += balance; 
+                    agingBucket = '31-60'; 
+                } else if (daysOutstanding <= 90) { 
+                    arData.aging61to90 += balance; 
+                    agingBucket = '61-90'; 
+                } else { 
+                    arData.aging90plus += balance; 
+                    agingBucket = '90+'; 
+                }
+                
+                arData.total += balance;
+
+                arData.invoices.push({ 
+                    ...invoice, 
+                    daysOutstanding, 
+                    balance, 
+                    paidAmount, 
+                    agingBucket 
+                });
+
+                // Customer summary
+                const customerId = invoice.customerId || 'unknown';
+                if (!arData.customerSummary[customerId]) {
+                    arData.customerSummary[customerId] = { 
+                        customerId, 
+                        customerName: invoice.customerName || 'Unknown', 
+                        invoiceCount: 0, 
+                        current: 0, 
+                        days31to60: 0, 
+                        days61to90: 0, 
+                        days90plus: 0, 
+                        totalBalance: 0, 
+                        totalDays: 0 
+                    };
+                }
+                
+                const c = arData.customerSummary[customerId];
+                c.invoiceCount++; 
+                c.totalBalance += balance; 
+                c.totalDays += daysOutstanding;
+                
+                if (daysOutstanding <= 30) c.current += balance;
+                else if (daysOutstanding <= 60) c.days31to60 += balance;
+                else if (daysOutstanding <= 90) c.days61to90 += balance;
+                else c.days90plus += balance;
+            });
+
+            // Sort invoices by days outstanding (most critical first)
+            arData.invoices.sort((a, b) => b.daysOutstanding - a.daysOutstanding);
+            
+            // Sort payments by date (most recent first)
+            arData.payments.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Convert customer summary to array and calculate averages
+            arData.customerSummaryArray = Object.values(arData.customerSummary).map(c => ({ 
+                ...c, 
+                avgDays: c.invoiceCount > 0 ? Math.round(c.totalDays / c.invoiceCount) : 0 
+            })).sort((a, b) => b.totalBalance - a.totalBalance);
+        }
+
+        function renderAll() {
+            // Update summary cards
+            document.getElementById('totalOutstanding').textContent = Utils.formatCurrency(arData.total);
+            document.getElementById('aging0to30').textContent = Utils.formatCurrency(arData.aging0to30);
+            document.getElementById('aging31to60').textContent = Utils.formatCurrency(arData.aging31to60);
+            document.getElementById('aging61to90').textContent = Utils.formatCurrency(arData.aging61to90);
+            document.getElementById('aging90plus').textContent = Utils.formatCurrency(arData.aging90plus);
+
+            // Update aging bars
+            const total = arData.total || 1;
+            const pcts = [
+                (arData.aging0to30 / total * 100).toFixed(1), 
+                (arData.aging31to60 / total * 100).toFixed(1), 
+                (arData.aging61to90 / total * 100).toFixed(1), 
+                (arData.aging90plus / total * 100).toFixed(1)
+            ];
+            
+            document.getElementById('aging0to30Pct').textContent = `${pcts[0]}%`;
+            document.getElementById('aging31to60Pct').textContent = `${pcts[1]}%`;
+            document.getElementById('aging61to90Pct').textContent = `${pcts[2]}%`;
+            document.getElementById('aging90plusPct').textContent = `${pcts[3]}%`;
+            document.getElementById('aging0to30Bar').style.width = `${pcts[0]}%`;
+            document.getElementById('aging31to60Bar').style.width = `${pcts[1]}%`;
+            document.getElementById('aging61to90Bar').style.width = `${pcts[2]}%`;
+            document.getElementById('aging90plusBar').style.width = `${pcts[3]}%`;
+
+            // Render charts
+            renderCharts();
+            
+            // Render tables
+            renderOutstandingTable();
+            renderCustomerTable();
+            renderPaymentsTable();
+        }
+
+        function renderCharts() {
+            // Aging Distribution Pie Chart
+            const agingValues = [arData.aging0to30, arData.aging31to60, arData.aging61to90, arData.aging90plus];
+            const agingLabels = ['0-30 Days', '31-60 Days', '61-90 Days', '90+ Days'];
+            const agingColors = ['#10b981', '#f59e0b', '#f97316', '#ef4444'];
+            
+            Plotly.newPlot('agingChart', [{
+                values: agingValues,
+                labels: agingLabels,
+                type: 'pie',
+                hole: 0.4,
+                marker: { colors: agingColors },
+                textinfo: 'label+percent',
+                textposition: 'outside'
+            }], {
+                showlegend: true,
+                margin: { t: 20, b: 40, l: 20, r: 20 },
+                font: { family: 'Inter, sans-serif' }
+            }, { 
+                responsive: true 
+            });
+
+            // Collection Trend Bar Chart
+            const months = [], invoiced = [], collected = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(); 
+                d.setMonth(d.getMonth() - i);
+                months.push(d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }));
+                
+                const start = new Date(d.getFullYear(), d.getMonth(), 1);
+                const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+                
+                // Invoiced amount for the month
+                const monthInvoiced = DataManager.invoices.filter(inv => {
+                    const invDate = new Date(inv.date || inv.createdAt);
+                    return invDate >= start && invDate <= end;
+                }).reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+                
+                // Collected amount for the month
+                const monthCollected = DataManager.invoices.filter(inv => {
+                    if (inv.status === 'paid' && inv.paidAt) {
+                        const paidDate = new Date(inv.paidAt);
+                        return paidDate >= start && paidDate <= end;
+                    }
+                    return false;
+                }).reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+                
+                invoiced.push(monthInvoiced);
+                collected.push(monthCollected);
+            }
+            
+            Plotly.newPlot('collectionChart', [
+                {
+                    x: months,
+                    y: invoiced,
+                    name: 'Invoiced',
+                    type: 'bar',
+                    marker: { color: '#3b82f6' }
+                },
+                {
+                    x: months,
+                    y: collected,
+                    name: 'Collected',
+                    type: 'bar',
+                    marker: { color: '#10b981' }
+                }
+            ], {
+                barmode: 'group',
+                showlegend: true,
+                margin: { t: 40, b: 40, l: 60, r: 20 },
+                yaxis: { tickprefix: '$', tickformat: ',.0f' },
+                font: { family: 'Inter, sans-serif' }
+            }, { 
+                responsive: true 
+            });
+        }
+
+        function renderOutstandingTable() {
+            const tbody = document.getElementById('outstandingTableBody');
+            const search = (document.getElementById('searchInvoice').value || '').toLowerCase();
+            const aging = document.getElementById('filterAging').value;
+            const cust = document.getElementById('filterCustomer').value;
+            
+            let filtered = arData.invoices.filter(inv => {
+                if (search && !inv.invoiceNumber?.toLowerCase().includes(search) && !inv.customerName?.toLowerCase().includes(search)) return false;
+                if (aging && inv.agingBucket !== aging) return false;
+                if (cust && inv.customerId !== cust) return false;
+                return true;
+            });
+            
+            if (!filtered.length) { 
+                tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500">No outstanding invoices found</td></tr>'; 
+                return; 
+            }
+            
+            tbody.innerHTML = filtered.map(inv => {
+                const cls = inv.daysOutstanding > 90 ? 'text-red-600 font-semibold' : 
+                          inv.daysOutstanding > 60 ? 'text-orange-600' : 
+                          inv.daysOutstanding > 30 ? 'text-yellow-600' : 'text-green-600';
+                
+                return `<tr>
+                    <td class="px-6 py-4 font-medium">${inv.invoiceNumber || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm">${inv.customerName || 'Unknown'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${Utils.formatDate(inv.date)}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${Utils.formatDate(inv.dueDate)}</td>
+                    <td class="px-6 py-4 ${cls}">${inv.daysOutstanding} days</td>
+                    <td class="px-6 py-4 text-sm text-right">${Utils.formatCurrency(inv.amount)}</td>
+                    <td class="px-6 py-4 text-sm text-right text-green-600">${Utils.formatCurrency(inv.paidAmount)}</td>
+                    <td class="px-6 py-4 text-sm text-right font-semibold text-red-600">${Utils.formatCurrency(inv.balance)}</td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="openPaymentModal('${inv.id}')" class="text-green-600 hover:text-green-800" title="Record Payment">
+                            <i class="fas fa-dollar-sign"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderCustomerTable() {
+            const tbody = document.getElementById('customerTableBody');
+            
+            if (!arData.customerSummaryArray.length) { 
+                tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-gray-500">No customer data available</td></tr>'; 
+                return; 
+            }
+            
+            tbody.innerHTML = arData.customerSummaryArray.map(c => `<tr>
+                <td class="px-6 py-4 font-medium">${c.customerName}</td>
+                <td class="px-6 py-4 text-center">${c.invoiceCount}</td>
+                <td class="px-6 py-4 text-right text-green-600">${Utils.formatCurrency(c.current)}</td>
+                <td class="px-6 py-4 text-right text-yellow-600">${Utils.formatCurrency(c.days31to60)}</td>
+                <td class="px-6 py-4 text-right text-orange-600">${Utils.formatCurrency(c.days61to90)}</td>
+                <td class="px-6 py-4 text-right text-red-600">${Utils.formatCurrency(c.days90plus)}</td>
+                <td class="px-6 py-4 text-right font-semibold">${Utils.formatCurrency(c.totalBalance)}</td>
+                <td class="px-6 py-4 text-center ${c.avgDays > 60 ? 'text-red-600' : c.avgDays > 30 ? 'text-yellow-600' : 'text-green-600'}">${c.avgDays}</td>
+            </tr>`).join('');
+        }
+
+        function renderPaymentsTable() {
+            const tbody = document.getElementById('paymentsTableBody');
+            
+            if (!arData.payments.length) { 
+                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No recent payments</td></tr>'; 
+                return; 
+            }
+            
+            tbody.innerHTML = arData.payments.slice(0, 50).map(p => `<tr>
+                <td class="px-6 py-4 text-sm">${Utils.formatDate(p.date)}</td>
+                <td class="px-6 py-4 text-sm font-medium">${p.invoiceNumber || 'N/A'}</td>
+                <td class="px-6 py-4 text-sm">${p.customerName}</td>
+                <td class="px-6 py-4 text-sm text-right text-green-600 font-semibold">${Utils.formatCurrency(p.amount)}</td>
+                <td class="px-6 py-4 text-sm capitalize">${p.method}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">${p.reference || '-'}</td>
+            </tr>`).join('');
+        }
+
+        function populateCustomerFilter() {
+            const select = document.getElementById('filterCustomer');
+            const uniqueCustomers = [...new Set(arData.invoices.map(i => i.customerId))];
+            
+            uniqueCustomers.forEach(id => {
+                const inv = arData.invoices.find(i => i.customerId === id);
+                if (inv) { 
+                    const opt = document.createElement('option'); 
+                    opt.value = id; 
+                    opt.textContent = inv.customerName; 
+                    select.appendChild(opt); 
+                }
+            });
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${name}`).classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`content-${name}`).classList.remove('hidden');
+        }
+
+        function filterInvoices() { 
+            renderOutstandingTable(); 
+        }
+
+        function openPaymentModal(invoiceId) {
+            const inv = DataManager.invoices.find(i => i.id === invoiceId);
+            if (!inv) return;
+            
+            const balance = parseFloat(inv.amount || 0) - parseFloat(inv.paidAmount || 0);
+            
+            document.getElementById('paymentInvoiceId').value = invoiceId;
+            document.getElementById('paymentInvoiceNumber').textContent = inv.invoiceNumber;
+            document.getElementById('paymentCustomerName').textContent = inv.customerName;
+            document.getElementById('paymentInvoiceAmount').textContent = Utils.formatCurrency(inv.amount);
+            document.getElementById('paymentBalanceDue').textContent = Utils.formatCurrency(balance);
+            document.getElementById('paymentAmount').value = balance.toFixed(2);
+            document.getElementById('paymentModal').classList.add('show');
+        }
+
+        function closePaymentModal() { 
+            document.getElementById('paymentModal').classList.remove('show'); 
+        }
+
+        async function submitPayment(e) {
+            e.preventDefault();
+            
+            const invoiceId = document.getElementById('paymentInvoiceId').value;
+            const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
+            const paymentDate = document.getElementById('paymentDate').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const paymentReference = document.getElementById('paymentReference').value;
+            
+            const inv = DataManager.invoices.find(i => i.id === invoiceId);
+            if (!inv || paymentAmount <= 0) {
+                Utils.showNotification('Invalid payment amount', 'error');
+                return;
+            }
+
+            try {
+                const currentPaidAmount = parseFloat(inv.paidAmount || 0);
+                const newPaidAmount = currentPaidAmount + paymentAmount;
+                const invoiceAmount = parseFloat(inv.amount || 0);
+                const newBalance = invoiceAmount - newPaidAmount;
+                const newStatus = newBalance <= 0.01 ? 'paid' : 'partial'; // Allow for small rounding differences
+
+                // Create payment record
+                const paymentRecord = {
+                    id: Date.now().toString(),
+                    amount: paymentAmount,
+                    date: paymentDate,
+                    method: paymentMethod,
+                    reference: paymentReference
+                };
+
+                // Update invoice with new payment
+                const updateData = {
+                    paidAmount: newPaidAmount,
+                    status: newStatus,
+                    payments: [...(inv.payments || []), paymentRecord],
+                    updatedAt: new Date().toISOString()
+                };
+
+                // If fully paid, set payment details
+                if (newStatus === 'paid') {
+                    updateData.paymentMethod = paymentMethod;
+                    updateData.paymentReference = paymentReference;
+                    updateData.paidAt = paymentDate;
+                }
+
+                await DataManager.updateInvoice(invoiceId, updateData);
+
+                Utils.showNotification(`Payment of ${Utils.formatCurrency(paymentAmount)} recorded successfully`, 'success');
+                closePaymentModal();
+                
+                // Refresh data
+                calculateARData();
+                renderAll();
+                
+            } catch (error) {
+                console.error('Error recording payment:', error);
+                Utils.showNotification('Error recording payment: ' + error.message, 'error');
+            }
+        }
+
+        function exportARReport() {
+            let csv = 'Invoice #,Customer,Invoice Date,Due Date,Days Outstanding,Amount,Paid,Balance,Status\n';
+            
+            arData.invoices.forEach(inv => {
+                csv += `"${inv.invoiceNumber || ''}","${inv.customerName || ''}","${inv.date || ''}","${inv.dueDate || ''}",${inv.daysOutstanding},${inv.amount || 0},${inv.paidAmount || 0},${inv.balance},${inv.status || ''}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a'); 
+            a.href = URL.createObjectURL(blob); 
+            a.download = `AR_Aging_Report_${new Date().toISOString().split('T')[0]}.csv`; 
+            a.click();
+            
+            Utils.showNotification('AR report exported successfully', 'success');
+        }
+
+        function refreshData() { 
+            calculateARData(); 
+            renderAll(); 
+            Utils.showNotification('Data refreshed', 'success'); 
+        }
+
+        // Close modal on outside click
+        window.onclick = e => { 
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('show'); 
+            }
+        };
+
+        // Global functions
+        window.switchTab = switchTab;
+        window.filterInvoices = filterInvoices;
+        window.openPaymentModal = openPaymentModal;
+        window.closePaymentModal = closePaymentModal;
+        window.submitPayment = submitPayment;
+        window.exportARReport = exportARReport;
+        window.refreshData = refreshData;
+    </script>
+</body>
+
+</html>

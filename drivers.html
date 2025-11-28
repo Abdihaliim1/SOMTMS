@@ -9,6 +9,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
+    <!-- Mobile Responsiveness -->
+    <link rel="stylesheet" href="mobile-fixes.css">
+    <script src="mobile-nav.js" defer></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -255,7 +258,7 @@
                     </div>
                 </div>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto table-responsive table-scroll-hint">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -360,7 +363,8 @@
                                     <option value="owner">Owner (Driver)</option>
                                 </select>
                                 <p class="text-xs text-gray-500 mt-1">
-                                    <strong>Company Driver:</strong> Custom percentage or per-mile rate, all expenses paid by
+                                    <strong>Company Driver:</strong> Custom percentage or per-mile rate, all expenses
+                                    paid by
                                     company<br>
                                     <strong>Owner Operator:</strong> Custom percentage, expenses may be deducted from
                                     settlement<br>
@@ -1086,6 +1090,7 @@
         async function deleteDriver(driverId) {
             if (confirm('Are you sure you want to delete this driver?')) {
                 await DataManager.deleteDriver(driverId);
+                Utils.logActivity('Driver Deleted', 'Driver record deleted', 'driver');
                 renderDrivers();
                 updateDriverStats();
                 updateStats();
@@ -1096,7 +1101,7 @@
         function populateTruckDropdown() {
             const truckSelect = document.getElementById('currentTruckId');
             truckSelect.innerHTML = '<option value="">No truck assigned</option>';
-            
+
             if (DataManager && DataManager.trucks) {
                 DataManager.trucks.forEach(truck => {
                     const option = document.createElement('option');
@@ -1112,26 +1117,26 @@
             if (!truckId) {
                 return '<span class="text-gray-400">No truck assigned</span>';
             }
-            
+
             // Wait for DataManager to be initialized
             if (!DataManager || !DataManager.trucks || DataManager.trucks.length === 0) {
                 // Return a loading state or try to find truck by ID in a different way
                 return `<span class="text-blue-400">Loading truck info...</span>`;
             }
-            
+
             const truck = DataManager.trucks.find(t => t.id === truckId);
             if (!truck) {
                 // Try to show the truck ID at least, in case data is still loading
                 return `<span class="text-orange-400">Truck ${truckId.slice(-4)} (loading...)</span>`;
             }
-            
+
             return `${truck.truckNumber} - ${truck.make} ${truck.model}`;
         }
 
         // Expose driver action functions to global scope
         window.editDriver = editDriver;
         window.deleteDriver = deleteDriver;
-        
+
         // Expose render function for external updates
         window.renderDrivers = renderDrivers;
 
@@ -1275,9 +1280,11 @@
                 const id = document.getElementById('driverId').value;
                 if (id) {
                     await DataManager.updateDriver(id, driverData);
+                    Utils.logActivity('Driver Updated', `Driver ${driverData.firstName} ${driverData.lastName} updated`, 'driver');
                     console.log('Driver updated, ID:', id);
                 } else {
                     const newId = await DataManager.addDriver(driverData);
+                    Utils.logActivity('Driver Created', `New driver ${driverData.firstName} ${driverData.lastName} added`, 'driver');
                     console.log('Driver added, new ID:', newId);
                 }
 

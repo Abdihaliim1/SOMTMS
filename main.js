@@ -73,15 +73,15 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // GLOBAL TRUCK AUTO-FILL FUNCTION
-window.autoFillTruckFromDriver = function(driverId, truckSelectId = 'truck') {
+window.autoFillTruckFromDriver = function (driverId, truckSelectId = 'truck') {
     const truckSelect = document.getElementById(truckSelectId);
     if (!truckSelect || !driverId) return;
-    
+
     const driver = DataManager.drivers.find(d => d.id === driverId);
     if (driver && driver.currentTruckId) {
         truckSelect.value = driver.currentTruckId;
         console.log(`Auto-filled truck ${driver.currentTruckId} for driver ${driver.firstName} ${driver.lastName}`);
-        
+
         // Trigger change event in case other logic depends on truck selection
         truckSelect.dispatchEvent(new Event('change'));
     }
@@ -631,9 +631,33 @@ const Utils = {
 
             reader.readAsDataURL(file);
         });
-    }
+    },
 
     // Document processing function will be added here
+
+    // Log activity to Firestore
+    logActivity: async (action, details, type = 'system', user = null) => {
+        try {
+            const currentUser = user || Auth.currentUser || { name: 'System', email: 'system@atsfreight.com' };
+            const activity = {
+                action: action,
+                details: details,
+                type: type, // 'load', 'driver', 'money', 'system', 'alert'
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                user: {
+                    name: currentUser.name || 'System',
+                    email: currentUser.email || 'system'
+                },
+                read: false
+            };
+
+            await db.collection('activityLog').add(activity);
+            console.log('Activity logged:', action);
+        } catch (error) {
+            console.error('Error logging activity:', error);
+            // Don't throw error to avoid breaking main flow
+        }
+    }
 };
 
 // Compliance & Expiration Checking
@@ -847,7 +871,7 @@ const DataManager = {
         }
         DataManager.initialized = true;
         console.log("Initializing DataManager with Firebase Persistence...");
-        
+
         // Initialize data stability module if available
         if (typeof DataStability !== 'undefined') {
             try {
@@ -880,14 +904,14 @@ const DataManager = {
             db.collection('loads').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
                 DataManager.loads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.loads.length} loads from Firebase`);
-                
+
                 // Save to offline storage
                 if (typeof DataStability !== 'undefined') {
-                    DataStability.saveToOffline('loads', DataManager.loads).catch(err => 
+                    DataStability.saveToOffline('loads', DataManager.loads).catch(err =>
                         console.warn('Failed to save loads to offline storage:', err)
                     );
                 }
-                
+
                 // Auto-refresh UI if the function exists on the current page
                 if (window.renderLoads) window.renderLoads();
                 if (window.updateDashboard) window.updateDashboard();
@@ -972,14 +996,14 @@ const DataManager = {
             db.collection('expenses').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
                 DataManager.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log(`Loaded ${DataManager.expenses.length} expenses from Firebase`);
-                
+
                 // Save to offline storage
                 if (typeof DataStability !== 'undefined') {
-                    DataStability.saveToOffline('expenses', DataManager.expenses).catch(err => 
+                    DataStability.saveToOffline('expenses', DataManager.expenses).catch(err =>
                         console.warn('Failed to save expenses to offline storage:', err)
                     );
                 }
-                
+
                 if (window.renderExpenses) window.renderExpenses();
                 if (window.updateStats) window.updateStats();
                 if (window.updateDashboard) window.updateDashboard();
@@ -1010,13 +1034,13 @@ const DataManager = {
     addLoad: async (loadData) => {
         // Show loading state
         Utils.showLoadingState('Saving load...');
-        
+
         try {
             // Validate data
             if (typeof DataStability !== 'undefined') {
                 DataStability.validateData('loads', loadData);
             }
-            
+
             // Clean data (remove undefined values)
             const payload = JSON.parse(JSON.stringify(loadData));
             payload.createdAt = new Date().toISOString();
@@ -1053,7 +1077,7 @@ const DataManager = {
         } catch (e) {
             console.error('Error adding load:', e);
             Utils.hideLoadingState();
-            
+
             // Queue for retry if offline
             if (typeof DataStability !== 'undefined' && !DataStability.isOnline) {
                 const operationId = DataStability.queueOperation({
@@ -1066,7 +1090,7 @@ const DataManager = {
                 Utils.showNotification('Connection lost. Load will be saved when connection is restored.', 'warning');
                 return `pending_${operationId}`;
             }
-            
+
             Utils.showNotification('Error creating load: ' + e.message, 'error');
             throw e;
         }
@@ -1077,10 +1101,10 @@ const DataManager = {
         if (!silent) {
             Utils.showLoadingState('Updating load...');
         }
-        
+
         const payload = JSON.parse(JSON.stringify(loadData));
         payload.updatedAt = new Date().toISOString();
-        
+
         // Store original for rollback
         const original = DataManager.loads.find(l => l.id === loadId);
         const originalIndex = DataManager.loads.findIndex(l => l.id === loadId);
@@ -1108,7 +1132,7 @@ const DataManager = {
         if (typeof DataStability !== 'undefined') {
             return await DataStability.wrapOperation('loads', async () => {
                 await db.collection('loads').doc(loadId).update(payload);
-                
+
                 // Update local array
                 if (originalIndex !== -1) {
                     DataManager.loads[originalIndex] = { ...DataManager.loads[originalIndex], ...payload };
@@ -1191,7 +1215,7 @@ const DataManager = {
         if (!driverData.payPercentage || driverData.payPercentage <= 0) {
             throw new Error('Driver pay percentage is required and must be greater than 0. No default percentages allowed.');
         }
-        
+
         const payload = JSON.parse(JSON.stringify(driverData));
         payload.createdAt = new Date().toISOString();
         payload.updatedAt = new Date().toISOString();
@@ -1232,7 +1256,7 @@ const DataManager = {
     updateDriver: async (driverId, driverData) => {
         const payload = JSON.parse(JSON.stringify(driverData));
         payload.updatedAt = new Date().toISOString();
-        
+
         // Store original for rollback
         const original = DataManager.drivers.find(d => d.id === driverId);
         const originalIndex = DataManager.drivers.findIndex(d => d.id === driverId);
@@ -1240,7 +1264,7 @@ const DataManager = {
         if (typeof DataStability !== 'undefined') {
             return await DataStability.wrapOperation('drivers', async () => {
                 await db.collection('drivers').doc(driverId).update(payload);
-                
+
                 // Update local array
                 if (originalIndex !== -1) {
                     DataManager.drivers[originalIndex] = { ...DataManager.drivers[originalIndex], ...payload };
@@ -1474,7 +1498,7 @@ const DataManager = {
             payload.createdAt = new Date().toISOString();
             payload.updatedAt = new Date().toISOString();
             payload.companyId = 'ats_freight';
-            
+
             // Initialize payment tracking fields
             if (!payload.paidAmount) payload.paidAmount = 0;
             if (!payload.payments) payload.payments = [];
@@ -1648,7 +1672,7 @@ const DataManager = {
         payload.createdAt = new Date().toISOString();
         payload.updatedAt = new Date().toISOString();
         payload.companyId = 'ats_freight';
-        
+
         // Initialize expense ledger for Owner Operator expenses that will be deducted
         // Only create ledger if: paidBy === 'company' AND driver is owner_operator
         if (payload.paidBy === 'company' && payload.driverId) {
@@ -1699,14 +1723,14 @@ const DataManager = {
     updateExpense: async (expenseId, expenseData) => {
         const payload = JSON.parse(JSON.stringify(expenseData));
         payload.updatedAt = new Date().toISOString();
-        
+
         const original = DataManager.expenses.find(e => e.id === expenseId);
         const originalIndex = DataManager.expenses.findIndex(e => e.id === expenseId);
 
         if (typeof DataStability !== 'undefined') {
             return await DataStability.wrapOperation('expenses', async () => {
                 await db.collection('expenses').doc(expenseId).update(payload);
-                
+
                 if (originalIndex !== -1) {
                     DataManager.expenses[originalIndex] = { ...DataManager.expenses[originalIndex], ...payload };
                 }
@@ -1880,7 +1904,7 @@ const DataManager = {
         // Step 1: Recalculate all loads
         if (changedRule === 'companyDriver' || changedRule === 'ownerOperator' || changedRule === 'revenueRules' || changedRule === 'all') {
             const allLoads = DataManager.loads;
-            
+
             console.log(`Found ${allLoads.length} total loads to check for recalculation`);
 
             for (const load of allLoads) {
@@ -3123,11 +3147,11 @@ function loadDriverExpenses() {
 
         // PRIMARY CHECK: DriverID must match (this is the main link)
         const isDriverMatch = String(e.driverId) === String(driverId);
-        
+
         // SECONDARY CHECK: If no driverId, check truckId (for backward compatibility)
         // But prioritize driverId match
         const isTruckMatch = !e.driverId && e.truckId && truckIds.includes(e.truckId);
-        
+
         // Must match driver OR truck (but driver match is preferred)
         if (!isDriverMatch && !isTruckMatch) {
             return false;
@@ -3144,13 +3168,13 @@ function loadDriverExpenses() {
         if (paidBy !== 'company') {
             return false; // Don't show expenses paid by O/O themselves
         }
-        
+
         // Check expense ledger status and remaining balance
         if (e.expenseLedger) {
             const ledger = e.expenseLedger;
             const status = ledger.status || 'active';
             const remainingBalance = ledger.remainingBalance || 0;
-            
+
             // Only show if status is 'active' and has remaining balance
             if (status !== 'active' || remainingBalance <= 0) {
                 return false; // Don't show expenses that are paid or cancelled
@@ -3167,7 +3191,7 @@ function loadDriverExpenses() {
     console.log(`[loadDriverExpenses] Total expenses in system: ${DataManager.expenses.length}`);
     console.log(`[loadDriverExpenses] Expenses for this driver:`, DataManager.expenses.filter(e => String(e.driverId) === String(driverId)));
     console.log(`[loadDriverExpenses] Found ${eligibleExpenses.length} eligible expenses`);
-    
+
     if (eligibleExpenses.length === 0 && isOwnerOperator) {
         // Additional debugging for Owner Operators with no expenses
         const allDriverExpenses = DataManager.expenses.filter(e => String(e.driverId) === String(driverId));
@@ -3291,8 +3315,8 @@ function loadDriverExpenses() {
                     <td class="px-3 py-2 text-sm text-blue-600 font-medium">${loadNumber}</td>
                     <td class="px-3 py-2 text-sm font-medium text-red-600 text-right">
                         ${Utils.formatCurrency(displayAmount)}
-                        ${expense.expenseLedger && expense.expenseLedger.remainingBalance < expenseAmount ? 
-                            `<br><span class="text-xs text-gray-500">Original: ${Utils.formatCurrency(expenseAmount)}</span>` : ''}
+                        ${expense.expenseLedger && expense.expenseLedger.remainingBalance < expenseAmount ?
+                        `<br><span class="text-xs text-gray-500">Original: ${Utils.formatCurrency(expenseAmount)}</span>` : ''}
                     </td>
                 `;
                 expensesBody.appendChild(tr);
@@ -3312,7 +3336,7 @@ function loadDriverExpenses() {
                 </td>
             `;
             expensesBody.appendChild(floatingHeaderRow);
-            
+
             // Group unlinked expenses by category/type
             const expensesByCategory = new Map();
             unlinkedExpenses.forEach(expense => {
@@ -3366,8 +3390,8 @@ function loadDriverExpenses() {
                         <td class="px-3 py-2 text-sm text-gray-500">${truckNumber}</td>
                         <td class="px-3 py-2 text-sm font-medium text-red-600 text-right">
                             ${Utils.formatCurrency(displayAmount)}
-                            ${expense.expenseLedger && expense.expenseLedger.remainingBalance < expenseAmount ? 
-                                `<br><span class="text-xs text-gray-500">Original: ${Utils.formatCurrency(expenseAmount)}</span>` : ''}
+                            ${expense.expenseLedger && expense.expenseLedger.remainingBalance < expenseAmount ?
+                            `<br><span class="text-xs text-gray-500">Original: ${Utils.formatCurrency(expenseAmount)}</span>` : ''}
                         </td>
                     `;
                     expensesBody.appendChild(tr);
@@ -3451,16 +3475,16 @@ function calculateSettlementTotal() {
         // Check if ExpenseLedger utility is available
         if (typeof ExpenseLedger !== 'undefined') {
             const selectedLoadIds = Array.from(checkboxes).map(cb => cb.value);
-            
+
             // Calculate deduction based on outstanding balance
             const ledgerResult = ExpenseLedger.calculateDeduction(driverId, grossPay, selectedLoadIds);
-            
+
             expensesTotal = ledgerResult.deductionAmount;
             fuelDeduction = ledgerResult.breakdown.fuel || 0;
             insuranceDeduction = ledgerResult.breakdown.insurance || 0;
             maintenanceDeduction = ledgerResult.breakdown.maintenance || 0;
             otherExpenseDeduction = ledgerResult.breakdown.other || 0;
-            
+
             // Store ledger updates for when settlement is generated
             window.pendingLedgerUpdates = ledgerResult.updatedExpenses;
         } else {

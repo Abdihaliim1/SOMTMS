@@ -1,0 +1,665 @@
+/**
+ * ATS FREIGHT TMS - Mobile Responsiveness Fixes
+ * =============================================
+ * 
+ * This file contains mobile-specific CSS overrides for the TMS.
+ * It works alongside design-system.css and Tailwind CSS.
+ * 
+ * Breakpoints:
+ * - 1024px: Desktop/tablet boundary (hamburger menu appears below this)
+ * - 768px:  Tablet/phone boundary (modals go full-screen, tables compact)
+ * - 480px:  Small phone (stats cards single column)
+ * 
+ * Phases Implemented:
+ * - Phase 1: Mobile navigation (hamburger menu, drawer)
+ * - Phase 2: Table responsiveness (horizontal scroll, scroll hints)
+ * - Phase 3: Form & modal improvements (full-screen modals, touch targets)
+ * - Phase 4: Dashboard & stats cards (responsive grids, chart sizing)
+ * 
+ * Last Updated: 2025-11-27
+ * Total Lines: ~640
+ * 
+ * Usage: Include AFTER Tailwind CSS in all HTML files:
+ *   <link rel="stylesheet" href="mobile-fixes.css">
+ *   <script src="mobile-nav.js" defer></script>
+ */
+
+/* ================================
+   MOBILE NAVIGATION
+   ================================ */
+
+@media (max-width: 1023px) {
+
+    nav .flex.items-center.space-x-6>a,
+    nav .flex.items-center.space-x-6>span:not(:last-child),
+    nav .flex.items-center.space-x-6>button:not(#mobileMenuBtn) {
+        display: none !important;
+    }
+
+    nav .flex.items-center.space-x-4 {
+        flex: 1;
+    }
+}
+
+/* ================================
+   TABLE RESPONSIVENESS
+   ================================ */
+
+.overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+
+    table th,
+    table td {
+        padding: 8px 12px !important;
+        font-size: 13px !important;
+    }
+
+    .hide-mobile {
+        display: none !important;
+    }
+}
+
+/* ================================
+   FORM RESPONSIVENESS
+   ================================ */
+
+@media (max-width: 768px) {
+
+    .grid.grid-cols-2,
+    .grid.md\:grid-cols-2,
+    .grid.grid-cols-3,
+    .grid.md\:grid-cols-3,
+    .grid.grid-cols-4,
+    .grid.md\:grid-cols-4 {
+        grid-template-columns: 1fr !important;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100% !important;
+        min-height: 44px;
+        font-size: 16px !important;
+    }
+
+    button,
+    .btn,
+    [type="submit"],
+    [type="button"] {
+        min-height: 44px;
+        padding: 12px 16px !important;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+}
+
+/* ================================
+   PHASE 2: TABLE IMPROVEMENTS
+   Added: 2025-11-27
+   ================================ */
+
+/* Ensure table containers scroll horizontally */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile table improvements */
+@media (max-width: 768px) {
+
+    /* Smaller table text on mobile */
+    .table-responsive table {
+        font-size: 12px;
+    }
+
+    /* Compact table cells */
+    .table-responsive th,
+    .table-responsive td {
+        padding: 8px 10px !important;
+        white-space: nowrap;
+    }
+
+    /* Action buttons - ensure touch-friendly */
+    .table-responsive td:last-child {
+        white-space: nowrap;
+    }
+
+    .table-responsive td button,
+    .table-responsive td a {
+        padding: 8px !important;
+        min-width: 36px;
+        min-height: 36px;
+    }
+
+    /* Hide less important columns on mobile */
+    .table-responsive .hide-sm {
+        display: none !important;
+    }
+
+    /* Sticky first column for better UX */
+    .table-sticky-first th:first-child,
+    .table-sticky-first td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 1;
+        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-sticky-first thead th:first-child {
+        background: #f9fafb;
+    }
+}
+
+/* Scroll indicator for tables */
+@media (max-width: 768px) {
+    .table-scroll-hint {
+        position: relative;
+    }
+
+    .table-scroll-hint::after {
+        content: '← Scroll →';
+        display: block;
+        text-align: center;
+        font-size: 11px;
+        color: #9ca3af;
+        padding: 8px;
+        background: #f3f4f6;
+        border-radius: 0 0 8px 8px;
+    }
+}
+
+/* ================================
+   MODAL RESPONSIVENESS
+   ================================ */
+
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95% !important;
+        max-width: none !important;
+        margin: 10px !important;
+        max-height: 90vh !important;
+    }
+
+    .modal-content .p-6 {
+        padding: 16px !important;
+    }
+
+    .modal-content .flex.justify-end {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    .modal-content .flex.justify-end button {
+        width: 100% !important;
+    }
+}
+
+/* ================================
+   CARD RESPONSIVENESS
+   ================================ */
+
+@media (max-width: 640px) {
+
+    .grid.grid-cols-1.md\:grid-cols-4,
+    .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .card-shadow,
+    .bg-white.rounded-lg.p-6 {
+        padding: 12px !important;
+    }
+
+    .card-shadow .text-2xl,
+    .bg-white.rounded-lg .text-2xl {
+        font-size: 1.25rem !important;
+    }
+}
+
+@media (max-width: 400px) {
+
+    .grid.grid-cols-1.md\:grid-cols-4,
+    .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ================================
+   PAGE HEADER RESPONSIVENESS
+   ================================ */
+
+@media (max-width: 640px) {
+    .flex.justify-between.items-center.mb-8 {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 16px !important;
+    }
+
+    .flex.justify-between.items-center.mb-8 button,
+    .flex.justify-between.items-center.mb-8 a {
+        width: 100% !important;
+    }
+}
+
+/* ================================
+   FILTER BAR RESPONSIVENESS
+   ================================ */
+
+@media (max-width: 768px) {
+    .grid.grid-cols-1.md\:grid-cols-4 {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+}
+
+/* ================================
+   UTILITY CLASSES
+   ================================ */
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+    .safe-area-bottom {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* ================================
+   PHASE 3: FORM & MODAL IMPROVEMENTS
+   Added: 2025-11-27
+   ================================ */
+
+/* Mobile modal improvements */
+@media (max-width: 768px) {
+
+    /* Full-screen modals on mobile */
+    .modal-content,
+    [class*="modal"]>div>div,
+    .fixed.inset-0>div {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        min-height: 100vh;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+
+    /* Modal header sticky on mobile */
+    .modal-header,
+    [class*="modal"] h2,
+    [class*="modal"] h3 {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+        padding: 16px !important;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* Modal body scrollable */
+    .modal-body {
+        padding: 16px !important;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    /* Modal footer sticky at bottom */
+    .modal-footer,
+    [class*="modal"] .flex.justify-end,
+    [class*="modal"] .flex.gap-2:last-child {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 16px !important;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* Full-width buttons in modal footer */
+    .modal-footer button,
+    [class*="modal"] .flex.justify-end button,
+    [class*="modal"] .flex.gap-2:last-child button {
+        width: 100% !important;
+        padding: 14px 16px !important;
+        font-size: 16px !important;
+    }
+}
+
+/* Form improvements for touch */
+@media (max-width: 768px) {
+
+    /* Larger touch targets for inputs */
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="date"],
+    input[type="password"],
+    input[type="search"],
+    input[type="week"],
+    select,
+    textarea {
+        min-height: 48px !important;
+        font-size: 16px !important;
+        /* Prevents iOS zoom */
+        padding: 12px !important;
+        border-radius: 8px !important;
+    }
+
+    /* Full-width form fields */
+    .form-group input,
+    .form-group select,
+    .form-group textarea,
+    [class*="grid"] input,
+    [class*="grid"] select {
+        width: 100% !important;
+    }
+
+    /* Stack form grids on mobile */
+    .grid-cols-2,
+    .grid-cols-3,
+    .grid-cols-4,
+    .md\\:grid-cols-2,
+    .md\\:grid-cols-3,
+    .md\\:grid-cols-4,
+    .lg\\:grid-cols-2,
+    .lg\\:grid-cols-3,
+    .lg\\:grid-cols-4 {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Form labels */
+    label {
+        font-size: 14px !important;
+        margin-bottom: 6px !important;
+        display: block;
+    }
+
+    /* Checkbox and radio larger touch targets */
+    input[type="checkbox"],
+    input[type="radio"] {
+        width: 24px !important;
+        height: 24px !important;
+        margin-right: 10px !important;
+    }
+
+    /* Form section spacing */
+    .form-section,
+    .space-y-4>* {
+        margin-bottom: 16px !important;
+    }
+}
+
+/* Button improvements */
+@media (max-width: 768px) {
+
+    /* All buttons minimum touch target */
+    button,
+    .btn,
+    [class*="btn-"] {
+        min-height: 44px;
+        padding: 12px 16px;
+    }
+
+    /* Primary action buttons full width */
+    button[type="submit"],
+    .btn-primary,
+    .bg-blue-600,
+    .bg-green-600 {
+        width: 100%;
+        padding: 14px 20px !important;
+        font-size: 16px !important;
+    }
+
+    /* Button groups stack vertically */
+    .button-group,
+    .flex.gap-2,
+    .flex.gap-3,
+    .flex.space-x-2,
+    .flex.space-x-3 {
+        flex-direction: column !important;
+        width: 100%;
+    }
+
+    .button-group>*,
+    .flex.gap-2>button,
+    .flex.gap-3>button {
+        width: 100% !important;
+    }
+}
+
+/* Close button positioning */
+@media (max-width: 768px) {
+
+    /* Modal close button - larger touch target */
+    [class*="modal"] button[class*="close"],
+    [class*="modal"] .absolute.top-4.right-4,
+    .modal-close {
+        width: 44px !important;
+        height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+}
+
+/* ================================
+   PHASE 4: DASHBOARD & STATS CARDS
+   Added: 2025-11-27
+   ================================ */
+
+/* Stats cards grid - responsive */
+@media (max-width: 768px) {
+
+    /* Stats cards: 2 columns on tablet, will stack further below */
+    .stats-grid,
+    .grid.grid-cols-4,
+    .grid.grid-cols-3,
+    .grid.md\\:grid-cols-4,
+    .grid.md\\:grid-cols-3,
+    .grid.lg\\:grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    /* Stats cards smaller padding */
+    .stat-card,
+    .stats-grid>div,
+    .bg-white.rounded-lg.shadow.p-6,
+    .bg-white.rounded-xl.shadow.p-6 {
+        padding: 16px !important;
+    }
+
+    /* Stats card text sizing */
+    .stat-card h3,
+    .stat-card .text-2xl,
+    .stat-card .text-3xl,
+    .stats-grid .text-2xl,
+    .stats-grid .text-3xl {
+        font-size: 20px !important;
+    }
+
+    .stat-card p,
+    .stat-card .text-sm,
+    .stats-grid .text-sm {
+        font-size: 12px !important;
+    }
+}
+
+@media (max-width: 480px) {
+
+    /* Stats cards: single column on small phones */
+    .stats-grid,
+    .grid.grid-cols-4,
+    .grid.grid-cols-3,
+    .grid.md\\:grid-cols-4,
+    .grid.md\\:grid-cols-3,
+    .grid.lg\\:grid-cols-4 {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Chart containers responsive */
+@media (max-width: 768px) {
+
+    /* Charts container */
+    .chart-container,
+    .plotly-graph-div,
+    [id*="chart"],
+    [id*="Chart"] {
+        width: 100% !important;
+        min-height: 250px !important;
+        max-height: 300px !important;
+    }
+
+    /* Chart wrapper cards */
+    .chart-wrapper,
+    .bg-white.rounded-lg.shadow.p-6:has([id*="chart"]),
+    .bg-white.rounded-xl.shadow:has(.plotly-graph-div) {
+        padding: 12px !important;
+        overflow: hidden;
+    }
+
+    /* Charts grid - stack on mobile */
+    .charts-grid,
+    .grid.grid-cols-2:has([id*="chart"]),
+    .grid.md\\:grid-cols-2:has([id*="chart"]) {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+}
+
+/* Page headers responsive */
+@media (max-width: 768px) {
+
+    /* Page header container */
+    .page-header,
+    .flex.justify-between.items-center.mb-6,
+    .flex.justify-between.items-center.mb-8,
+    main>div:first-child>.flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+
+    /* Page title */
+    .page-header h1,
+    .text-2xl.font-bold,
+    .text-3xl.font-bold,
+    main h1 {
+        font-size: 22px !important;
+        margin-bottom: 8px;
+    }
+
+    /* Page header buttons */
+    .page-header .flex,
+    .page-header button,
+    .flex.justify-between.items-center button {
+        width: 100%;
+    }
+
+    /* Multiple buttons in header - stack */
+    .page-header .flex.gap-2,
+    .page-header .flex.gap-3,
+    .page-header .space-x-2 {
+        flex-direction: column !important;
+        width: 100%;
+    }
+}
+
+/* Filter bars responsive */
+@media (max-width: 768px) {
+
+    /* Filter container */
+    .filter-bar,
+    .filters,
+    .flex.gap-4.mb-6,
+    .flex.gap-4.mb-4,
+    .grid.grid-cols-4.gap-4:has(select),
+    .grid.grid-cols-5.gap-4:has(select) {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+
+    /* Filter inputs full width */
+    .filter-bar select,
+    .filter-bar input,
+    .filters select,
+    .filters input {
+        width: 100% !important;
+    }
+
+    /* Date range filters - stack */
+    .date-range,
+    .flex:has(input[type="date"]) {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+}
+
+/* Dashboard specific tweaks */
+@media (max-width: 768px) {
+
+    /* Main content padding */
+    main,
+    .main-content,
+    #main-content {
+        padding: 12px !important;
+    }
+
+    /* Section spacing */
+    .section,
+    .mb-8,
+    .mb-6 {
+        margin-bottom: 16px !important;
+    }
+
+    /* Card shadows softer on mobile */
+    .shadow,
+    .shadow-lg,
+    .shadow-md {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    }
+}
+
+/* Recent activity / lists */
+@media (max-width: 768px) {
+
+    /* Activity list items */
+    .activity-item,
+    .list-item,
+    ul.divide-y>li {
+        padding: 12px 0 !important;
+    }
+
+    /* Activity item layout */
+    .activity-item .flex,
+    .list-item .flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
+    }
+}

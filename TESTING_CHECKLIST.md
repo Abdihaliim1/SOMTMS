@@ -1,6 +1,7 @@
 # Testing Checklist - Test Before Every Deploy
 
 ## Quick Test (5 minutes)
+
 Run this before EVERY commit:
 
 - [ ] Page loads without errors
@@ -9,15 +10,18 @@ Run this before EVERY commit:
 - [ ] Review git diff for unexpected changes
 
 ## Full System Test (15 minutes)
+
 Run this before deploying to production:
 
 ### 1. Dashboard (index.html)
+
 - [ ] Page loads
 - [ ] All statistics display correctly
 - [ ] Charts render
 - [ ] Navigation links work
 
 ### 2. Loads (loads.html)
+
 - [ ] Page loads
 - [ ] Add new load works
 - [ ] Edit existing load works
@@ -28,6 +32,7 @@ Run this before deploying to production:
 - [ ] Export to CSV works
 
 ### 3. Drivers (drivers.html)
+
 - [ ] Page loads
 - [ ] Add new driver works
 - [ ] Edit existing driver works
@@ -37,6 +42,7 @@ Run this before deploying to production:
 - [ ] Filters work
 
 ### 4. Fleet (fleet.html)
+
 - [ ] Page loads
 - [ ] Add new truck works
 - [ ] Edit existing truck works
@@ -45,6 +51,7 @@ Run this before deploying to production:
 - [ ] Ownership types work correctly
 
 ### 5. Expenses (expenses.html)
+
 - [ ] Page loads
 - [ ] Add new expense works
 - [ ] Edit existing expense works
@@ -54,6 +61,7 @@ Run this before deploying to production:
 - [ ] Filters work
 
 ### 6. Settlements (settlements.html)
+
 - [ ] Page loads without errors
 - [ ] Generate settlement button works
 - [ ] Driver selection loads their loads
@@ -68,6 +76,7 @@ Run this before deploying to production:
 - [ ] Filters work
 
 ### 7. Customers (customers.html)
+
 - [ ] Page loads
 - [ ] Add new customer works
 - [ ] Edit existing customer works
@@ -75,6 +84,7 @@ Run this before deploying to production:
 - [ ] Customer table displays correctly
 
 ### 8. Reports (reports.html)
+
 - [ ] Page loads
 - [ ] P&L report generates
 - [ ] Charts display correctly
@@ -82,6 +92,7 @@ Run this before deploying to production:
 - [ ] Export functions work
 
 ### 9. Accounts Receivable (accounts-receivable.html)
+
 - [ ] Page loads
 - [ ] Invoice table displays
 - [ ] Aging report works
@@ -89,6 +100,7 @@ Run this before deploying to production:
 - [ ] Filters work
 
 ### 10. Dispatch Board (dispatch.html)
+
 - [ ] Page loads
 - [ ] Load cards display
 - [ ] Drag and drop works
@@ -96,6 +108,7 @@ Run this before deploying to production:
 - [ ] Filters work
 
 ## Browser Console Check
+
 For EVERY page tested:
 
 1. Open DevTools (F12)
@@ -107,6 +120,7 @@ For EVERY page tested:
    - ✅ Green success messages (good)
 
 ## Git Diff Review
+
 Before committing:
 
 ```bash
@@ -139,11 +153,13 @@ git diff | grep "^-.*addEventListener"
 ## Critical Functions (Never Delete These!)
 
 ### Global (main.js)
+
 - `DataManager.init()`
 - `Auth.init()`
 - `Utils.*` functions
 
 ### Per Page
+
 - `DOMContentLoaded` event listener
 - `render*Table()` functions
 - `delete*()` functions
@@ -162,3 +178,25 @@ git diff | grep "^-.*addEventListener"
 ---
 
 **Pro Tip**: Copy this checklist into your commit message template to remind yourself to test!
+
+---
+
+## Mobile Responsiveness Testing
+
+See `MOBILE_TESTING_CHECKLIST.md` for detailed mobile testing procedures.
+
+### Quick Mobile Verification
+
+After any code changes, verify:
+
+1. [ ] Hamburger menu works (< 1024px)
+2. [ ] Tables scroll horizontally (< 768px)
+3. [ ] Modals are full-screen (< 768px)
+4. [ ] Stats cards stack (< 768px → 2 col, < 480px → 1 col)
+5. [ ] No horizontal page overflow
+
+### Files Added for Mobile Support
+
+- `mobile-fixes.css` - Mobile CSS overrides (~640 lines)
+- `mobile-nav.js` - Hamburger menu component (~170 lines)
+- `MOBILE_TESTING_CHECKLIST.md` - Mobile testing guide

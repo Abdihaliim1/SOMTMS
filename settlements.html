@@ -11,6 +11,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
+    <!-- Mobile Responsiveness -->
+    <link rel="stylesheet" href="mobile-fixes.css">
+    <script src="mobile-nav.js" defer></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -273,7 +276,7 @@
                     </div>
                 </div>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto table-responsive table-scroll-hint">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -866,6 +869,7 @@
                 }
 
                 Utils.showNotification(`Settlement ${settlementNumber} created successfully!`, 'success');
+                Utils.logActivity('Settlement Generated', `Settlement #${settlementNumber} for ${driver.firstName} ${driver.lastName}`, 'money');
                 closeCreateModal();
                 renderSettlementsTable();
             } catch (error) {
@@ -1028,6 +1032,7 @@ Status: ${settlement.status}
                 }
 
                 await DataManager.deleteSettlement(settlementId);
+                Utils.logActivity('Settlement Deleted', 'Settlement record deleted', 'money');
                 Utils.showNotification('Settlement deleted', 'success');
                 renderSettlementsTable();
             } catch (error) {

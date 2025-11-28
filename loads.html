@@ -9,6 +9,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
+    <!-- Mobile Responsiveness -->
+    <link rel="stylesheet" href="mobile-fixes.css">
+    <script src="mobile-nav.js" defer></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -193,7 +196,7 @@
                     </div>
                 </div>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto table-responsive table-scroll-hint">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -824,7 +827,7 @@
         function autoFillTruckFromDriver(driverId) {
             const truckSelect = document.getElementById('truck');
             if (!truckSelect || !driverId) return;
-            
+
             const driver = DataManager.drivers.find(d => d.id === driverId);
             if (driver && driver.currentTruckId) {
                 truckSelect.value = driver.currentTruckId;
@@ -1013,6 +1016,7 @@ Miles: ${load.mileage?.total || 0}
                     const newStatus = loadData.status;
 
                     await DataManager.updateLoad(currentLoadId, loadData);
+                    Utils.logActivity('Load Updated', `Load #${loadData.loadNumber} updated`, 'load');
 
                     // If status changed to 'delivered', trigger settlement update and invoice creation
                     if (oldStatus !== 'delivered' && newStatus === 'delivered') {
@@ -1023,10 +1027,13 @@ Miles: ${load.mileage?.total || 0}
                         if (window.createInvoiceForLoad) {
                             try {
                                 await window.createInvoiceForLoad(currentLoadId);
+                                Utils.logActivity('Invoice Created', `Auto-invoice for Load #${load.loadNumber}`, 'money');
                             } catch (err) {
                                 console.error('Error creating invoice for load:', err);
                             }
                         }
+
+                        Utils.logActivity('Load Delivered', `Load #${load.loadNumber} marked as delivered`, 'load');
 
                         const driver = DataManager.drivers.find(d => d.id === load.driverId);
                         if (!driver) {
@@ -1096,6 +1103,7 @@ Miles: ${load.mileage?.total || 0}
                     }
                 } else {
                     await DataManager.addLoad(loadData);
+                    Utils.logActivity('Load Created', `New Load #${loadData.loadNumber} created`, 'load');
                 }
 
                 closeModal();

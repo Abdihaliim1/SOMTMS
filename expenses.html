@@ -310,7 +310,7 @@
                     </div>
                 </div>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto table-responsive table-scroll-hint">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -425,10 +425,11 @@
 
                     <!-- Warning Message -->
                     <div id="expenseWarning" class="mt-2"></div>
-                    
+
                     <!-- Paid By Field (for Owner Operators) -->
                     <div id="paidBySection" class="hidden">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Paid By <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Paid By <span
+                                class="text-red-500">*</span></label>
                         <select id="paidBy" required
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">Select who paid</option>
@@ -469,7 +470,8 @@
     <footer class="mt-12 py-8 border-t border-gray-200">
         <div class="text-center">
             <p class="text-gray-600">&copy; 2025 ATS FREIGHT LLC. All rights reserved.</p>
-            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT 3169186</p>
+            <p class="text-sm text-gray-500 mt-2">3191 MORSE RD STE 15, COLUMBUS, OH 43231 | (614) 254-0380 | DOT
+                3169186</p>
         </div>
     </footer>
 
@@ -645,10 +647,10 @@
             const driverId = document.getElementById('driver').value;
             const paidBySection = document.getElementById('paidBySection');
             const paidByField = document.getElementById('paidBy');
-            
+
             // AUTO-FILL TRUCK FROM DRIVER ASSIGNMENT
             autoFillTruckFromDriver(driverId);
-            
+
             if (!driverId) {
                 paidBySection.classList.add('hidden');
                 paidByField.removeAttribute('required');
@@ -667,7 +669,7 @@
                 if (!paidByField.value) {
                     paidByField.value = 'company';
                 }
-                
+
                 // Show warning about deduction
                 if (warningDiv) {
                     warningDiv.innerHTML = `
@@ -683,7 +685,7 @@
                 paidBySection.classList.add('hidden');
                 paidByField.removeAttribute('required');
                 paidByField.value = 'company'; // Set default but don't show field
-                
+
                 // Show info message for company drivers
                 if (warningDiv) {
                     warningDiv.innerHTML = `
@@ -701,7 +703,7 @@
         function autoFillTruckFromDriver(driverId) {
             const truckSelect = document.getElementById('truck');
             if (!truckSelect || !driverId) return;
-            
+
             const driver = DataManager.drivers.find(d => d.id === driverId);
             if (driver && driver.currentTruckId) {
                 truckSelect.value = driver.currentTruckId;
@@ -712,28 +714,28 @@
         function updateLoadOptions() {
             const driverId = document.getElementById('driver')?.value;
             const loadSelect = document.getElementById('loadId');
-            
+
             if (!loadSelect) return;
-            
+
             loadSelect.innerHTML = '<option value="">No specific load (category-based expense)</option>';
-            
+
             if (driverId && DataManager.loads) {
                 // Get recent loads for this driver (suggest last 10 loads)
                 const driverLoads = DataManager.loads.filter(l => {
                     const isDriverMatch = String(l.driverId) === String(driverId);
                     return isDriverMatch;
                 });
-                
+
                 // Sort by delivery date (newest first) - show most recent loads as suggestions
                 driverLoads.sort((a, b) => {
                     const dateA = new Date(a.delivery?.date || a.deliveredAt || a.createdAt || 0);
                     const dateB = new Date(b.delivery?.date || b.deliveredAt || b.createdAt || 0);
                     return dateB - dateA;
                 });
-                
+
                 // Show only last 10 loads as suggestions
                 const recentLoads = driverLoads.slice(0, 10);
-                
+
                 recentLoads.forEach(load => {
                     const loadNumber = load.loadNumber || 'Unknown';
                     const pickup = load.pickup?.city || '';
@@ -743,7 +745,7 @@
                     const dateStr = date ? Utils.formatDate(date) : '';
                     const status = (load.status || '').toLowerCase();
                     const statusLabel = status === 'delivered' ? '✓' : status === 'in_transit' ? '→' : '';
-                    
+
                     loadSelect.innerHTML += `<option value="${load.id}">${statusLabel} ${loadNumber}${route ? ` - ${route}` : ''}${dateStr ? ` (${dateStr})` : ''}</option>`;
                 });
             }
@@ -813,6 +815,7 @@
                 console.log('Deleting expense with ID:', id);
                 await DataManager.deleteExpense(id);
                 console.log('Delete completed successfully');
+                Utils.logActivity('Expense Deleted', 'Expense record deleted', 'money');
                 // renderExpenses() and updateStats() are called automatically by Firebase listener
                 // Success notification is shown in main.js
             } catch (error) {
@@ -875,13 +878,15 @@
                 if (expenseId) {
                     // Update existing expense
                     await DataManager.updateExpense(expenseId, expenseData);
+                    Utils.logActivity('Expense Updated', `${expenseData.type} expense updated: $${expenseData.amount}`, 'money');
                     // Notification is shown in main.js updateExpense function
                 } else {
                     // Add new expense
                     await DataManager.addExpense(expenseData);
+                    Utils.logActivity('Expense Added', `New ${expenseData.type} expense: $${expenseData.amount}`, 'money');
                     Utils.showNotification('Expense added successfully', 'success');
                 }
-                
+
                 closeModal();
                 // renderExpenses() is called automatically by Firebase listener
                 // updateStats() will be called by the listener too

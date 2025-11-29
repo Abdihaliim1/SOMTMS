@@ -328,62 +328,82 @@
    Added: 2025-11-27
    ================================ */
 
+/* Global Mobile Fixes */
+@media (max-width: 768px) {
+
+    body,
+    html {
+        overflow-x: hidden;
+        /* Prevent horizontal scroll */
+        width: 100%;
+    }
+}
+
 /* Mobile modal improvements */
 @media (max-width: 768px) {
 
     /* Full-screen modals on mobile */
-    .modal-content,
-    [class*="modal"]>div>div,
-    .fixed.inset-0>div {
-        max-width: 100% !important;
+    .modal-content {
         width: 100% !important;
         margin: 0 !important;
         border-radius: 0 !important;
         min-height: 100vh;
         max-height: 100vh;
         overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        background-color: white !important;
+        /* Ensure white background */
+    }
+
+    /* Fix for the "Blue Screen" issue - ensure the content wrapper is visible */
+    .modal-content>div {
+        width: 100%;
     }
 
     /* Modal header sticky on mobile */
-    .modal-header,
-    [class*="modal"] h2,
-    [class*="modal"] h3 {
+    /* Target the blue gradient header specifically */
+    .modal-content>.bg-gradient-to-r {
         position: sticky;
         top: 0;
-        background: white;
-        z-index: 10;
+        z-index: 50;
         padding: 16px !important;
-        border-bottom: 1px solid #e5e7eb;
     }
 
     /* Modal body scrollable */
-    .modal-body {
+    .modal-content>.p-6 {
         padding: 16px !important;
         overflow-y: auto;
         flex: 1;
+        padding-bottom: 80px !important;
+        /* Space for footer */
     }
 
     /* Modal footer sticky at bottom */
-    .modal-footer,
-    [class*="modal"] .flex.justify-end,
-    [class*="modal"] .flex.gap-2:last-child {
+    .modal-content form>.border-t,
+    .modal-content .flex.justify-end {
         position: sticky;
         bottom: 0;
         background: white;
         padding: 16px !important;
         border-top: 1px solid #e5e7eb;
         display: flex;
-        flex-direction: column;
-        gap: 8px;
+        flex-direction: column-reverse;
+        /* Cancel at bottom */
+        gap: 12px;
+        z-index: 40;
+        margin-top: 0 !important;
+        /* Remove margin to stick properly */
     }
 
     /* Full-width buttons in modal footer */
-    .modal-footer button,
-    [class*="modal"] .flex.justify-end button,
-    [class*="modal"] .flex.gap-2:last-child button {
+    .modal-content form>.border-t button,
+    .modal-content .flex.justify-end button {
         width: 100% !important;
         padding: 14px 16px !important;
         font-size: 16px !important;
+        margin: 0 !important;
+        /* Reset margins */
     }
 }
 

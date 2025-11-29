@@ -8,7 +8,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- Mobile Responsiveness -->
+    <link rel="stylesheet" href="mobile-fixes.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -137,17 +140,17 @@
             border-radius: 3px;
             line-height: 1.2;
         }
-        
+
         /* Ultra-compact styles */
         .compact-text {
             line-height: 1.1 !important;
             margin: 0 !important;
         }
-        
+
         .compact-section {
             margin-bottom: 4px !important;
         }
-        
+
         .compact-table th,
         .compact-table td {
             padding: 2px 4px !important;
@@ -177,10 +180,21 @@
             font-size: 20px;
         }
 
-        .kpi-revenue { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        .kpi-miles { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
-        .kpi-loads { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
-        .kpi-profit { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .kpi-revenue {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .kpi-miles {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        .kpi-loads {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+
+        .kpi-profit {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
 
         .table-modern {
             border-collapse: separate;
@@ -339,12 +353,12 @@
             .chart-container:first-child {
                 display: none !important;
             }
-            
+
             /* Alternative selector for Revenue Trend chart */
             .chart-container h3:contains("Revenue Trend") {
                 display: none !important;
             }
-            
+
             .chart-container:has(h3:contains("Revenue Trend")) {
                 display: none !important;
             }
@@ -367,7 +381,7 @@
                 line-height: 1.1 !important;
             }
 
-            .chart-container > div {
+            .chart-container>div {
                 height: 100px !important;
             }
 
@@ -396,9 +410,21 @@
             }
 
             /* Remove all margins and padding that create spaces */
-            .mb-8, .mb-6, .mb-4, .mt-8, .mt-6, .mt-4,
-            .py-8, .py-6, .py-4, .px-8, .px-6, .px-4,
-            .space-y-8 > *, .space-y-6 > *, .space-y-4 > * {
+            .mb-8,
+            .mb-6,
+            .mb-4,
+            .mt-8,
+            .mt-6,
+            .mt-4,
+            .py-8,
+            .py-6,
+            .py-4,
+            .px-8,
+            .px-6,
+            .px-4,
+            .space-y-8>*,
+            .space-y-6>*,
+            .space-y-4>* {
                 margin: 0 !important;
                 padding: 2px !important;
             }
@@ -408,17 +434,17 @@
                 gap: 2px !important;
             }
 
-            .space-x-4 > * + *,
-            .space-x-6 > * + *,
-            .space-x-8 > * + * {
+            .space-x-4>*+*,
+            .space-x-6>*+*,
+            .space-x-8>*+* {
                 margin-left: 4px !important;
             }
 
-            .space-y-2 > * + * {
+            .space-y-2>*+* {
                 margin-top: 1px !important;
             }
 
-            .space-y-3 > * + * {
+            .space-y-3>*+* {
                 margin-top: 2px !important;
             }
 
@@ -458,7 +484,12 @@
             }
 
             /* Override any large text */
-            h1, h2, h3, h4, h5, h6 {
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
                 font-size: 11px !important;
                 font-weight: bold !important;
                 margin: 2px 0 !important;
@@ -508,7 +539,8 @@
                     <i class="fas fa-truck-monster mr-3 w-5"></i>
                     Fleet
                 </a>
-                <a href="customers.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                <a href="customers.html"
+                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
                     <i class="fas fa-building mr-3 w-5"></i>
                     Customers
                 </a>
@@ -520,11 +552,13 @@
                     <i class="fas fa-file-invoice mr-3 w-5"></i>
                     Invoices
                 </a>
-                <a href="settlements.html" class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                <a href="settlements.html"
+                    class="sidebar-item flex items-center px-4 py-3 rounded-lg text-sm font-medium">
                     <i class="fas fa-calculator mr-3 w-5"></i>
                     Settlements
                 </a>
-                <a href="reports.html" class="sidebar-item active flex items-center px-4 py-3 rounded-lg text-sm font-medium">
+                <a href="reports.html"
+                    class="sidebar-item active flex items-center px-4 py-3 rounded-lg text-sm font-medium">
                     <i class="fas fa-chart-bar mr-3 w-5"></i>
                     Reports
                 </a>
@@ -555,18 +589,21 @@
                         <p class="text-gray-600 mt-1">Comprehensive financial and operational analytics</p>
                     </div>
                     <div class="flex items-center space-x-4 print-hidden">
-                        <select id="reportPeriod" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                        <select id="reportPeriod"
+                            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
                             <option value="current_month">Current Month</option>
                             <option value="last_month">Last Month</option>
                             <option value="current_quarter">Current Quarter</option>
                             <option value="current_year">Current Year</option>
                             <option value="all_time">All Time</option>
                         </select>
-                        <button onclick="ReportManager.printReport()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                        <button onclick="ReportManager.printReport()"
+                            class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
                             <i class="fas fa-print mr-2"></i>
                             Print
                         </button>
-                        <button onclick="ReportManager.exportReport()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <button onclick="ReportManager.exportReport()"
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                             <i class="fas fa-download mr-2"></i>
                             Export CSV
                         </button>
@@ -575,19 +612,24 @@
 
                 <!-- Tab Navigation -->
                 <nav class="flex space-x-8 border-b border-gray-200">
-                    <button onclick="ReportManager.switchTab('overview')" id="overviewTab" class="tab-button py-4 px-1 font-medium text-sm text-blue-600">
+                    <button onclick="ReportManager.switchTab('overview')" id="overviewTab"
+                        class="tab-button py-4 px-1 font-medium text-sm text-blue-600">
                         Overview
                     </button>
-                    <button onclick="ReportManager.switchTab('revenue')" id="revenueTab" class="tab-button py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">
+                    <button onclick="ReportManager.switchTab('revenue')" id="revenueTab"
+                        class="tab-button py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">
                         Revenue
                     </button>
-                    <button onclick="ReportManager.switchTab('expenses')" id="expensesTab" class="tab-button py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">
+                    <button onclick="ReportManager.switchTab('expenses')" id="expensesTab"
+                        class="tab-button py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">
                         Expenses
                     </button>
-                    <button onclick="ReportManager.switchTab('drivers')" id="driversTab" class="tab-button py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">
+                    <button onclick="ReportManager.switchTab('drivers')" id="driversTab"
+                        class="tab-button py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">
                         Driver Performance
                     </button>
-                    <button onclick="ReportManager.switchTab('customers')" id="customersTab" class="tab-button py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">
+                    <button onclick="ReportManager.switchTab('customers')" id="customersTab"
+                        class="tab-button py-4 px-1 font-medium text-sm text-gray-500 hover:text-gray-700">
                         Customer Analysis
                     </button>
                 </nav>
@@ -598,8 +640,8 @@
         <main class="px-4 py-2">
             <!-- Overview Tab -->
             <div id="overviewContent" class="tab-content">
-            <!-- KPI Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
                     <div class="metric-card rounded-lg p-3">
                         <div class="flex items-center justify-between mb-2">
                             <div class="kpi-icon kpi-revenue text-white">
@@ -678,7 +720,7 @@
                 <!-- Profit Breakdown -->
                 <div class="breakdown-section">
                     <h3 class="text-lg font-bold text-gray-900 mb-2">Profit Breakdown</h3>
-                    
+
                     <!-- Revenue Section -->
                     <div class="mb-2">
                         <div class="flex justify-between items-center py-1 border-b-2 border-emerald-200">
@@ -755,10 +797,12 @@
                                 <span id="breakdownDriverPayOwner" class="text-blue-600 font-medium">$0</span>
                             </div>
                         </div>
-                            <div id="driverPayWarning" class="hidden mt-1 p-1 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                        <div id="driverPayWarning"
+                            class="hidden mt-1 p-1 bg-yellow-50 border border-yellow-200 rounded text-xs">
                             <div class="flex items-center text-sm text-yellow-800">
                                 <i class="fas fa-info-circle mr-2"></i>
-                                Driver pay is estimated from loads (no settlements found). Create settlements for accurate amounts.
+                                Driver pay is estimated from loads (no settlements found). Create settlements for
+                                accurate amounts.
                             </div>
                         </div>
                     </div>
@@ -769,7 +813,8 @@
                             <span class="text-lg font-bold text-gray-900">Net Profit</span>
                             <span id="breakdownNetProfit" class="text-xl font-bold text-emerald-600">$0</span>
                         </div>
-                        <p class="text-sm text-gray-500 mt-1">Owner gets this as distribution (salary already in driver pay)</p>
+                        <p class="text-sm text-gray-500 mt-1">Owner gets this as distribution (salary already in driver
+                            pay)</p>
                     </div>
                 </div>
 
@@ -1024,7 +1069,7 @@
                 // FIX: O/O loads should only count commission (12%), not full load revenue
                 revenueLoads.forEach(load => {
                     const grossAmount = parseFloat(load.rate?.total || load.rate || 0) || 0;
-                    
+
                     if (load.driverId) {
                         const driver = drivers.find(d => d.id === load.driverId);
                         if (driver) {
@@ -1032,7 +1077,7 @@
                             // For O/O: Returns commission (12% of gross)
                             // For Company/Owner: Returns full gross amount
                             const companyRevenue = Utils.calculateCompanyRevenueSync(grossAmount, driver);
-                            
+
                             if (driver.driverType === 'owner_operator') {
                                 // GROSS METHOD: Use FULL load revenue for O/O loads
                                 ownerOperatorRevenue += grossAmount; // MUST be full load revenue
@@ -1072,13 +1117,13 @@
                 // Sum actual net pay from settlements (this already has expenses deducted)
                 settlements.forEach(settlement => {
                     if (!settlement.driverId) return;
-                    
+
                     const driver = drivers.find(d => d.id === settlement.driverId);
                     if (!driver) {
                         console.warn(`[Reports] Settlement ${settlement.id} has driverId ${settlement.driverId} but driver not found`);
                         return;
                     }
-                    
+
                     // GROSS METHOD: Include O/O gross pay (before deductions)
                     if (driver.driverType === 'owner_operator') {
                         // IMPORTANT: use gross pay BEFORE deductions
@@ -1086,10 +1131,10 @@
                         ownerOperatorPay += grossPay;
                         return;
                     }
-                    
+
                     // Get net pay (actual amount paid to driver after all deductions)
                     const netPay = Math.max(0, parseFloat(settlement.netPay || 0));
-                    
+
                     // Categorize by driver type (O/O already excluded above)
                     if (driver.driverType === 'owner') {
                         ownerAsDriverPay += netPay;
@@ -1103,7 +1148,7 @@
                 if (settlements.length === 0 && revenueLoads.length > 0) {
                     isEstimated = true;
                     console.log(`[Reports] No settlements found, calculating estimated driver pay from loads...`);
-                    
+
                     // Get company expenses for deduction calculation
                     const companyExpenses = expenses.filter(expense => {
                         if (expense.paidBy !== 'company') return false;
@@ -1114,19 +1159,19 @@
                         }
                         return true; // company driver or unknown → count as company expense
                     });
-                    
+
                     // Track expense deductions per expense ID
                     const expenseDeductionTracker = new Map();
-                    
+
                     revenueLoads.forEach(load => {
                         if (!load.driverId) return;
-                        
+
                         const driver = drivers.find(d => d.id === load.driverId);
                         if (!driver) return;
-                        
+
                         const totalRate = parseFloat(load.companyRevenue || load.rate?.total || load.rate || 0) || 0;
                         const miles = parseFloat(load.mileage?.total || load.miles || 0) || 0;
-                        
+
                         // First look up the driver → use their real stored percentage → if missing, use 0 (NO DEFAULTS!)
                         let driverPay = parseFloat(load.rate?.driverPay) || 0;
 
@@ -1145,7 +1190,7 @@
 
                         // Final fallback: $0 if nothing found (NO HARDCODED PERCENTAGES!)
                         const basePay = driverPay;
-                        
+
                         // Calculate deductions for owner operators
                         let deductions = 0;
                         if (driver.driverType === 'owner_operator') {
@@ -1154,16 +1199,16 @@
                                 exp.paidBy === 'company' &&
                                 exp.deductFromDriver === true
                             );
-                            
+
                             // Calculate deductions, ensuring we don't double-count expenses
                             loadExpenses.forEach(exp => {
                                 const expenseId = exp.id;
                                 const expenseAmount = parseFloat(exp.amount) || 0;
-                                
+
                                 if (!expenseDeductionTracker.has(expenseId)) {
                                     expenseDeductionTracker.set(expenseId, 0);
                                 }
-                                
+
                                 const alreadyDeducted = expenseDeductionTracker.get(expenseId);
                                 if (alreadyDeducted < expenseAmount) {
                                     const remainingToDeduct = expenseAmount - alreadyDeducted;
@@ -1173,9 +1218,9 @@
                                 }
                             });
                         }
-                        
+
                         const finalPay = Math.max(0, basePay - deductions);
-                        
+
                         // Categorize by driver type
                         // GROSS METHOD: Include O/O gross pay
                         if (driver.driverType === 'owner_operator') {
@@ -1204,9 +1249,9 @@
                     }
                     return true; // company driver or unknown → count as company expense
                 });
-                
+
                 const expensesForPandL = companyExpenses; // Include ALL company expenses
-                
+
                 // Debug: Log what expenses are being included
                 console.log(`[P&L Debug] Total expenses: ${expenses.length}, Company expenses: ${companyExpenses.length}`);
                 console.log(`[P&L Debug] Excluded O/O expenses:`, expenses.filter(exp => {
@@ -1227,9 +1272,9 @@
                 expensesForPandL.forEach(exp => {
                     // Since O/O expenses are already filtered out, we only have company expenses here
                     let amount = parseFloat(exp.amount) || 0;
-                    
+
                     const category = (exp.category || exp.type || '').toLowerCase();
-                    
+
                     if (category.includes('fuel')) {
                         fuelExpenses += amount;
                     } else if (category.includes('insurance')) {
@@ -1361,7 +1406,7 @@
                     tab.classList.remove('active', 'text-blue-600');
                     tab.classList.add('text-gray-500');
                 });
-                
+
                 const activeTab = document.getElementById(tabName + 'Tab');
                 if (activeTab) {
                     activeTab.classList.remove('text-gray-500');
@@ -1476,14 +1521,14 @@
                     breakdownDriverPay.textContent = Utils.formatCurrency(ReportManager.data.driverPay);
                     // Add estimated indicator if driver pay is estimated
                     if (ReportManager.data.driverPayEstimated) {
-                        breakdownDriverPay.innerHTML = Utils.formatCurrency(ReportManager.data.driverPay) + 
+                        breakdownDriverPay.innerHTML = Utils.formatCurrency(ReportManager.data.driverPay) +
                             ' <span class="text-xs text-yellow-600 font-normal">(Estimated)</span>';
                     }
                 }
                 if (breakdownDriverPayCompany) breakdownDriverPayCompany.textContent = Utils.formatCurrency(ReportManager.data.driverPayBreakdown?.companyDriver || 0);
                 if (breakdownDriverPayOO) breakdownDriverPayOO.textContent = Utils.formatCurrency(ReportManager.data.driverPayBreakdown?.ownerOperator || 0);
                 if (breakdownDriverPayOwner) breakdownDriverPayOwner.textContent = Utils.formatCurrency(ReportManager.data.driverPayBreakdown?.ownerAsDriver || 0);
-                
+
                 // Show warning if driver pay is estimated
                 const driverPayWarning = document.getElementById('driverPayWarning');
                 if (driverPayWarning) {
@@ -1597,7 +1642,7 @@
                         const loads = Math.floor(Math.random() * 20) + 5; // Placeholder
                         const miles = Math.floor(Math.random() * 5000) + 1000; // Placeholder
                         const avgRate = miles > 0 ? revenue / miles : 0;
-                        
+
                         tableHTML += `
                             <tr class="hover:bg-gray-50">
                                 <td class="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${label}</td>
@@ -1716,9 +1761,9 @@
                     let tableHTML = '';
                     driverData.forEach(driver => {
                         const performance = driver.miles > 4000 ? 'Excellent' : driver.miles > 3000 ? 'Good' : 'Average';
-                        const performanceClass = performance === 'Excellent' ? 'bg-green-100 text-green-800' : 
-                                               performance === 'Good' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800';
-                        
+                        const performanceClass = performance === 'Excellent' ? 'bg-green-100 text-green-800' :
+                            performance === 'Good' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800';
+
                         tableHTML += `
                             <tr class="hover:bg-gray-50">
                                 <td class="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${driver.name}</td>
@@ -1764,7 +1809,7 @@
                     let tableHTML = '';
                     topCustomers.forEach(customer => {
                         const avgRate = customer.loads > 0 ? customer.revenue / customer.loads : 0;
-                        
+
                         tableHTML += `
                             <tr class="hover:bg-gray-50">
                                 <td class="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900">${customer.name || 'N/A'}</td>
@@ -1788,11 +1833,11 @@
             exportReport: () => {
                 const data = ReportManager.data;
                 const currentTab = ReportManager.currentTab;
-                
+
                 let csvContent = '';
                 let filename = '';
                 const date = new Date().toISOString().split('T')[0];
-                
+
                 const formatCSV = (value) => {
                     if (typeof value === 'string' && value.includes(',')) {
                         return `"${value}"`;
@@ -1823,7 +1868,7 @@
                         csvContent += `Net Profit,$${formatCSV(data.netProfit)}\n`;
                         csvContent += `Profit Margin,${data.profitMargin}%\n`;
                         break;
-                        
+
                     case 'revenue':
                         filename = `revenue-report-${date}.csv`;
                         csvContent = 'Month,Revenue\n';
@@ -1831,7 +1876,7 @@
                             csvContent += `${label},$${formatCSV(data.monthlyRevenue?.values?.[i] || 0)}\n`;
                         });
                         break;
-                        
+
                     case 'expenses':
                         filename = `expenses-report-${date}.csv`;
                         csvContent = 'Category,Amount\n';
@@ -1839,7 +1884,7 @@
                             csvContent += `${formatCSV(category)},$${formatCSV(amount)}\n`;
                         });
                         break;
-                        
+
                     case 'drivers':
                         filename = `drivers-report-${date}.csv`;
                         csvContent = 'Driver Type,Pay Amount\n';
@@ -1848,7 +1893,7 @@
                         csvContent += `Owner as Driver,$${formatCSV(data.driverPayBreakdown?.ownerAsDriver)}\n`;
                         csvContent += `Total,$${formatCSV(data.driverPay)}\n`;
                         break;
-                        
+
                     case 'customers':
                         filename = `customers-report-${date}.csv`;
                         csvContent = 'Customer,Revenue,Loads\n';
@@ -1856,7 +1901,7 @@
                             csvContent += `${formatCSV(customer.name)},$${formatCSV(customer.revenue)},${customer.loads}\n`;
                         });
                         break;
-                        
+
                     default:
                         filename = `report-${date}.csv`;
                         csvContent = 'No data available for export\n';

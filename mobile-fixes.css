@@ -25,50 +25,59 @@
  */
 
 /* ================================
-   HIDE DESKTOP SIDEBAR ON MOBILE
+   MOBILE SIDEBAR OPTIMIZATION
    ================================ */
 @media (max-width: 1024px) {
 
-    /* Hide the desktop sidebar completely */
+    /* Make sidebar visible and mobile-friendly */
     aside,
     .sidebar,
-    nav.fixed.left-0,
-    .fixed.inset-y-0.left-0,
-    [class*="fixed"][class*="left-0"][class*="w-64"],
-    .w-64.fixed,
-    body>div>aside,
+    nav.fixed,
     #sidebar {
-        display: none !important;
-        width: 0 !important;
-        visibility: hidden !important;
+        position: relative !important;
+        transform: none !important;
+        width: 100% !important;
+        height: auto !important;
+        display: block !important;
+        visibility: visible !important;
     }
 
-    /* Remove left margin/padding from main content */
+    /* Remove main content margin */
     main,
     .main-content,
     #main-content,
-    .ml-64,
-    [class*="ml-64"] {
+    .ml-64 {
         margin-left: 0 !important;
-        padding-left: 0 !important;
         width: 100% !important;
+    }
+
+    /* Make nav items horizontal */
+    nav ul,
+    .sidebar nav {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        padding: 12px !important;
+    }
+
+    nav ul li {
+        flex: 0 0 auto !important;
+    }
+
+    nav ul li a {
+        padding: 8px 16px !important;
+        font-size: 13px !important;
+        white-space: nowrap !important;
     }
 }
 
-/* ================================
-   MOBILE NAVIGATION
-   ================================ */
-
 @media (max-width: 1023px) {
 
+    /* Keep all nav items visible */
     nav .flex.items-center.space-x-6>a,
-    nav .flex.items-center.space-x-6>span:not(:last-child),
-    nav .flex.items-center.space-x-6>button:not(#mobileMenuBtn) {
-        display: none !important;
-    }
-
-    nav .flex.items-center.space-x-4 {
-        flex: 1;
+    nav .flex.items-center.space-x-6>span,
+    nav .flex.items-center.space-x-6>button {
+        display: flex !important;
     }
 }
 

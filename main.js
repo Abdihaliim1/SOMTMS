@@ -420,8 +420,28 @@ const Utils = {
         return Math.round(distance * 1.1);
     },
 
-    // Show notification
+    // Show notification with daily limit
     showNotification: (message, type = 'info') => {
+        // Check notification limit (max 2 per day)
+        const today = new Date().toDateString();
+        const notificationData = JSON.parse(localStorage.getItem('notificationData') || '{}');
+
+        // Reset counter if it's a new day
+        if (notificationData.date !== today) {
+            notificationData.date = today;
+            notificationData.count = 0;
+        }
+
+        // Only show error notifications always, limit others
+        if (type !== 'error') {
+            if (notificationData.count >= 2) {
+                console.log(`Notification suppressed (daily limit reached): ${message}`);
+                return; // Skip showing notification
+            }
+            notificationData.count++;
+            localStorage.setItem('notificationData', JSON.stringify(notificationData));
+        }
+
         const notification = document.createElement('div');
         notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${type === 'success' ? 'bg-green-500' :
             type === 'error' ? 'bg-red-500' :

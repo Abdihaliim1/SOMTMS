@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <!-- Mobile Responsiveness -->
-    <link rel="stylesheet" href="mobile-fixes.css?v=2.0.1">
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -88,21 +88,24 @@
 
 <body class="bg-gray-50">
     <!-- Navigation -->
-    <nav class="gradient-bg text-white shadow-lg">
+    <nav class="gradient-bg text-white shadow-lg relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
+                <!-- Logo & Brand -->
                 <div class="flex items-center space-x-4">
-                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain"
+                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-10 w-10 object-contain"
                         onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
                     <div
-                        class="company-logo hidden w-12 h-12 bg-white rounded-lg items-center justify-center font-bold text-gray-800">
+                        class="company-logo hidden w-10 h-10 bg-white rounded-lg items-center justify-center font-bold text-gray-800">
                         ATS</div>
                     <div>
-                        <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
-                        <p class="text-sm opacity-90">Transportation Management System</p>
+                        <h1 class="text-lg font-bold leading-tight">ATS FREIGHT LLC</h1>
+                        <p class="text-xs opacity-90 hidden sm:block">Transportation Management System</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-6">
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-6 desktop-nav">
                     <a href="index.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                     </a>
@@ -115,25 +118,41 @@
                     <a href="settlements.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-calculator mr-2"></i>Settlements
                     </a>
-                    <span class="text-sm">Welcome, Liban Ali</span>
+                    <span class="text-sm opacity-80">Welcome, Liban Ali</span>
                     <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </button>
                 </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobileMenuBtn" class="md:hidden text-white p-2 focus:outline-none mobile-menu-btn"
+                    title="Toggle mobile menu">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
             </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobileMenu" class="mobile-menu md:hidden">
+            <a href="index.html"><i class="fas fa-tachometer-alt mr-3 w-6 text-center"></i>Dashboard</a>
+            <a href="loads.html"><i class="fas fa-truck mr-3 w-6 text-center"></i>Loads</a>
+            <a href="drivers.html" class="bg-gray-700"><i class="fas fa-users mr-3 w-6 text-center"></i>Drivers</a>
+            <a href="settlements.html"><i class="fas fa-calculator mr-3 w-6 text-center"></i>Settlements</a>
+            <a href="#"><i class="fas fa-sign-out-alt mr-3 w-6 text-center"></i>Logout</a>
         </div>
     </nav>
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Page Header -->
-        <div class="flex justify-between items-center mb-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-8 page-header">
             <div>
                 <h2 class="text-3xl font-bold text-gray-900">Driver Management</h2>
                 <p class="text-gray-600 mt-2">Manage drivers, payments, and performance</p>
             </div>
             <button onclick="openCreateDriverModal()"
-                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-md flex items-center justify-center">
                 <i class="fas fa-plus mr-2"></i>Add New Driver
             </button>
         </div>
@@ -257,7 +276,7 @@
                     </div>
                 </div>
             </div>
-            <div class="overflow-x-auto table-responsive table-scroll-hint">
+            <div class="overflow-x-auto table-responsive table-scroll-hint desktop-table">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -283,6 +302,11 @@
                         <!-- Drivers data will be populated from Firebase -->
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Card List (Mobile Only) -->
+            <div id="mobileDriversList" class="mobile-card-list md:hidden">
+                <!-- Populated by JS -->
             </div>
             <div class="px-6 py-4 border-t border-gray-200">
                 <div class="flex items-center justify-between">
@@ -874,90 +898,97 @@
             document.getElementById('safetyScore').textContent = safetyScore.toFixed(1);
         }
 
-        function renderDrivers() {
+        function renderDrivers(driversToRender = null) {
             const tbody = document.getElementById('driversTableBody');
-            tbody.innerHTML = '';
+            const mobileList = document.getElementById('mobileDriversList');
 
-            // If trucks aren't loaded yet, schedule a re-render
-            if (!DataManager || !DataManager.trucks || DataManager.trucks.length === 0) {
-                console.log('Trucks not loaded yet, will re-render in 500ms...');
-                setTimeout(() => {
-                    if (DataManager && DataManager.trucks && DataManager.trucks.length > 0) {
-                        renderDrivers();
-                    }
-                }, 500);
+            if (!tbody) return;
+
+            // If no drivers provided, try to get from DataManager
+            let drivers = driversToRender;
+            if (!drivers) {
+                if (DataManager && DataManager.drivers) {
+                    drivers = DataManager.drivers;
+                } else {
+                    // Data not ready, retry
+                    console.log('Drivers data not ready, retrying in 500ms...');
+                    setTimeout(() => renderDrivers(), 500);
+                    return;
+                }
             }
 
-            const statusFilter = document.getElementById('statusFilter').value;
-            const paymentFilter = document.getElementById('paymentFilter').value;
-            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            tbody.innerHTML = '';
+            if (mobileList) mobileList.innerHTML = '';
 
-            const filteredDrivers = DataManager.drivers.filter(driver => {
-                const matchesStatus = !statusFilter || driver.status === statusFilter;
-                const matchesPayment = !paymentFilter || driver.payment.type === paymentFilter;
-                const matchesSearch = !searchInput ||
-                    driver.firstName.toLowerCase().includes(searchInput) ||
-                    driver.lastName.toLowerCase().includes(searchInput) ||
-                    driver.driverNumber.toLowerCase().includes(searchInput);
+            if (drivers.length === 0) {
+                const emptyState = `
+                    <tr>
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                            No drivers found
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML = emptyState;
+                if (mobileList) mobileList.innerHTML = '<div class="text-center text-gray-500 py-8">No drivers found</div>';
+                return;
+            }
 
-                return matchesStatus && matchesPayment && matchesSearch;
-            });
-
-            filteredDrivers.forEach(driver => {
-                const statusClass = {
-                    'active': 'status-active',
-                    'inactive': 'status-inactive',
-                    'on_leave': 'status-warning'
-                }[driver.status] || 'bg-gray-500';
-
+            drivers.forEach(driver => {
+                // Render Desktop Row
                 const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-colors';
+
+                // Determine status class
+                const statusClass = {
+                    active: 'bg-green-100 text-green-800',
+                    inactive: 'bg-gray-100 text-gray-800',
+                    terminated: 'bg-red-100 text-red-800',
+                    on_leave: 'bg-yellow-100 text-yellow-800'
+                }[driver.status] || 'bg-gray-100 text-gray-800';
+
                 tr.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
-                            <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
-                                ${(driver.firstName?.[0] || '')}${(driver.lastName?.[0] || '')}
+                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                ${driver.firstName.charAt(0)}${driver.lastName.charAt(0)}
                             </div>
                             <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900">${driver.firstName || ''} ${driver.lastName || ''}</div>
-                                <div class="text-sm text-gray-500">${driver.driverNumber || ''}</div>
+                                <div class="text-sm font-medium text-gray-900">${driver.firstName} ${driver.lastName}</div>
+                                <div class="text-sm text-gray-500">ID: ${driver.driverNumber}</div>
                             </div>
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${driver.license?.number || 'N/A'}</div>
-                        <div class="text-sm text-gray-500">${driver.license?.state || ''} ${driver.license?.expiration ? 'Exp: ' + driver.license.expiration : ''}</div>
+                        <div class="text-sm text-gray-900">${driver.license.number}</div>
+                        <div class="text-xs text-gray-500">Exp: ${Utils.formatDate(driver.license.expiration)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${Utils.capitalize(driver.driverType?.replace('_', ' ') || 'N/A')}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${driver.payment.type === 'percentage' ? (driver.payPercentage > 1 ? driver.payPercentage : driver.payPercentage * 100).toFixed(0) + '%' :
+                        driver.payment.type === 'per_mile' ? Utils.formatCurrency(driver.payment.perMileRate) + '/mi' :
+                            driver.payment.type === 'flat_rate' ? Utils.formatCurrency(driver.payment.flatRate) + '/load' : 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${driver.currentTruckId ? (window.getCurrentTruckDisplay ? getCurrentTruckDisplay(driver.currentTruckId) : driver.currentTruckId) : 'Unassigned'}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">
-                            ${driver.driverType === 'company' ? 'Company Driver' :
-                        driver.driverType === 'owner_operator' ? 'Owner Operator' :
-                            driver.driverType === 'owner' ? 'Owner (Driver)' : 'N/A'}
-                        </div>
-                        <div class="text-xs text-gray-500">
-                            ${driver.payment?.type === 'per_mile' ? 'Per Mile' : driver.payment?.type === 'percentage' ? 'Percentage' : driver.payment?.type === 'flat_rate' ? 'Flat Rate' : 'Unknown'}
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${driver.payment?.type === 'per_mile' ? Utils.formatCurrency(driver.payment?.perMileRate || 0) + '/mi' : driver.payment?.type === 'percentage' ? ((driver.payPercentage || 0) > 1 ? (driver.payPercentage || 0) : (driver.payPercentage || 0) * 100).toFixed(0) + '%' : driver.payment?.type === 'flat_rate' ? Utils.formatCurrency(driver.payment?.flatRate || 0) + '/load' : '-'}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white ${statusClass}">
-                            ${(driver.status || 'unknown').replace('_', ' ').toUpperCase()}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                            ${Utils.capitalize(driver.status)}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${getCurrentTruckDisplay(driver.currentTruckId)}</div>
+                        <div class="flex items-center">
+                            <span class="text-sm text-gray-900 mr-2">98%</span>
+                            <div class="w-16 bg-gray-200 rounded-full h-2">
+                                <div class="bg-green-500 h-2 rounded-full" style="width: 98%"></div>
+                            </div>
+                        </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${driver.phone || 'N/A'}</div>
-                        <div class="text-sm text-gray-500">${driver.email || 'N/A'}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button onclick="editDriver('${driver.id}')" class="text-blue-600 hover:text-blue-900 mr-3">
                             <i class="fas fa-edit"></i>
-                        </button>
-                        <button onclick="viewDriver('${driver.id}')" class="text-green-600 hover:text-green-900 mr-3">
-                            <i class="fas fa-eye"></i>
                         </button>
                         <button onclick="deleteDriver('${driver.id}')" class="text-red-600 hover:text-red-900">
                             <i class="fas fa-trash"></i>
@@ -965,6 +996,56 @@
                     </td>
                 `;
                 tbody.appendChild(tr);
+
+                // Render Mobile Card
+                if (mobileList) {
+                    const card = document.createElement('div');
+                    card.className = 'mobile-card';
+                    card.innerHTML = `
+                        <div class="mobile-card-header">
+                            <div class="flex items-center">
+                                <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold mr-3">
+                                    ${driver.firstName.charAt(0)}${driver.lastName.charAt(0)}
+                                </div>
+                                <span class="text-gray-900 font-bold">${driver.firstName} ${driver.lastName}</span>
+                            </div>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
+                                ${Utils.capitalize(driver.status)}
+                            </span>
+                        </div>
+                        <div class="mobile-card-body">
+                            <div class="mobile-card-row">
+                                <span class="mobile-card-label">Driver ID</span>
+                                <span class="mobile-card-value">${driver.driverNumber}</span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="mobile-card-label">License</span>
+                                <span class="mobile-card-value">${driver.license.number}</span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="mobile-card-label">Payment</span>
+                                <span class="mobile-card-value">
+                                    ${driver.payment.type === 'percentage' ? (driver.payPercentage > 1 ? driver.payPercentage : driver.payPercentage * 100).toFixed(0) + '%' :
+                            driver.payment.type === 'per_mile' ? Utils.formatCurrency(driver.payment.perMileRate) + '/mi' :
+                                driver.payment.type === 'flat_rate' ? Utils.formatCurrency(driver.payment.flatRate) + '/load' : 'N/A'}
+                                </span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="mobile-card-label">Truck</span>
+                                <span class="mobile-card-value">${driver.currentTruckId ? (window.getCurrentTruckDisplay ? getCurrentTruckDisplay(driver.currentTruckId) : driver.currentTruckId) : 'Unassigned'}</span>
+                            </div>
+                        </div>
+                        <div class="mobile-card-actions">
+                            <button onclick="editDriver('${driver.id}')" class="bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
+                                <i class="fas fa-edit mr-2"></i>Edit
+                            </button>
+                            <button onclick="deleteDriver('${driver.id}')" class="bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
+                                <i class="fas fa-trash mr-2"></i>Delete
+                            </button>
+                        </div>
+                    `;
+                    mobileList.appendChild(card);
+                }
             });
         }
 

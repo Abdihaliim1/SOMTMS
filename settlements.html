@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <!-- Mobile Responsiveness -->
-    <link rel="stylesheet" href="mobile-fixes.css?v=2.0.1">
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -90,21 +90,25 @@
 
 <body class="bg-gray-50">
     <!-- Navigation -->
-    <nav class="gradient-bg text-white shadow-lg">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
+                <!-- Logo & Brand -->
                 <div class="flex items-center space-x-4">
-                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-12 w-12 object-contain"
+                    <img src="resources/ats-freight-logo.png" alt="ATS FREIGHT LLC" class="h-10 w-10 object-contain"
                         onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('flex');">
                     <div
-                        class="company-logo hidden w-12 h-12 bg-white rounded-lg items-center justify-center font-bold text-gray-800">
+                        class="company-logo hidden w-10 h-10 bg-white rounded-lg items-center justify-center font-bold text-gray-800">
                         ATS</div>
                     <div>
-                        <h1 class="text-xl font-bold">ATS FREIGHT LLC</h1>
-                        <p class="text-sm opacity-90">Transportation Management System</p>
+                        <h1 class="text-lg font-bold leading-tight">ATS FREIGHT LLC</h1>
+                        <p class="text-xs opacity-90 hidden sm:block">Transportation Management System</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-6">
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-6 desktop-nav">
                     <a href="index.html" class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                     </a>
@@ -117,26 +121,43 @@
                     <span class="nav-item active px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-calculator mr-2"></i>Settlements
                     </span>
-                    <span class="text-sm">Welcome, Liban Ali</span>
+                    <span class="text-sm opacity-80">Welcome, Liban Ali</span>
                     <button class="nav-item px-3 py-2 rounded-md text-sm font-medium">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </button>
                 </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobileMenuBtn" class="md:hidden text-white p-2 focus:outline-none mobile-menu-btn"
+                    title="Toggle mobile menu">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
             </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobileMenu" class="mobile-menu md:hidden">
+            <a href="index.html"><i class="fas fa-tachometer-alt mr-3 w-6 text-center"></i>Dashboard</a>
+            <a href="loads.html"><i class="fas fa-truck mr-3 w-6 text-center"></i>Loads</a>
+            <a href="drivers.html"><i class="fas fa-users mr-3 w-6 text-center"></i>Drivers</a>
+            <a href="settlements.html" class="bg-gray-700"><i
+                    class="fas fa-calculator mr-3 w-6 text-center"></i>Settlements</a>
+            <a href="#"><i class="fas fa-sign-out-alt mr-3 w-6 text-center"></i>Logout</a>
         </div>
     </nav>
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Page Header -->
-        <div class="flex justify-between items-center mb-8">
+        <!-- Page Header -->
+        <div class="flex justify-between items-center mb-8 page-header">
             <div>
                 <h2 class="text-3xl font-bold text-gray-900">Driver Settlements</h2>
                 <p class="text-gray-600 mt-2">Manage driver payments and settlements</p>
             </div>
             <div class="flex items-center space-x-4">
                 <button onclick="openGenerateSettlementModal()"
-                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-md">
                     <i class="fas fa-plus"></i>
                     Generate Settlement
                 </button>
@@ -275,7 +296,7 @@
                     </div>
                 </div>
             </div>
-            <div class="overflow-x-auto table-responsive table-scroll-hint">
+            <div class="overflow-x-auto table-responsive table-scroll-hint desktop-table">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -303,6 +324,11 @@
                         <!-- Populated by JS -->
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Card List (Mobile Only) -->
+            <div id="mobileSettlementsList" class="mobile-card-list md:hidden">
+                <!-- Populated by JS -->
             </div>
         </div>
     </div>
@@ -883,9 +909,13 @@
 
         function renderSettlementsTable() {
             const tbody = document.getElementById('settlementsTableBody');
+            const mobileList = document.getElementById('mobileSettlementsList');
+
             if (!tbody) return;
 
             tbody.innerHTML = '';
+            if (mobileList) mobileList.innerHTML = '';
+
             let settlements = DataManager.settlements || [];
 
             // Apply filters
@@ -900,7 +930,7 @@
             }
 
             if (settlements.length === 0) {
-                tbody.innerHTML = `
+                const emptyState = `
                     <tr>
                         <td colspan="9" class="px-6 py-8 text-center text-gray-500">
                             <i class="fas fa-file-invoice-dollar text-4xl mb-4 text-gray-300"></i>
@@ -908,6 +938,15 @@
                         </td>
                     </tr>
                 `;
+                tbody.innerHTML = emptyState;
+                if (mobileList) {
+                    mobileList.innerHTML = `
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-file-invoice-dollar text-4xl mb-4 text-gray-300"></i>
+                            <p>No settlements found.</p>
+                        </div>
+                    `;
+                }
                 updateStats();
                 return;
             }
@@ -919,6 +958,9 @@
                         ? 'bg-blue-100 text-blue-800'
                         : 'bg-yellow-100 text-yellow-800';
 
+                const statusLabel = (settlement.status || 'pending').charAt(0).toUpperCase() + (settlement.status || 'pending').slice(1);
+
+                // Desktop Row
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50';
                 row.innerHTML = `
@@ -930,7 +972,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">-${Utils.formatCurrency(settlement.totalDeductions || 0)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">${Utils.formatCurrency(settlement.netPay || 0)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-xs rounded-full ${statusClass}">${(settlement.status || 'pending').charAt(0).toUpperCase() + (settlement.status || 'pending').slice(1)}</span>
+                        <span class="px-2 py-1 text-xs rounded-full ${statusClass}">${statusLabel}</span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                         <button onclick="viewSettlement('${settlement.id}')" class="text-blue-600 hover:text-blue-800" title="View">
@@ -945,6 +987,51 @@
                     </td>
                 `;
                 tbody.appendChild(row);
+
+                // Mobile Card
+                if (mobileList) {
+                    const card = document.createElement('div');
+                    card.className = 'mobile-card';
+                    card.innerHTML = `
+                        <div class="mobile-card-header">
+                            <div>
+                                <div class="font-bold text-gray-900">${settlement.settlementNumber || 'N/A'}</div>
+                                <div class="text-xs text-gray-500">${settlement.period?.display || formatDate(settlement.createdAt)}</div>
+                            </div>
+                            <span class="px-2 py-1 text-xs rounded-full ${statusClass}">${statusLabel}</span>
+                        </div>
+                        <div class="mobile-card-body">
+                            <div class="mobile-card-row">
+                                <span class="mobile-card-label">Driver:</span>
+                                <span class="mobile-card-value">${settlement.driverName || 'Unknown'}</span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="mobile-card-label">Net Pay:</span>
+                                <span class="mobile-card-value text-green-600">${Utils.formatCurrency(settlement.netPay || 0)}</span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="mobile-card-label">Gross Pay:</span>
+                                <span class="mobile-card-value">${Utils.formatCurrency(settlement.grossPay || 0)}</span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="mobile-card-label">Deductions:</span>
+                                <span class="mobile-card-value text-red-500">-${Utils.formatCurrency(settlement.totalDeductions || 0)}</span>
+                            </div>
+                        </div>
+                        <div class="mobile-card-actions">
+                            <button onclick="viewSettlement('${settlement.id}')" class="bg-blue-50 text-blue-600 rounded hover:bg-blue-100">
+                                <i class="fas fa-eye mr-1"></i> View
+                            </button>
+                            <button onclick="printSettlement('${settlement.id}')" class="bg-gray-50 text-gray-600 rounded hover:bg-gray-100">
+                                <i class="fas fa-print mr-1"></i> PDF
+                            </button>
+                            <button onclick="deleteSettlement('${settlement.id}')" class="bg-red-50 text-red-600 rounded hover:bg-red-100">
+                                <i class="fas fa-trash mr-1"></i> Delete
+                            </button>
+                        </div>
+                    `;
+                    mobileList.appendChild(card);
+                }
             });
 
             updateStats();
@@ -1597,6 +1684,24 @@ Status: ${settlement.status}
 
             // Set default week to current week
             setCurrentWeek();
+
+            // Mobile Menu Toggle
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('open');
+                    const icon = mobileMenuBtn.querySelector('i');
+                    if (mobileMenu.classList.contains('open')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+            }
         });
     </script>
 

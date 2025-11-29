@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <!-- Mobile Responsiveness -->
-    <link rel="stylesheet" href="mobile-fixes.css?v=2.0.1">
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -113,6 +113,23 @@
 
             .main-content {
                 margin-left: 0;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 45;
+                -webkit-backdrop-filter: blur(2px);
+                backdrop-filter: blur(2px);
+            }
+
+            .sidebar-overlay.show {
+                display: block;
             }
         }
     </style>
@@ -620,6 +637,44 @@
 
             // Make it globally available
             window.DashboardManager = DashboardManager;
+
+            // Sidebar Toggle Logic
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarLinks = document.querySelectorAll('.sidebar-item');
+
+            function toggleSidebar() {
+                sidebar.classList.toggle('open');
+                if (sidebarOverlay) sidebarOverlay.classList.toggle('show');
+
+                // Update icon
+                const icon = mobileMenuBtn.querySelector('i');
+                if (sidebar.classList.contains('open')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            }
+
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', toggleSidebar);
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+
+            // Close sidebar when clicking a link on mobile
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 1024) {
+                        toggleSidebar();
+                    }
+                });
+            });
         });
 
         // Global refresh function for other pages to call
